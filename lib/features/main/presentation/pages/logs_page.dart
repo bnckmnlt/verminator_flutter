@@ -284,8 +284,73 @@ class _LogsPageState extends State<LogsPage> {
                           LogTileWidget(
                               id: 412,
                               severity: LogSeverity.log,
-                              message: "Hello world",
-                              createdAt: "2021-09-12 12:00:00"),
+                              message: "JUICE:2L",
+                              createdAt: "2025-02-16 12:00:00"),
+                          LogTileWidget(
+                              id: 412,
+                              severity: LogSeverity.log,
+                              message: "NPK:53:120:118",
+                              createdAt: "2025-02-16 12:00:00"),
+                          LogTileWidget(
+                              id: 412,
+                              severity: LogSeverity.log,
+                              message: "RESERVOIR:28L",
+                              createdAt: "2025-02-16 12:00:00"),
+                          LogTileWidget(
+                              id: 412,
+                              severity: LogSeverity.log,
+                              message: "TEMP:32",
+                              createdAt: "2025-02-16 12:00:00"),
+                          LogTileWidget(
+                              id: 412,
+                              severity: LogSeverity.log,
+                              message: "MOISTURE:64",
+                              createdAt: "2025-02-16 12:00:00"),
+                          LogTileWidget(
+                              id: 412,
+                              severity: LogSeverity.log,
+                              message: "SOILMOISTURE:32",
+                              createdAt: "2025-02-16 12:00:00"),
+                          LogTileWidget(
+                              id: 412,
+                              severity: LogSeverity.log,
+                              message: "COMPOST:1L",
+                              createdAt: "2025-02-16 12:00:00"),
+                          LogTileWidget(
+                              id: 412,
+                              severity: LogSeverity.log,
+                              message: "JUICE:2L",
+                              createdAt: "2025-02-16 12:00:00"),
+                          LogTileWidget(
+                              id: 412,
+                              severity: LogSeverity.log,
+                              message: "NPK:46:127:112",
+                              createdAt: "2025-02-16 12:00:00"),
+                          LogTileWidget(
+                              id: 412,
+                              severity: LogSeverity.log,
+                              message: "RESERVOIR:28L",
+                              createdAt: "2025-02-16 12:00:00"),
+                          LogTileWidget(
+                              id: 412,
+                              severity: LogSeverity.log,
+                              message: "TEMP:33",
+                              createdAt: "2025-02-16 12:00:00"),
+                          LogTileWidget(
+                              id: 412,
+                              severity: LogSeverity.log,
+                              message: "MOISTURE:62",
+                              createdAt: "2025-02-16 12:00:00"),
+                          LogTileWidget(
+                              id: 412,
+                              severity: LogSeverity.log,
+                              message: "SOILMOISTURE:33",
+                              createdAt: "2025-02-16 12:00:00"),
+                          LogTileWidget(
+                              id: 412,
+                              severity: LogSeverity.log,
+                              message: "COMPOST:1L",
+                              createdAt: "2025-02-16 12:00:00"),
                         ],
                       ),
                     ),

@@ -174,7 +174,7 @@ Widget systemCycle(BuildContext context) {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  "24 February 2025, 2:45 PM",
+                  "24 February 2025",
                   style: TextStyle(
                     fontSize: 12,
                     color:

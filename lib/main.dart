@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/theme/theme.dart';
+import 'package:flutter_vermicomposting/init_dependencies.dart';
 
 import 'features/main/presentation/layouts/main_layout.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await initDependencies();
+
+  // runApp(
+  //   MultiBlocProvider(
+  //     providers: [
+  //       // BlocProvider(
+  //       //   create: (_) => sl(),
+  //       // ),
+  //     ],
+  //     child: const MyApp(),
+  //   ),
+  // );
 
   runApp(const MyApp());
 }
