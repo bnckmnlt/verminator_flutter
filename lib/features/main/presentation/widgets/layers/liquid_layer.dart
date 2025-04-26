@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_vermicomposting/features/main/domain/entities/sensor_values.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/fluid_card_widget.dart';
 
-class LiquidLayer extends StatelessWidget {
-  const LiquidLayer({super.key});
+class LiquidLayer extends StatefulWidget {
+  const LiquidLayer({
+    super.key,
+    required this.sensorValue,
+  });
 
+  final SensorValues sensorValue;
+
+  @override
+  State<LiquidLayer> createState() => _LiquidLayerState();
+}
+
+class _LiquidLayerState extends State<LiquidLayer> {
   @override
   Widget build(BuildContext context) {
     return Column(

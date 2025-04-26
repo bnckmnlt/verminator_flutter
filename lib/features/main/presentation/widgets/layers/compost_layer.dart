@@ -1,12 +1,23 @@
 // lib/features/main/presentation/widgets/compost_layer.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_vermicomposting/features/main/domain/entities/sensor_values.dart';
 import 'package:liquid_progress_indicator_v2/liquid_progress_indicator.dart';
 
 import '../sensor_card_widget.dart';
 
-class CompostLayer extends StatelessWidget {
-  const CompostLayer({super.key});
+class CompostLayer extends StatefulWidget {
+  const CompostLayer({
+    super.key,
+    required this.sensorValue,
+  });
 
+  final SensorValues sensorValue;
+
+  @override
+  State<CompostLayer> createState() => _CompostLayerState();
+}
+
+class _CompostLayerState extends State<CompostLayer> {
   @override
   Widget build(BuildContext context) {
     bool isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
@@ -34,10 +45,16 @@ class CompostLayer extends StatelessWidget {
             // NPK Sensor
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                SensorCard(label: "Nitrogen (N)", value: "53 mg/kg"),
-                SensorCard(label: "Phosphorus (P)", value: "120 mg/kg"),
-                SensorCard(label: "Potassium (K)", value: "118 mg/kg"),
+              children: [
+                SensorCard(
+                    label: "Nitrogen (N)",
+                    value: "${widget.sensorValue.nitrogen ?? 0}%"),
+                SensorCard(
+                    label: "Phosphorus (P)",
+                    value: "${widget.sensorValue.phosphorus ?? 0}%"),
+                SensorCard(
+                    label: "Potassium (K)",
+                    value: "${widget.sensorValue.potassium ?? 0}%"),
               ],
             ),
 

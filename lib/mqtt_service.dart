@@ -42,12 +42,12 @@ class MqttService extends ChangeNotifier {
       StreamController<String>.broadcast();
   final StreamController<Map<String, String>> _deviceInfoController =
       StreamController<Map<String, String>>.broadcast();
-  final StreamController<Map<String, String>> _beddingLayerController =
-      StreamController<Map<String, String>>.broadcast();
-  final StreamController<Map<String, String>> _compostLayerController =
-      StreamController<Map<String, String>>.broadcast();
-  final StreamController<Map<String, String>> _fluidLayerController =
-      StreamController<Map<String, String>>.broadcast();
+  final StreamController<String> _beddingLayerController =
+      StreamController<String>.broadcast();
+  final StreamController<String> _compostLayerController =
+      StreamController<String>.broadcast();
+  final StreamController<String> _fluidLayerController =
+      StreamController<String>.broadcast();
 
   Stream<String> get systemStatusStream => _systemStatusController.stream;
 
@@ -61,14 +61,11 @@ class MqttService extends ChangeNotifier {
   Stream<Map<String, String>> get deviceInfoStream =>
       _deviceInfoController.stream;
 
-  Stream<Map<String, String>> get beddingLayerStream =>
-      _beddingLayerController.stream;
+  Stream<String> get beddingLayerStream => _beddingLayerController.stream;
 
-  Stream<Map<String, String>> get compostLayerStream =>
-      _beddingLayerController.stream;
+  Stream<String> get compostLayerStream => _compostLayerController.stream;
 
-  Stream<Map<String, String>> get fluidLayerStream =>
-      _beddingLayerController.stream;
+  Stream<String> get fluidLayerStream => _fluidLayerController.stream;
 
   void initializeMQTTClient() {
     _client.useWebSocket = true;
@@ -137,15 +134,18 @@ class MqttService extends ChangeNotifier {
               break;
 
             case 'layer/bedding':
-              _handleDeviceInfo(message, _beddingLayerController);
+              // _handleDeviceInfo(message, _beddingLayerController);
+              _beddingLayerController.add(message);
               break;
 
             case 'layer/compost':
-              _handleDeviceInfo(message, _compostLayerController);
+              // _handleDeviceInfo(message, _compostLayerController);
+              _compostLayerController.add(message);
               break;
 
             case 'layer/fluid':
-              _handleDeviceInfo(message, _fluidLayerController);
+              // _handleDeviceInfo(message, _fluidLayerController);
+              _fluidLayerController.add(message);
               break;
 
             default:
@@ -232,6 +232,9 @@ class MqttService extends ChangeNotifier {
     _currentCycleController.close();
     _currentScheduleController.close();
     _deviceInfoController.close();
+    _beddingLayerController.close();
+    _compostLayerController.close();
+    _fluidLayerController.close();
 
     unsubScribeToTopics();
 

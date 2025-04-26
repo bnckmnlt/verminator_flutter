@@ -1,10 +1,21 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vermicomposting/features/main/domain/entities/sensor_values.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/summary_card_widget.dart';
 
-class BeddingLayer extends StatelessWidget {
-  const BeddingLayer({super.key});
+class BeddingLayer extends StatefulWidget {
+  const BeddingLayer({
+    super.key,
+    required this.sensorValue,
+  });
 
+  final SensorValues sensorValue;
+
+  @override
+  State<BeddingLayer> createState() => _BeddingLayerState();
+}
+
+class _BeddingLayerState extends State<BeddingLayer> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -28,21 +39,21 @@ class BeddingLayer extends StatelessWidget {
           children: [
             SummaryCard(
               label: "Temperature",
-              value: "32°C",
+              value: widget.sensorValue.temperature.toString() + "°C",
               icon: FluentIcons.temperature_24_filled,
               color: Colors.red,
             ),
             const SizedBox(height: 12),
             SummaryCard(
-              label: "Moisture",
-              value: "64%",
+              label: "Humidity",
+              value: widget.sensorValue.humidity.toString() + "%",
               icon: FluentIcons.drop_24_filled,
               color: Colors.blue,
             ),
             const SizedBox(height: 12),
             SummaryCard(
               label: "Soil Moisture",
-              value: "32%",
+              value: widget.sensorValue.soilMoisture.toString() + "%",
               icon: FluentIcons.plant_grass_24_filled,
               color: Colors.lightGreen,
             ),
