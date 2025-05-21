@@ -24,7 +24,7 @@ class LiveMonitoringSection extends StatelessWidget {
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Center(
+                child: const Center(
                   child: GeneralErrorWidget(
                     errorTitle: "Worm Monitoring not available",
                     errorMessage:
@@ -42,7 +42,7 @@ class LiveMonitoringSection extends StatelessWidget {
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Center(
+                child: const Center(
                   child: GeneralErrorWidget(
                     errorTitle: "Camera Feed not found",
                     errorMessage:

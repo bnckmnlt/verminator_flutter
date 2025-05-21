@@ -17,10 +17,10 @@ class LiquidLayer extends StatefulWidget {
 class _LiquidLayerState extends State<LiquidLayer> {
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Align(
+        Align(
           alignment: Alignment.centerLeft,
           child: Text(
             "Fluids Layer",
@@ -31,7 +31,7 @@ class _LiquidLayerState extends State<LiquidLayer> {
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
 
         // Fluids Layer
         SizedBox(
@@ -39,7 +39,7 @@ class _LiquidLayerState extends State<LiquidLayer> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
+            children: [
               FluidCard(
                 value: 4 / 28,
                 label: "Compost Juice",

@@ -126,7 +126,7 @@ class CompostScheduleRemoteDatasourceImpl
           'scheduleName': scheduleName ?? "",
           'compostProduced': compostProduced ?? "",
           'juiceProduced': juiceProduced ?? "",
-          'isCompleted': isCompleted ?? null,
+          'isCompleted': isCompleted,
         }),
       );
 

@@ -43,7 +43,7 @@ Widget systemSummary(BuildContext context) {
             height: 2,
           ),
         ),
-        SummaryCard(
+        const SummaryCard(
           label: "Total Compost Generated",
           value: "54 kg",
           icon: Icons.eco_rounded,
@@ -55,13 +55,13 @@ Widget systemSummary(BuildContext context) {
           icon: FluentIcons.food_apple_24_filled,
           color: Colors.greenAccent.shade200,
         ),
-        SummaryCard(
+        const SummaryCard(
           label: "Total VermiJuice Collected",
           value: "22L",
           icon: FluentIcons.drink_bottle_32_filled,
           color: Colors.amberAccent,
         ),
-        SummaryCard(
+        const SummaryCard(
           label: "Total Cycle/s Done",
           value: "1 cycle",
           icon: FluentIcons.recycle_32_filled,
@@ -189,7 +189,7 @@ Widget systemCycle(BuildContext context) {
           const SizedBox(height: 14),
 
           // Stepper
-          CompostingStatusStepper(
+          const CompostingStatusStepper(
             status: CompostingStatus.processing,
             time: "12:00",
           ),

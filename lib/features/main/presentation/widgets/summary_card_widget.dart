@@ -40,7 +40,7 @@ class SummaryCard extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -55,7 +55,7 @@ class SummaryCard extends StatelessWidget {
               ),
               Text(
                 value,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.025,

@@ -21,7 +21,7 @@ class GeneralErrorWidget extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           errorTitle,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),

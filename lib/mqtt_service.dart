@@ -22,14 +22,18 @@ class MqttService extends ChangeNotifier {
     'control/relay',
     'control/conveyor',
     'control/rake',
+    'control/monitoring/camera',
+    'control/monitoring/thermal',
     'layer/bedding',
     'layer/compost',
     'layer/fluid',
-    'system/status',
-    'system/device/info',
-    'system/health',
+    'layer/worms',
     'system/current_cycle',
-    'system/current_cycle/schedule',
+    'system/status',
+    'system/health',
+    'system/device/info',
+    'schedule/sifter',
+    'schedule/aeration',
   ];
 
   final StreamController<String> _systemStatusController =

@@ -138,13 +138,13 @@ class _LogsPageState extends State<LogsPage> {
                               child: DottedBorder(
                                 strokeWidth: 1.3,
                                 borderType: BorderType.RRect,
-                                radius: Radius.circular(8),
+                                radius: const Radius.circular(8),
                                 padding: const EdgeInsets.symmetric(
                                     vertical: 8.0, horizontal: 12.0),
                                 color: Theme.of(context).colorScheme.surfaceDim,
                                 child: ClipRRect(
                                   borderRadius:
-                                      BorderRadius.all(Radius.circular(8)),
+                                      const BorderRadius.all(Radius.circular(8)),
                                   child: Container(
                                     child: Text(
                                       selectedSeverity == LogSeverityFilter.all
@@ -278,7 +278,7 @@ class _LogsPageState extends State<LogsPage> {
                         ),
                       ),
                     ),
-                    child: SingleChildScrollView(
+                    child: const SingleChildScrollView(
                       child: Column(
                         children: [
                           LogTileWidget(

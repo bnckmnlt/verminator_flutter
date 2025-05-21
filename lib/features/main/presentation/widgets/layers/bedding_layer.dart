@@ -20,9 +20,9 @@ class _BeddingLayerState extends State<BeddingLayer> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Align(
+        const Align(
           alignment: Alignment.centerLeft,
-          child: const Text(
+          child: Text(
             "Bedding Layer",
             style: TextStyle(
               fontSize: 18,
@@ -39,21 +39,21 @@ class _BeddingLayerState extends State<BeddingLayer> {
           children: [
             SummaryCard(
               label: "Temperature",
-              value: widget.sensorValue.temperature.toString() + "°C",
+              value: "${widget.sensorValue.temperature}°C",
               icon: FluentIcons.temperature_24_filled,
               color: Colors.red,
             ),
             const SizedBox(height: 12),
             SummaryCard(
               label: "Humidity",
-              value: widget.sensorValue.humidity.toString() + "%",
+              value: "${widget.sensorValue.humidity}%",
               icon: FluentIcons.drop_24_filled,
               color: Colors.blue,
             ),
             const SizedBox(height: 12),
             SummaryCard(
               label: "Soil Moisture",
-              value: widget.sensorValue.soilMoisture.toString() + "%",
+              value: "${widget.sensorValue.soilMoisture}%",
               icon: FluentIcons.plant_grass_24_filled,
               color: Colors.lightGreen,
             ),

@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage> {
                                 letterSpacing: 0.025,
                               ),
                             ),
-                            Text(
+                            const Text(
                               "Good Morning!",
                               style: TextStyle(
                                 fontSize: 24,
@@ -110,17 +110,17 @@ class _HomePageState extends State<HomePage> {
                         .surfaceContainerHighest
                         .withAlpha(124),
                     padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-                    child: Column(
+                    child: const Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         // 1st Section
                         SummarySection(),
 
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24),
                         // 2nd Section
                         SensorReadingSection(),
 
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24),
                         // 3rd Section
                         LiveMonitoringSection(),
                       ],
