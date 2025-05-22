@@ -28,7 +28,7 @@ class _WaitingPageState extends State<WaitingPage>
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
 
-    _tipTimer = Timer.periodic(Duration(seconds: 10), (timer) {
+    _tipTimer = Timer.periodic(Duration(seconds: 6), (timer) {
       setState(() {
         _currentTipIndex =
             ((_currentTipIndex + 1) % Constants.loadingTips.length);

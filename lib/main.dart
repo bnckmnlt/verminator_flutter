@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/theme/theme.dart';
 import 'package:flutter_vermicomposting/init_dependencies.dart';
 
-import 'features/main/presentation/layouts/main_layout.dart';
+import 'features/main/presentation/pages/failed_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +40,6 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
-        home: const MainLayout());
+        home: FailedPage());
   }
 }

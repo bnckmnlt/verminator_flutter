@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+
 enum LogSeverityFilter { all, info, warn, error, fatal }
 
 enum CompostingStatus {
@@ -38,5 +40,19 @@ class ReminderInterval {
   const ReminderInterval({
     required this.label,
     required this.days,
+  });
+}
+
+class ProcessInformation {
+  final IconData icon;
+  final title;
+  final message;
+  final bool currentError;
+
+  const ProcessInformation({
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.currentError,
   });
 }

@@ -114,26 +114,18 @@ class _ConfigurationsPageState extends State<ConfigurationsPage> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+                                padding:
+                                    const EdgeInsets.fromLTRB(12, 8, 12, 8),
                                 minimumSize: Size.zero,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                               onPressed: () {},
-                              child: const Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    "Submit Changes",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12,
-                                      letterSpacing: 0.025,
-                                    ),
-                                  ),
-                                  SizedBox(width: 2),
-                                  Icon(Icons.chevron_right),
-                                ],
+                              child: const Text(
+                                "Submit Changes",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
                           ],
@@ -479,7 +471,7 @@ class _ConfigurationsPageState extends State<ConfigurationsPage> {
                   RangeSlider(
                     min: 0.0,
                     max: 100.0,
-                    divisions: 10,
+                    divisions: 20,
                     values: _soilAerationRangeValue,
                     onChanged: (RangeValues values) {
                       setState(() {

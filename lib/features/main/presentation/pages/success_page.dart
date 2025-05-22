@@ -402,6 +402,7 @@ class _SuccessPageState extends State<SuccessPage> {
             ),
             Text(
               "Successfully saved!",
+              textAlign: TextAlign.center,
               style: GoogleFonts.manrope(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
