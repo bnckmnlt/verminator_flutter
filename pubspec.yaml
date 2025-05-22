@@ -79,6 +79,7 @@ flutter:
      - assets/animations/
      - assets/fonts/geist/
      - assets/fonts/satoshi/
+     - assets/fonts/general-sans/
      - assets/icons/
      - assets/images/
      - .env
@@ -160,6 +161,32 @@ flutter:
           weight: 800
         - asset: assets/fonts/satoshi/Satoshi-BlackItalic.otf
           weight: 800
+          style: italic
+    - family: General Sans
+      fonts:
+        - asset: assets/fonts/general-sans/GeneralSans-Light.otf
+          weight: 300
+        - asset: assets/fonts/general-sans/GeneralSans-LightItalic.otf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/general-sans/GeneralSans-Regular.otf
+          weight: 400
+        - asset: assets/fonts/general-sans/GeneralSans-Italic.otf
+          style: italic
+        - asset: assets/fonts/general-sans/GeneralSans-Medium.otf
+          weight: 500
+        - asset: assets/fonts/general-sans/GeneralSans-MediumItalic.otf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/general-sans/GeneralSans-Semibold.otf
+          weight: 600
+        - asset: assets/fonts/general-sans/GeneralSans-SemiboldItalic.otf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/general-sans/GeneralSans-Bold.otf
+          weight: 700
+        - asset: assets/fonts/general-sans/GeneralSans-BoldItalic.otf
+          weight: 700
           style: italic
   #
   # For details regarding fonts from package dependencies,

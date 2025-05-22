@@ -123,16 +123,20 @@ class _LogsPageState extends State<LogsPage> {
                                   child: Text('All'),
                                 ),
                                 PopupMenuItem(
-                                  value: LogSeverityFilter.log,
-                                  child: Text('Log'),
+                                  value: LogSeverityFilter.info,
+                                  child: Text('Info'),
+                                ),
+                                PopupMenuItem(
+                                  value: LogSeverityFilter.warn,
+                                  child: Text('warn'),
                                 ),
                                 PopupMenuItem(
                                   value: LogSeverityFilter.error,
                                   child: Text('Error'),
                                 ),
                                 PopupMenuItem(
-                                  value: LogSeverityFilter.warning,
-                                  child: Text('Warning'),
+                                  value: LogSeverityFilter.fatal,
+                                  child: Text('Fatal'),
                                 ),
                               ],
                               child: DottedBorder(
@@ -143,8 +147,8 @@ class _LogsPageState extends State<LogsPage> {
                                     vertical: 8.0, horizontal: 12.0),
                                 color: Theme.of(context).colorScheme.surfaceDim,
                                 child: ClipRRect(
-                                  borderRadius:
-                                      const BorderRadius.all(Radius.circular(8)),
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(8)),
                                   child: Container(
                                     child: Text(
                                       selectedSeverity == LogSeverityFilter.all

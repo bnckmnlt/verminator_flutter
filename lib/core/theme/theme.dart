@@ -20,7 +20,7 @@ import 'package:flutter/material.dart';
 sealed class AppTheme {
   // The defined light theme.
   static ThemeData light = FlexThemeData.light(
-    fontFamily: "Satoshi",
+    fontFamily: "General Sans",
     scheme: FlexScheme.blue,
     appBarStyle: FlexAppBarStyle.primary,
     appBarElevation: 4.0,
@@ -104,7 +104,7 @@ sealed class AppTheme {
   );
   // The defined dark theme.
   static ThemeData dark = FlexThemeData.dark(
-    fontFamily: "Satoshi",
+    fontFamily: "General Sans",
     scheme: FlexScheme.blue,
     appBarStyle: FlexAppBarStyle.material,
     appBarElevation: 4.0,
