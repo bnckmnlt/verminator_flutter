@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 
 enum LogSeverityFilter { all, info, warn, error, fatal }
 
+enum SensorStatus { good, fair, bad }
+
 enum CompostingStatus {
   initial,
   processing,
@@ -54,5 +56,49 @@ class ProcessInformation {
     required this.title,
     required this.message,
     required this.currentError,
+  });
+}
+
+class ConfigInformation {
+  final String label;
+  final String setting;
+
+  const ConfigInformation({
+    required this.label,
+    required this.setting,
+  });
+}
+
+class SensorReadings {
+  final IconData icon;
+  final String label;
+  final String value;
+  final String unit;
+  final SensorStatus status;
+  final String? remarks;
+
+  SensorReadings({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.unit,
+    required this.status,
+    this.remarks,
+  });
+}
+
+class SummaryCardItem {
+  final String label;
+  final String value;
+  final String unit;
+  final IconData icon;
+  final Color color;
+
+  SummaryCardItem({
+    required this.label,
+    required this.value,
+    required this.unit,
+    required this.icon,
+    required this.color,
   });
 }

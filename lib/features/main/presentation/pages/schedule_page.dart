@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/waiting_page.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_waiting_screen.dart';
 
 class SchedulePage extends StatefulWidget {
   const SchedulePage({super.key});
@@ -62,7 +62,8 @@ class _SchedulePageState extends State<SchedulePage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => WaitingPage(),
+                                    builder: (context) =>
+                                        InitializationWaitingScreen(),
                                   ),
                                 );
                               },

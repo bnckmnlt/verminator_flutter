@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/theme/theme.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/home_screen.dart';
 import 'package:flutter_vermicomposting/init_dependencies.dart';
-
-import 'features/main/presentation/pages/failed_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,8 +30,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  bool isActive = false;
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -40,6 +37,6 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
-        home: FailedPage());
+        home: HomeScreen());
   }
 }

@@ -1,19 +1,21 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_vermicomposting/core/common/widgets/app_background.dart';
-import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/glassmorphic_card_widget.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/status_card_widget.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/waiting_page.dart';
-import 'package:lottie/lottie.dart';
 
-class FailedPage extends StatefulWidget {
-  const FailedPage({super.key});
+import 'initialization_waiting_screen.dart';
+
+class InitializationFailedScreen extends StatefulWidget {
+  const InitializationFailedScreen({super.key});
 
   @override
-  State<FailedPage> createState() => _FailedPageState();
+  State<InitializationFailedScreen> createState() =>
+      _InitializationFailedScreenState();
 }
 
-class _FailedPageState extends State<FailedPage> {
+class _InitializationFailedScreenState
+    extends State<InitializationFailedScreen> {
   int? _expandedIndex;
 
   void _toggleExpand(int index) {
@@ -47,7 +49,7 @@ class _FailedPageState extends State<FailedPage> {
       title: "Something went wrong during the process",
       message:
           "An unexpected error occurred while processing the input materials. Please restart the operation and monitor the loading steps. Ensure that the sensors and mechanical components are not obstructed or overloaded.",
-      currentError: true,
+      currentError: false,
     ),
   ];
 
@@ -64,9 +66,22 @@ class _FailedPageState extends State<FailedPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _failedColumn(deviceHeight),
+              Expanded(
+                child: StatusCardWidget(
+                  iconSrc: 'assets/animations/error-animate.json',
+                  title: "Initialization failed",
+                  message:
+                      "The compost schedule setup didn’t go through due to an issue.\nPlease click the button below to restart the process",
+                  buttonLabel: "RESTART PROCESS",
+                  buttonColor: Colors.redAccent,
+                  buttonBehavior: () {},
+                  deviceHeight: deviceHeight,
+                ),
+              ),
               const SizedBox(width: 24),
-              _processInformationComponent(),
+              Expanded(
+                child: _processInformationComponent(),
+              ),
             ],
           ),
         ),
@@ -74,126 +89,34 @@ class _FailedPageState extends State<FailedPage> {
     });
   }
 
-  Widget _failedColumn(double deviceHeight) {
-    return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(
-            Radius.circular(8),
-          ),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.surfaceContainerHigh,
-            width: 1,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Lottie.asset(
-              'assets/animations/error-animate.json',
-              repeat: false,
-              height: deviceHeight * 0.25,
-            ),
-            const Text(
-              "Initialization failed",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              "The compost schedule setup didn’t go through due to an issue.\nPlease click the button below to restart the process",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
-              ),
-            ),
-            const SizedBox(height: 36),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.redAccent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const WaitingPage(),
+  Widget _processInformationComponent() {
+    return GlassmorphicCardWidget(
+      child: Column(
+        children: [
+          _infoCard(),
+          const SizedBox(height: 24),
+          Column(
+            children: List<Widget>.generate(
+              informationItemList.length,
+              (index) {
+                final item = informationItemList[index];
+                final isExpanded = _expandedIndex == index;
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 14),
+                  child: _accordionItem(
+                    index,
+                    item.icon,
+                    item.title,
+                    item.message,
+                    item.currentError,
+                    isExpanded,
                   ),
                 );
               },
-              child: const Text(
-                "RESTART PROCESS",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _processInformationComponent() {
-    return Expanded(
-      child: Glassmorphism(
-        blur: 64,
-        opacity: 0.3,
-        child: Container(
-          decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(
-                Radius.circular(8),
-              ),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                width: 1,
-              )),
-          child: ClipPath(
-            child: AppBackground(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 44.0, horizontal: 44.0),
-                child: Column(
-                  children: [
-                    _infoCard(),
-                    const SizedBox(height: 24),
-                    Column(
-                      children: List<Widget>.generate(
-                        informationItemList.length,
-                        (index) {
-                          final item = informationItemList[index];
-                          final isExpanded = _expandedIndex == index;
-
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 14),
-                            child: _accordionItem(
-                              index,
-                              item.icon,
-                              item.title,
-                              item.message,
-                              item.currentError,
-                              isExpanded,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -283,7 +206,8 @@ class _FailedPageState extends State<FailedPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const WaitingPage(),
+                              builder: (context) =>
+                                  const InitializationWaitingScreen(),
                             ),
                           );
                         },
@@ -299,7 +223,7 @@ class _FailedPageState extends State<FailedPage> {
                             ),
                             SizedBox(width: 4),
                             Icon(
-                              FluentIcons.chevron_right_24_filled,
+                              FluentIcons.open_24_regular,
                               size: 14,
                             ),
                           ],
