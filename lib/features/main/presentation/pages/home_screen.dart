@@ -1,8 +1,10 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/animation.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/core/utils/string_extensions.dart';
 import 'package:intl/intl.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,8 +13,11 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with AutomaticKeepAliveClientMixin<HomeScreen> {
   final DateTime now = DateTime.now();
+
+  int _currentTab = 0;
 
   final List<SensorReadings> _sensorReadings = [
     SensorReadings(
@@ -90,10 +95,59 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   ];
 
+  final List<ChartData> _data = [
+    ChartData('Fruit', 20, Color(0xff2563EB)),
+    ChartData('Vegetable', 10, Color(0xff3B86F7)),
+    ChartData('Grain', 4, Color(0xff60A8FB)),
+    ChartData('Invalid', 14, Color(0xff90C7FE)),
+  ];
+
+  final List<ChartData> _nitrogenChartData = <ChartData>[
+    ChartData('May 5', 58),
+    ChartData('May 10', 37),
+    ChartData('May 15', 32),
+    ChartData('May 20', 28),
+    ChartData('May 25', 22),
+    ChartData('May 30', 27),
+  ];
+
+  final List<ChartData> _phosphorusChartData = <ChartData>[
+    ChartData('May 5', 23),
+    ChartData('May 10', 24),
+    ChartData('May 15', 45),
+    ChartData('May 20', 32),
+    ChartData('May 25', 58),
+    ChartData('May 30', 21),
+  ];
+
+  final List<ChartData> _potassiumChartData = <ChartData>[
+    ChartData('May 5', 66),
+    ChartData('May 10', 32),
+    ChartData('May 15', 12),
+    ChartData('May 20', 42),
+    ChartData('May 25', 52),
+    ChartData('May 30', 61),
+  ];
+
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     final formattedDate = DateFormat('d, MMMM y').format(now);
     final formattedTime = DateFormat('HH:mm').format(now);
+
+    final List<Widget> _cardSections = [
+      _foodWasteProcessedSection(context: context, data: _data),
+      _readingsChart(context: context, data: [
+        _nitrogenChartData,
+        _phosphorusChartData,
+        _potassiumChartData
+      ]),
+      Container(),
+    ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -104,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
           body: Container(
             height: deviceHeight,
             width: deviceWidth,
-            padding: const EdgeInsets.symmetric(vertical: 44, horizontal: 44),
+            padding: const EdgeInsets.fromLTRB(44, 44, 44, 28),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -112,19 +166,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   formattedDate: formattedDate,
                   formattedTime: formattedTime,
                 ),
-                const SizedBox(height: 64),
+                const SizedBox(height: 44),
                 Expanded(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Expanded(
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             // TODO:
                             Expanded(
-                              flex: 2,
+                              flex: 3,
                               child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 24, horizontal: 24),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
@@ -134,16 +192,79 @@ class _HomeScreenState extends State<HomeScreen> {
                                         .surfaceContainerHigh,
                                   ),
                                 ),
+                                child: Stack(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 0),
+                                      child: Align(
+                                        alignment: Alignment.topCenter,
+                                        child: SingleChildScrollView(
+                                          child: _cardSections[_currentTab],
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 0,
+                                      right: 0,
+                                      child: Row(
+                                        children: List.generate(
+                                                3, (int index) => index,
+                                                growable: false)
+                                            .map((item) {
+                                          return Padding(
+                                            padding: EdgeInsets.fromLTRB(
+                                                item == 0 ? 0 : 6, 0, 0, 0),
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                setState(() {
+                                                  _currentTab = item;
+                                                });
+                                              },
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 4,
+                                                        horizontal: 12),
+                                                decoration: BoxDecoration(
+                                                  color: item == _currentTab
+                                                      ? Color(0xFF27272a)
+                                                      : Colors.transparent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(24),
+                                                  border: Border.all(
+                                                    color: item == _currentTab
+                                                        ? Color(0xFF27272a)
+                                                        : Theme.of(context)
+                                                            .colorScheme
+                                                            .surfaceContainerHigh,
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  "${item + 1}",
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                             const SizedBox(height: 16),
-                            Expanded(child: _sensorReadingsSection()),
+                            Expanded(flex: 2, child: _sensorReadingsSection()),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 18),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             SingleChildScrollView(
                               child: Column(
@@ -360,7 +481,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        vertical: 10,
+        vertical: 14,
         horizontal: 20,
       ),
       decoration: BoxDecoration(
@@ -441,6 +562,17 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      Colors.greenAccent.withOpacity(0.05),
+                      Colors.greenAccent.withOpacity(0.1),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
                 padding:
                     const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                 child: Column(
@@ -471,7 +603,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    Text(
+                    const Text(
                       "Excellent",
                       style: TextStyle(
                         fontSize: 28,
@@ -485,7 +617,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
                 color: Colors.white.withAlpha(32),
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
@@ -508,4 +640,238 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+Widget _foodWasteProcessedSection({
+  required BuildContext context,
+  required List<ChartData> data,
+}) {
+  return BounceWithFadeAnimation(
+    delay: 1,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Food waste processed",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "The following summary reflects system conditions",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(186),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              height: 200,
+              child: SfCircularChart(
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                series: <CircularSeries<ChartData, String>>[
+                  DoughnutSeries(
+                      explode: true,
+                      explodeIndex: 3,
+                      explodeOffset: '8%',
+                      dataSource: data,
+                      pointColorMapper: (ChartData data, _) => data.color,
+                      xValueMapper: (ChartData data, _) => data.x,
+                      yValueMapper: (ChartData data, _) => data.y)
+                ],
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: data.map((item) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 8,
+                        width: 8,
+                        decoration: BoxDecoration(
+                            color: item.color,
+                            borderRadius: BorderRadius.circular(2)),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        item.x,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withAlpha(164),
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.025,
+                        ),
+                      )
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _readingsChart({
+  required BuildContext context,
+  required List<List<ChartData>> data,
+}) {
+  final List<ChartData> chartColorList = [
+    ChartData(
+      "Nitrogen",
+      0,
+      Color(0xff2563EB),
+    ),
+    ChartData(
+      "Phosphorus",
+      0,
+      Color(0xff3B86F7),
+    ),
+    ChartData(
+      "Potassium",
+      0,
+      Color(0xff90C7FE),
+    ),
+  ];
+
+  return BounceWithFadeAnimation(
+    delay: 1,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Nutrient summary",
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "The following show the NPK readings from the past few days",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(186),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 44),
+        Center(
+          child: Column(
+            children: [
+              SizedBox(
+                height: 164,
+                child: SfCartesianChart(
+                  margin: const EdgeInsets.all(0),
+                  plotAreaBorderWidth: 0,
+                  plotAreaBackgroundColor: Colors.transparent,
+                  primaryXAxis: const CategoryAxis(
+                    axisLine: AxisLine(width: 0),
+                    labelPlacement: LabelPlacement.onTicks,
+                    edgeLabelPlacement: EdgeLabelPlacement.shift,
+                    majorGridLines: MajorGridLines(width: 0),
+                    majorTickLines: MajorTickLines(width: 0),
+                    labelStyle: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.025,
+                    ),
+                  ),
+                  primaryYAxis: const NumericAxis(
+                    isVisible: false,
+                  ),
+                  series: <CartesianSeries<ChartData, String>>[
+                    for (int i = 0; i < data.length; i++) ...[
+                      SplineSeries<ChartData, String>(
+                        color: chartColorList[i % chartColorList.length].color,
+                        width: 2,
+                        dataSource: data[i],
+                        xValueMapper: (ChartData d, _) => d.x,
+                        yValueMapper: (ChartData d, _) => d.y,
+                      ),
+                      SplineAreaSeries<ChartData, String>(
+                        gradient: LinearGradient(
+                          colors: [
+                            chartColorList[i % chartColorList.length]
+                                .color!
+                                .withOpacity(0.25),
+                            chartColorList[i % chartColorList.length]
+                                .color!
+                                .withOpacity(0.15),
+                            chartColorList[i % chartColorList.length]
+                                .color!
+                                .withOpacity(0),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                        dataSource: data[i],
+                        xValueMapper: (ChartData d, _) => d.x,
+                        yValueMapper: (ChartData d, _) => d.y,
+                      ),
+                    ]
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: chartColorList.map((item) {
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 8,
+                    width: 8,
+                    decoration: BoxDecoration(
+                        color: item.color,
+                        borderRadius: BorderRadius.circular(2)),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    item.x,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withAlpha(164),
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.025,
+                    ),
+                  )
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    ),
+  );
 }
