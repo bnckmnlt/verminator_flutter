@@ -110,3 +110,17 @@ class ChartData {
 
   ChartData(this.x, this.y, [this.color]);
 }
+
+class SensorControl {
+  final String device;
+  final String label;
+  final IconData icon;
+  late final bool state;
+
+  SensorControl({
+    required this.device,
+    required this.label,
+    required this.icon,
+    required this.state,
+  });
+}

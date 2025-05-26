@@ -1,0 +1,156 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/control_screen_widgets/conveyor_control_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/control_screen_widgets/pump_control_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/control_screen_widgets/rake_control_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/control_screen_widgets/sensor_with_duration_widget.dart';
+
+class ControlScreen extends StatefulWidget {
+  const ControlScreen({super.key});
+
+  @override
+  State<ControlScreen> createState() => _ControlScreenState();
+}
+
+class _ControlScreenState extends State<ControlScreen> {
+  late List<SensorControl> _sensorsList;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _sensorsList = [
+      SensorControl(
+        device: "150x150mm Fan",
+        label: "Soil Aeration Control",
+        icon: CupertinoIcons.wind_snow,
+        state: false,
+      ),
+      SensorControl(
+        device: "150x150mm Fan",
+        label: "Ambient Temp/Humidity Control",
+        icon: CupertinoIcons.wind_snow,
+        state: false,
+      ),
+      SensorControl(
+        device: "Stepper Motor",
+        label: "Sifter Control",
+        icon: CupertinoIcons.wind_snow,
+        state: false,
+      ),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double deviceHeight = MediaQuery.of(context).size.height;
+        final double deviceWidth = MediaQuery.of(context).size.width;
+
+        return Scaffold(
+          extendBodyBehindAppBar: true,
+          extendBody: true,
+          body: Container(
+            height: deviceHeight,
+            width: deviceWidth,
+            padding: const EdgeInsets.fromLTRB(44, 44, 44, 28),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Control Hub",
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Easily manage and monitor system actions using the controls below",
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withAlpha(186),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 44),
+                  Row(
+                    children: _sensorsList.map((item) {
+                      return Expanded(
+                        child: SensorWithDurationWidget(
+                          label: item.label,
+                          device: item.device,
+                          sensorData: item,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: PumpControlWidget(),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Row(
+                          children: [
+                            Expanded(child: RakeControlWidget()),
+                            Expanded(child: ConveyorControlWidget()),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+Widget sensorCardHeader({
+  required BuildContext context,
+  required String label,
+  required String device,
+  Widget? optionalWidget,
+}) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            device,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface.withAlpha(164),
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+      if (optionalWidget != null) optionalWidget,
+    ],
+  );
+}
