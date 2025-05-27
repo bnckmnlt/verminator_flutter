@@ -55,6 +55,7 @@ dependencies:
   syncfusion_flutter_charts: ^29.2.5
   syncfusion_flutter_gauges: ^29.2.5
   toggle_switch: ^2.3.0
+  data_table_2: ^2.6.0
 
 dev_dependencies:
   flutter_test:

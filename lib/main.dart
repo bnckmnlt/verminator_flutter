@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/theme/theme.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/control_screen.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_page.dart';
 import 'package:flutter_vermicomposting/init_dependencies.dart';
 
 void main() async {
@@ -37,6 +37,6 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
-        home: ControlScreen());
+        home: SchedulePage());
   }
 }

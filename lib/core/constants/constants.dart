@@ -12,6 +12,8 @@ enum CompostingStatus {
 }
 
 class Constants {
+  Color textMutedFgDark = Color(0xFF9f9fa9);
+
   static const noConnectionErrorMessage = 'Not connected to a network!';
 
   static const List<ReminderInterval> feedingReminderInterval = [
