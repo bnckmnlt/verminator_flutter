@@ -1,9 +1,19 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
+import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
 
+// TODO: [✅] DONEEEEEEEEE
 class SystemInformationWidget extends StatefulWidget {
-  const SystemInformationWidget({super.key});
+  final List<CompostSchedule> scheduleData;
+  final List<FoodWaste> foodWasteData;
+
+  const SystemInformationWidget({
+    super.key,
+    required this.scheduleData,
+    required this.foodWasteData,
+  });
 
   @override
   State<SystemInformationWidget> createState() =>
@@ -11,36 +21,55 @@ class SystemInformationWidget extends StatefulWidget {
 }
 
 class _SystemInformationWidgetState extends State<SystemInformationWidget> {
-  List<SummaryCardItem> _summaryItems = [
-    SummaryCardItem(
-      label: "Total Food Processed",
-      value: "32",
-      unit: "pcs",
-      icon: FluentIcons.food_apple_24_regular,
-      color: Colors.lightBlueAccent,
-    ),
-    SummaryCardItem(
-      label: "Total Compost Produced",
-      value: "54",
-      unit: "kg",
-      icon: Icons.eco_rounded,
-      color: Colors.greenAccent,
-    ),
-    SummaryCardItem(
-      label: "Total Vermijuice Collected",
-      value: "22",
-      unit: "L",
-      icon: FluentIcons.drink_bottle_20_regular,
-      color: Colors.amberAccent,
-    ),
-    SummaryCardItem(
-      label: "Total Cycle/s Completed",
-      value: "1",
-      unit: " cycle",
-      icon: FluentIcons.recycle_20_regular,
-      color: Colors.indigoAccent,
-    ),
-  ];
+  late List<SummaryCardItem> _summaryItems;
+
+  int totalCompostProduced = 0;
+  int totalJuiceProduced = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    totalCompostProduced = widget.scheduleData.fold<int>(
+      0,
+      (sum, item) => sum + (int.tryParse(item.compostProduced ?? '0') ?? 0),
+    );
+    totalJuiceProduced = widget.scheduleData.fold<int>(
+      0,
+      (sum, item) => sum + (int.tryParse(item.juiceProduced ?? '0') ?? 0),
+    );
+
+    _summaryItems = [
+      SummaryCardItem(
+        label: "Total Food Processed",
+        value: widget.foodWasteData.length.toString(),
+        unit: "pcs",
+        icon: FluentIcons.food_apple_24_regular,
+        color: Colors.lightBlueAccent,
+      ),
+      SummaryCardItem(
+        label: "Total Compost Produced",
+        value: totalCompostProduced.toString(),
+        unit: "kg",
+        icon: Icons.eco_rounded,
+        color: Colors.greenAccent,
+      ),
+      SummaryCardItem(
+        label: "Total Vermijuice Collected",
+        value: totalJuiceProduced.toString(),
+        unit: "L",
+        icon: FluentIcons.drink_bottle_20_regular,
+        color: Colors.amberAccent,
+      ),
+      SummaryCardItem(
+        label: "Total Cycle/s Completed",
+        value: widget.scheduleData.length.toString(),
+        unit: " cycle",
+        icon: FluentIcons.recycle_20_regular,
+        color: Colors.indigoAccent,
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,25 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/theme/theme.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_page.dart';
+import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
+import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/home_screen.dart';
+import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/init_dependencies.dart';
+import 'package:logging/logging.dart';
+
+final log = Logger('System Logs');
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  Logger.root.level = Level.ALL;
+
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.time}: ${record.message}');
+  });
+
   await initDependencies();
 
-  // runApp(
-  //   MultiBlocProvider(
-  //     providers: [
-  //       // BlocProvider(
-  //       //   create: (_) => sl(),
-  //       // ),
-  //     ],
-  //     child: const MyApp(),
-  //   ),
-  // );
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => sl<CompostScheduleBloc>(),
+        ),
+        BlocProvider(
+          create: (_) => sl<FoodWasteBloc>(),
+        ),
+        BlocProvider(
+          create: (_) => sl<SensorReadingBloc>(),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 
-  runApp(const MyApp());
+  // runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
@@ -37,6 +56,6 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
-        home: SchedulePage());
+        home: HomeScreen());
   }
 }

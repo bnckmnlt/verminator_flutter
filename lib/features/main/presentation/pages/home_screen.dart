@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/error_widget.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
+import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
+import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/bedding_condition_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/materials_processed_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/nutrient_summary_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/sensor_readings_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/system_information_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/video_feed_widget.dart';
+import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
+import 'package:flutter_vermicomposting/mqtt_service.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,8 +26,30 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with AutomaticKeepAliveClientMixin<HomeScreen> {
   final DateTime now = DateTime.now();
+  late MqttService _mqttService;
 
   int _currentTab = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _mqttService = GetIt.I<MqttService>();
+    _mqttService.connect();
+  }
+
+  bool _hasLoaded = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasLoaded) {
+      context.read<CompostScheduleBloc>().add(CompostScheduleList());
+      context.read<FoodWasteBloc>().add(FoodWasteList());
+      context.read<SensorReadingBloc>().add(SensorReadingList());
+      _hasLoaded = true;
+    }
+  }
 
   @override
   bool get wantKeepAlive => true;
@@ -28,6 +60,8 @@ class _HomeScreenState extends State<HomeScreen>
 
     final formattedDate = DateFormat('d, MMMM y').format(now);
     final formattedTime = DateFormat('HH:mm').format(now);
+
+    final toastHelper = ToastHelper(context);
 
     final List<Widget> _cardSections = [
       MaterialsProcessedWidget(),
@@ -147,7 +181,9 @@ class _HomeScreenState extends State<HomeScreen>
                             const SizedBox(height: 16),
                             Expanded(
                               flex: 2,
-                              child: SensorReadingsWidget(),
+                              child: SensorReadingsWidget(
+                                mqttService: _mqttService,
+                              ),
                             ),
                           ],
                         ),
@@ -173,6 +209,10 @@ class _HomeScreenState extends State<HomeScreen>
                                             .surfaceContainerHigh,
                                       ),
                                     ),
+                                    child: const VideoFeedWidget(
+                                      cameraChannel:
+                                          "http://192.168.1.22:8080/video_feed",
+                                    ),
                                   ),
                                   const SizedBox(height: 16),
                                   // TODO: Worm monitoring window
@@ -188,13 +228,88 @@ class _HomeScreenState extends State<HomeScreen>
                                             .surfaceContainerHigh,
                                       ),
                                     ),
+                                    child: const VideoFeedWidget(
+                                      cameraChannel:
+                                          "http://192.168.1.22:5000/",
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: SystemInformationWidget(),
+                              child: BlocConsumer<CompostScheduleBloc,
+                                  CompostScheduleState>(
+                                listener: (context, state) {
+                                  if (state is CompostScheduleFailure) {
+                                    toastHelper.show(
+                                      title: "An error has occurred",
+                                      description: state.error,
+                                      isError: true,
+                                    );
+                                  }
+                                },
+                                builder: (context, compostScheduleState) {
+                                  if (compostScheduleState
+                                      is CompostScheduleLoading) {
+                                    return const Loader();
+                                  }
+                                  if (compostScheduleState
+                                      is CompostScheduleFailure) {
+                                    return Center(
+                                      child: GeneralErrorWidget(
+                                        errorTitle:
+                                            "An error has occurred during fetching",
+                                        errorMessage:
+                                            compostScheduleState.error,
+                                      ),
+                                    );
+                                  }
+                                  if (compostScheduleState
+                                      is CompostScheduleListSuccess) {
+                                    return BlocConsumer<FoodWasteBloc,
+                                        FoodWasteState>(
+                                      listener: (context, state) {
+                                        if (state is FoodWasteFailure) {
+                                          toastHelper.show(
+                                            title: "An error has occurred",
+                                            description: state.error,
+                                            isError: true,
+                                          );
+                                        }
+                                      },
+                                      builder: (context, foodWasteState) {
+                                        if (foodWasteState
+                                            is FoodWasteLoading) {
+                                          return const Loader();
+                                        }
+                                        if (foodWasteState
+                                            is FoodWasteFailure) {
+                                          return Center(
+                                            child: GeneralErrorWidget(
+                                              errorTitle:
+                                                  "An error has occurred during fetching",
+                                              errorMessage:
+                                                  foodWasteState.error,
+                                            ),
+                                          );
+                                        }
+                                        if (foodWasteState
+                                            is FoodWasteListSuccess) {
+                                          return SystemInformationWidget(
+                                            scheduleData: compostScheduleState
+                                                .compostScheduleList,
+                                            foodWasteData:
+                                                foodWasteState.foodWaste,
+                                          );
+                                        }
+                                        return const Loader();
+                                      },
+                                    );
+                                  }
+                                  return const Loader();
+                                },
+                              ),
                             )
                           ],
                         ),

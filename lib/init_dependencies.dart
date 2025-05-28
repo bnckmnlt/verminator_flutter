@@ -9,8 +9,21 @@ import 'package:flutter_vermicomposting/features/compost_schedule/domain/usecase
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/usecases/patch_compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/usecases/remove_compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/usecases/selectone_compost_schedule.dart';
+import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
+import 'package:flutter_vermicomposting/features/food_waste/data/datasources/food_waste_remote_datasource.dart';
+import 'package:flutter_vermicomposting/features/food_waste/data/repositories/food_waste_repository_impl.dart';
+import 'package:flutter_vermicomposting/features/food_waste/domain/repositories/food_waste_repository.dart';
+import 'package:flutter_vermicomposting/features/food_waste/domain/usecases/list_food_waste.dart';
+import 'package:flutter_vermicomposting/features/food_waste/domain/usecases/select_one_food_waste.dart';
+import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
+import 'package:flutter_vermicomposting/features/sensor_reading/data/datasources/sensor_reading_datasource.dart';
+import 'package:flutter_vermicomposting/features/sensor_reading/data/repositories/sensor_reading_repository_impl.dart';
+import 'package:flutter_vermicomposting/features/sensor_reading/domain/repositories/sensor_reading_repository.dart';
+import 'package:flutter_vermicomposting/features/sensor_reading/domain/usecases/list_sensor_reading.dart';
+import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'init_dependencies.main.dart';

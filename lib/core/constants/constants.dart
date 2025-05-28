@@ -126,3 +126,15 @@ class SensorControl {
     required this.state,
   });
 }
+
+class SelectedChart {
+  final String label;
+  final Color color;
+  final List<ChartData> data;
+
+  SelectedChart({
+    required this.label,
+    required this.color,
+    required this.data,
+  });
+}

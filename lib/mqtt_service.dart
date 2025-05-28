@@ -88,8 +88,10 @@ class MqttService extends ChangeNotifier {
         .withClientIdentifier(AppSecrets.clientIdentifier)
         .authenticateAs(AppSecrets.clusterUsername.toString(),
             AppSecrets.clusterPassword.toString())
-        .startClean();
-    print('Connecting to broker...');
+        .withWillTopic('willtopic')
+        .withWillMessage('My Will message')
+        .startClean()
+        .withWillQos(MqttQos.atLeastOnce);
     _client.connectionMessage = connMess;
   }
 
@@ -119,7 +121,7 @@ class MqttService extends ChangeNotifier {
             recMessage.payload.message);
         final String topic = c[0].topic;
 
-        print('Received message: $message from topic: $topic');
+        // print('Received message: $message from topic: $topic');
 
         try {
           switch (topic) {

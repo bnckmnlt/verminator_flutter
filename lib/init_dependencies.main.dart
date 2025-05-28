@@ -4,6 +4,8 @@ final sl = GetIt.instance;
 
 Future<void> initDependencies() async {
   _initCompostSchedule();
+  _initFoodWaste();
+  _initSensorReading();
 
   await dotenv.load(fileName: ".env");
 
@@ -15,6 +17,7 @@ Future<void> initDependencies() async {
   /**  **/
   sl.registerLazySingleton(() => supabase.client);
   sl.registerLazySingleton(() => MqttService());
+  sl.registerFactory(() => InternetConnection());
 
   await sl<MqttService>().connect();
 
@@ -59,6 +62,61 @@ void _initCompostSchedule() {
     ..registerFactory(
       () => RemoveCompostSchedule(
         sl(),
+      ),
+    )
+    ..registerLazySingleton(
+      () => CompostScheduleBloc(
+        createCompostSchedule: sl(),
+        selectOneCompostSchedule: sl(),
+        listCompostSchedule: sl(),
+        patchCompostSchedule: sl(),
+        removeCompostSchedule: sl(),
+      ),
+    );
+}
+
+void _initFoodWaste() {
+  sl
+    ..registerFactory<FoodWasteRemoteDatasource>(
+      () => FoodWasteRemoteDatasourceImpl(),
+    )
+    ..registerFactory<FoodWasteRepository>(
+      () => FoodWasteRepositoryImpl(sl(), sl()),
+    )
+    ..registerFactory(
+      () => ListFoodWaste(
+        sl(),
+      ),
+    )
+    ..registerFactory(
+      () => SelectOneFoodWaste(
+        sl(),
+      ),
+    )
+    ..registerLazySingleton(
+      () => FoodWasteBloc(
+        selectOneFoodWaste: sl(),
+        listFoodWaste: sl(),
+      ),
+    );
+}
+
+void _initSensorReading() {
+  sl
+    ..registerFactory<SensorReadingRemoteDatasource>(
+      () => SensorReadingRemoteDatasourceImpl(),
+    )
+    ..registerFactory<SensorReadingRepository>(
+      () => SensorReadingRepositoryImpl(sl(), sl()),
+    )
+    ..registerFactory(
+      () => ListSensorReading(
+        sl(),
+      ),
+    )
+    ..registerLazySingleton(
+      () => SensorReadingBloc(
+        listSensorReading: sl(),
       ),
     );
 }

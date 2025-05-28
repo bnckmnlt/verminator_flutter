@@ -7,6 +7,7 @@ class CompostScheduleModel extends CompostSchedule {
     super.compostProduced,
     super.juiceProduced,
     required super.isCompleted,
+    super.dateReleased,
     required super.createdAt,
     required super.updatedAt,
   });
@@ -18,6 +19,7 @@ class CompostScheduleModel extends CompostSchedule {
       'compostProduced': compostProduced,
       'juiceProduced': juiceProduced,
       'isCompleted': isCompleted,
+      'dateReleased': dateReleased,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
     };
@@ -27,9 +29,10 @@ class CompostScheduleModel extends CompostSchedule {
     return CompostScheduleModel(
       id: json['id'] as int,
       scheduleName: json['scheduleName'] as String,
-      compostProduced: json['compostProduced'] as String,
-      juiceProduced: json['juiceProduced'] as String,
+      compostProduced: json['compostProduced'] as String?,
+      juiceProduced: json['juiceProduced'] as String?,
       isCompleted: json['isCompleted'] as bool,
+      dateReleased: json['dateReleased'] as String?,
       createdAt: json['createdAt'] as String,
       updatedAt: json['updatedAt'] as String,
     );

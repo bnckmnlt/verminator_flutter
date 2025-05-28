@@ -1,4 +1,5 @@
-import 'package:bloc/bloc.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/usecase/usecase.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/usecases/create_compost_schedule.dart';
@@ -6,7 +7,6 @@ import 'package:flutter_vermicomposting/features/compost_schedule/domain/usecase
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/usecases/patch_compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/usecases/remove_compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/usecases/selectone_compost_schedule.dart';
-import 'package:meta/meta.dart';
 
 part 'compost_schedule_event.dart';
 part 'compost_schedule_state.dart';
@@ -34,6 +34,9 @@ class CompostScheduleBloc
     on<CompostScheduleEvent>((event, emit) => emit(CompostScheduleLoading()));
     on<CompostScheduleCreate>(_onCreateCompostSchedule);
     on<CompostScheduleList>(_onListCompostSchedule);
+    on<CompostScheduleSelectOne>(_onSelectOneCompostSchedule);
+    on<CompostSchedulePatch>(_onPatchCompostSchedule);
+    on<CompostScheduleRemove>(_onRemoveCompostSchedule);
   }
 
   void _onCreateCompostSchedule(
@@ -61,6 +64,41 @@ class CompostScheduleBloc
     res.fold(
       (l) => emit(CompostScheduleFailure(l.message)),
       (r) => emit(CompostScheduleListSuccess(r)),
+    );
+  }
+
+  void _onSelectOneCompostSchedule(CompostScheduleSelectOne event,
+      Emitter<CompostScheduleState> emit) async {
+    final res = await _selectOneCompostSchedule(
+        SelectOneCompostScheduleParams(id: event.id));
+
+    res.fold(
+      (l) => emit(CompostScheduleFailure(l.message)),
+      (r) => emit(CompostScheduleSuccess(r)),
+    );
+  }
+
+  void _onPatchCompostSchedule(
+    CompostSchedulePatch event,
+    Emitter<CompostScheduleState> emit,
+  ) async {
+    final res =
+        await _patchCompostSchedule(PatchCompostScheduleParams(id: event.id));
+
+    res.fold(
+      (l) => emit(CompostScheduleFailure(l.message)),
+      (r) => emit(CompostScheduleSuccess(r)),
+    );
+  }
+
+  void _onRemoveCompostSchedule(
+      CompostScheduleRemove event, Emitter<CompostScheduleState> emit) async {
+    final res =
+        await _removeCompostSchedule(RemoveCompostScheduleParams(id: event.id));
+
+    res.fold(
+      (l) => emit(CompostScheduleFailure(l.message)),
+      (r) => emit(CompostScheduleRemoveSuccess(r)),
     );
   }
 }

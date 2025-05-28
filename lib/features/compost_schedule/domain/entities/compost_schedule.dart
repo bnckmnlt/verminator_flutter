@@ -4,6 +4,7 @@ class CompostSchedule {
   final String? compostProduced;
   final String? juiceProduced;
   final bool isCompleted;
+  final String? dateReleased;
   final String createdAt;
   final String updatedAt;
 
@@ -13,6 +14,7 @@ class CompostSchedule {
     this.compostProduced,
     this.juiceProduced,
     required this.isCompleted,
+    this.dateReleased,
     required this.createdAt,
     required this.updatedAt,
   });
