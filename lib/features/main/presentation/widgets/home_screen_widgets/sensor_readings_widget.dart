@@ -8,6 +8,7 @@ import 'package:flutter_vermicomposting/core/utils/string_extensions.dart';
 import 'package:flutter_vermicomposting/features/main/data/models/sensor_values_model.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/sensor_values.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // TODO: [✅] DONEEEEEE
 
@@ -167,7 +168,7 @@ class _SensorReadingsWidgetState extends State<SensorReadingsWidget> {
                     children: [
                       Text(
                         info.value,
-                        style: const TextStyle(
+                        style: GoogleFonts.spaceMono(
                           fontSize: 44,
                           fontWeight: FontWeight.w500,
                           letterSpacing: 0.025,
@@ -176,7 +177,7 @@ class _SensorReadingsWidgetState extends State<SensorReadingsWidget> {
                       const SizedBox(width: 2.5),
                       Text(
                         info.unit,
-                        style: TextStyle(
+                        style: GoogleFonts.spaceMono(
                           color: Theme.of(context)
                               .colorScheme
                               .onSurface

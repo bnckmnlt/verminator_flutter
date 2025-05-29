@@ -1,4 +1,6 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/error_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
@@ -10,7 +12,6 @@ import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/nutrient_summary_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/sensor_readings_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/system_information_widget.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/video_feed_widget.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
@@ -34,6 +35,8 @@ class _HomeScreenState extends State<HomeScreen>
   void initState() {
     super.initState();
 
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
+
     _mqttService = GetIt.I<MqttService>();
     _mqttService.connect();
   }
@@ -53,6 +56,13 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   bool get wantKeepAlive => true;
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +85,8 @@ class _HomeScreenState extends State<HomeScreen>
         final double deviceWidth = MediaQuery.of(context).size.width;
 
         return Scaffold(
+          extendBody: true,
+          extendBodyBehindAppBar: true,
           body: Container(
             height: deviceHeight,
             width: deviceWidth,
@@ -209,10 +221,10 @@ class _HomeScreenState extends State<HomeScreen>
                                             .surfaceContainerHigh,
                                       ),
                                     ),
-                                    child: const VideoFeedWidget(
-                                      cameraChannel:
-                                          "http://192.168.1.22:8080/video_feed",
-                                    ),
+                                    // child: const VideoFeedWidget(
+                                    //   cameraChannel:
+                                    //       "http://192.168.1.22:8080/video_feed",
+                                    // ),
                                   ),
                                   const SizedBox(height: 16),
                                   // TODO: Worm monitoring window
@@ -228,10 +240,10 @@ class _HomeScreenState extends State<HomeScreen>
                                             .surfaceContainerHigh,
                                       ),
                                     ),
-                                    child: const VideoFeedWidget(
-                                      cameraChannel:
-                                          "http://192.168.1.22:5000/",
-                                    ),
+                                    // child: const VideoFeedWidget(
+                                    //   cameraChannel:
+                                    //       "http://192.168.1.22:5000/",
+                                    // ),
                                   ),
                                 ],
                               ),
@@ -340,6 +352,29 @@ class _HomeScreenState extends State<HomeScreen>
       }
     }
 
+    List<ButtonList> buttonList = [
+      ButtonList(
+          icon: FluentIcons.document_bullet_list_24_regular,
+          onPressedFunction: () {
+            Navigator.pushNamed(context, '/schedule');
+          }),
+      ButtonList(
+          icon: FluentIcons.toggle_multiple_24_regular,
+          onPressedFunction: () {
+            Navigator.pushNamed(context, '/controls');
+          }),
+      ButtonList(
+          icon: FluentIcons.text_bullet_list_ltr_24_filled,
+          onPressedFunction: () {
+            Navigator.pushNamed(context, '/logs');
+          }),
+      ButtonList(
+          icon: FluentIcons.settings_24_regular,
+          onPressedFunction: () {
+            Navigator.pushNamed(context, '/settings');
+          }),
+    ];
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -362,7 +397,45 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ],
         ),
+        Row(
+          children: buttonList.asMap().entries.map((entry) {
+            final item = entry.value;
+            return Padding(
+              padding: EdgeInsets.fromLTRB(entry.key == 0 ? 0 : 4, 0, 0, 0),
+              child: OutlinedButton(
+                onPressed: item.onPressedFunction,
+                style: OutlinedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  minimumSize: Size.zero,
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  item.icon,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            );
+          }).toList(),
+        )
       ],
     );
   }
+}
+
+class ButtonList {
+  final IconData icon;
+  final VoidCallback onPressedFunction;
+
+  ButtonList({
+    required this.icon,
+    required this.onPressedFunction,
+  });
 }

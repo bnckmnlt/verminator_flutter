@@ -16,6 +16,11 @@ import 'package:flutter_vermicomposting/features/food_waste/domain/repositories/
 import 'package:flutter_vermicomposting/features/food_waste/domain/usecases/list_food_waste.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/usecases/select_one_food_waste.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
+import 'package:flutter_vermicomposting/features/logs/data/datasources/log_remote_datasource.dart';
+import 'package:flutter_vermicomposting/features/logs/data/repositories/logs_repository_impl.dart';
+import 'package:flutter_vermicomposting/features/logs/domain/repositories/log_repository.dart';
+import 'package:flutter_vermicomposting/features/logs/domain/usecases/list_logs.dart';
+import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/data/datasources/sensor_reading_datasource.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/data/repositories/sensor_reading_repository_impl.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/repositories/sensor_reading_repository.dart';

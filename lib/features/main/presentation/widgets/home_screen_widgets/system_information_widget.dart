@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // TODO: [✅] DONEEEEEEEEE
 class SystemInformationWidget extends StatefulWidget {
@@ -43,7 +44,7 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
       SummaryCardItem(
         label: "Total Food Processed",
         value: widget.foodWasteData.length.toString(),
-        unit: "pcs",
+        unit: " items",
         icon: FluentIcons.food_apple_24_regular,
         color: Colors.lightBlueAccent,
       ),
@@ -126,16 +127,15 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
             children: [
               Text(
                 value,
-                style: const TextStyle(
+                style: GoogleFonts.spaceMono(
                   fontSize: 38,
                   fontWeight: FontWeight.w600,
                   height: 1.2,
                 ),
               ),
-              const SizedBox(width: 2.5),
               Text(
                 unit,
-                style: TextStyle(
+                style: GoogleFonts.spaceMono(
                   color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
                   fontSize: 28,
                   fontWeight: FontWeight.w500,

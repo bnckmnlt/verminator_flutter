@@ -5,14 +5,14 @@ import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_waiting_screen.dart';
 
-class SchedulePage extends StatefulWidget {
-  const SchedulePage({super.key});
+class ScheduleScreen extends StatefulWidget {
+  const ScheduleScreen({super.key});
 
   @override
-  State<SchedulePage> createState() => _SchedulePageState();
+  State<ScheduleScreen> createState() => _ScheduleScreenState();
 }
 
-class _SchedulePageState extends State<SchedulePage> {
+class _ScheduleScreenState extends State<ScheduleScreen> {
   final formKey = GlobalKey<FormState>();
 
   final TextEditingController _scheduleIdentifierController =

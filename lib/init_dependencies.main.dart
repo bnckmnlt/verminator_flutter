@@ -6,6 +6,7 @@ Future<void> initDependencies() async {
   _initCompostSchedule();
   _initFoodWaste();
   _initSensorReading();
+  _initLogs();
 
   await dotenv.load(fileName: ".env");
 
@@ -117,6 +118,29 @@ void _initSensorReading() {
     ..registerLazySingleton(
       () => SensorReadingBloc(
         listSensorReading: sl(),
+      ),
+    );
+}
+
+void _initLogs() {
+  sl
+    ..registerFactory<LogRemoteDatasource>(
+      () => LogRemoteDatasourceImpl(),
+    )
+    ..registerFactory<LogRepository>(
+      () => LogRepositoryImpl(
+        sl(),
+        sl(),
+      ),
+    )
+    ..registerFactory(
+      () => ListLogs(
+        sl(),
+      ),
+    )
+    ..registerLazySingleton(
+      () => LogBloc(
+        listLogs: sl(),
       ),
     );
 }

@@ -50,8 +50,8 @@ class _ControlScreenState extends State<ControlScreen> {
         final double deviceWidth = MediaQuery.of(context).size.width;
 
         return Scaffold(
-          extendBodyBehindAppBar: true,
           extendBody: true,
+          extendBodyBehindAppBar: true,
           body: Container(
             height: deviceHeight,
             width: deviceWidth,

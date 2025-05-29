@@ -1,10 +1,10 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/home_page.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/logs_page.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/logs_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/records_page.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_page.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/settings_page.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_screen.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/settings_screen.dart';
 
 class NavigationItem {
   final String title;
@@ -31,12 +31,12 @@ class _MainLayoutState extends State<MainLayout> {
 
   int _selectedIndex = 0;
 
-  final List<NavigationItem> _navigationItems = const [
-    NavigationItem(title: "Home", page: HomePage()),
-    NavigationItem(title: "Schedule", page: SchedulePage()),
-    NavigationItem(title: "Records", page: RecordsPage()),
-    NavigationItem(title: "Logs", page: LogsPage()),
-    NavigationItem(title: "Settings", page: SettingsPage()),
+  final List<NavigationItem> _navigationItems = [
+    const NavigationItem(title: "Home", page: HomePage()),
+    NavigationItem(title: "Schedule", page: ScheduleScreen()),
+    const NavigationItem(title: "Records", page: RecordsPage()),
+    NavigationItem(title: "Logs", page: LogsScreen()),
+    NavigationItem(title: "Settings", page: SettingsScreen()),
   ];
 
   @override
