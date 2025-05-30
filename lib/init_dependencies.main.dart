@@ -7,6 +7,7 @@ Future<void> initDependencies() async {
   _initFoodWaste();
   _initSensorReading();
   _initLogs();
+  _initWormActivity();
 
   await dotenv.load(fileName: ".env");
 
@@ -141,6 +142,35 @@ void _initLogs() {
     ..registerLazySingleton(
       () => LogBloc(
         listLogs: sl(),
+      ),
+    );
+}
+
+void _initWormActivity() {
+  sl
+    ..registerFactory<WormActivityRemoteDatasource>(
+      () => WormActivityRemoteDatasourceImpl(),
+    )
+    ..registerFactory<WormActivityRepository>(
+      () => WormActivityRepositoryImpl(
+        sl(),
+        sl(),
+      ),
+    )
+    ..registerFactory(
+      () => ListWormActivity(
+        sl(),
+      ),
+    )
+    ..registerFactory(
+      () => SelectOneWormActivity(
+        sl(),
+      ),
+    )
+    ..registerLazySingleton(
+      () => WormActivityBloc(
+        listWormActivity: sl(),
+        selectOneWormActivity: sl(),
       ),
     );
 }

@@ -5,6 +5,10 @@ import 'package:flutter_vermicomposting/features/main/presentation/widgets/contr
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/control_screen_widgets/pump_control_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/control_screen_widgets/rake_control_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/control_screen_widgets/sensor_with_duration_widget.dart';
+import 'package:flutter_vermicomposting/mqtt_service.dart';
+import 'package:get_it/get_it.dart';
+
+// TODO: [✅] DONEEEEE
 
 class ControlScreen extends StatefulWidget {
   const ControlScreen({super.key});
@@ -14,11 +18,15 @@ class ControlScreen extends StatefulWidget {
 }
 
 class _ControlScreenState extends State<ControlScreen> {
+  late MqttService _mqttService;
   late List<SensorControl> _sensorsList;
 
   @override
   void initState() {
     super.initState();
+
+    _mqttService = GetIt.I<MqttService>();
+    _mqttService.connect();
 
     _sensorsList = [
       SensorControl(
@@ -26,18 +34,21 @@ class _ControlScreenState extends State<ControlScreen> {
         label: "Soil Aeration Control",
         icon: CupertinoIcons.wind_snow,
         state: false,
+        topic: "control/aeration",
       ),
       SensorControl(
         device: "150x150mm Fan",
         label: "Ambient Temp/Humidity Control",
         icon: CupertinoIcons.wind_snow,
         state: false,
+        topic: "control/fan",
       ),
       SensorControl(
         device: "Stepper Motor",
         label: "Sifter Control",
         icon: CupertinoIcons.wind_snow,
         state: false,
+        topic: "control/sifter",
       ),
     ];
   }
@@ -52,10 +63,13 @@ class _ControlScreenState extends State<ControlScreen> {
         return Scaffold(
           extendBody: true,
           extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+          ),
           body: Container(
             height: deviceHeight,
             width: deviceWidth,
-            padding: const EdgeInsets.fromLTRB(44, 44, 44, 28),
+            padding: const EdgeInsets.fromLTRB(44, 64, 44, 28),
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,27 +101,37 @@ class _ControlScreenState extends State<ControlScreen> {
                     children: _sensorsList.map((item) {
                       return Expanded(
                         child: SensorWithDurationWidget(
+                          sensorData: item,
                           label: item.label,
                           device: item.device,
-                          sensorData: item,
+                          mqttService: _mqttService,
+                          topic: item.topic,
                         ),
                       );
                     }).toList(),
                   ),
-                  const Row(
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Expanded(
                         flex: 1,
-                        child: PumpControlWidget(),
+                        child: PumpControlWidget(
+                          mqttService: _mqttService,
+                        ),
                       ),
                       Expanded(
                         flex: 2,
                         child: Row(
                           children: [
-                            Expanded(child: RakeControlWidget()),
-                            Expanded(child: ConveyorControlWidget()),
+                            Expanded(
+                                child: RakeControlWidget(
+                              mqttService: _mqttService,
+                            )),
+                            Expanded(
+                                child: ConveyorControlWidget(
+                              mqttService: _mqttService,
+                            )),
                           ],
                         ),
                       ),

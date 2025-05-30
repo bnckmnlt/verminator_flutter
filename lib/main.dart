@@ -10,6 +10,7 @@ import 'package:flutter_vermicomposting/features/main/presentation/pages/logs_sc
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/settings_screen.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
+import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
 import 'package:flutter_vermicomposting/init_dependencies.dart';
 import 'package:logging/logging.dart';
 
@@ -40,6 +41,9 @@ void main() async {
         ),
         BlocProvider(
           create: (_) => sl<LogBloc>(),
+        ),
+        BlocProvider(
+          create: (_) => sl<WormActivityBloc>(),
         ),
       ],
       child: const MyApp(),

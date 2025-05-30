@@ -1,18 +1,46 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/status_badge.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/control_screen.dart';
+import 'package:flutter_vermicomposting/mqtt_service.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
+// TODO: [✅] DONEEEEEE
+
 class ConveyorControlWidget extends StatefulWidget {
-  const ConveyorControlWidget({super.key});
+  final MqttService mqttService;
+
+  const ConveyorControlWidget({
+    super.key,
+    required this.mqttService,
+  });
 
   @override
   State<ConveyorControlWidget> createState() => _ConveyorControlWidgetState();
 }
 
 class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
+  void publishConveyorCommand(String command) {
+    widget.mqttService
+        .publish("control/conveyor", command, qos: MqttQos.atLeastOnce);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final List<ConveyorCommand> conveyorCommands = [
+      ConveyorCommand(
+        label: "Eject",
+        onPressed: () => publishConveyorCommand("Eject"),
+      ),
+      ConveyorCommand(
+        label: "Stop",
+        iconData: FluentIcons.dismiss_24_filled,
+        color: Colors.redAccent,
+        onPressed: () => publishConveyorCommand("Stop"),
+      ),
+    ];
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
@@ -33,44 +61,16 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
               children: [
                 _conveyorModesSection(),
                 const SizedBox(height: 12),
-                _conveyorCommandsSection(),
+                _conveyorCommandsSection(conveyorCommands: conveyorCommands),
               ],
             ),
             sensorCardHeader(
-                context: context,
-                label: "Conveyor Belt",
-                device: "NEMA17 Stepper",
-                optionalWidget: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 2.5, horizontal: 10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        height: 6,
-                        width: 6,
-                        decoration: BoxDecoration(
-                          color: Colors.greenAccent,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        "Active",
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.025,
-                        ),
-                      )
-                    ],
-                  ),
-                ))
+              context: context,
+              label: "Conveyor Belt",
+              device: "NEMA17 Stepper",
+              optionalWidget:
+                  StatusBadge(color: Colors.greenAccent, state: "Active"),
+            )
           ],
         ),
       ),
@@ -109,7 +109,13 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
           labels: const ['Continuous', 'Valid', 'Invalid'],
           icons: const [null, null, null],
           onToggle: (index) {
-            print('switched to: $index');
+            if (index == 0) {
+              publishConveyorCommand("Continuous");
+            } else if (index == 1) {
+              publishConveyorCommand("Valid");
+            } else if (index == 2) {
+              publishConveyorCommand("Invalid");
+            }
           },
           customTextStyles: const [
             TextStyle(
@@ -133,21 +139,9 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
     );
   }
 
-  Widget _conveyorCommandsSection() {
-    final List<ConveyorCommand> conveyorCommands = [
-      ConveyorCommand(label: "Eject", onPressed: () {}),
-      // ConveyorCommand(
-      //     label: "Return to Origin",
-      //     iconData: FluentIcons.arrow_down_left_24_filled,
-      //     isEnabled: false,
-      //     onPressed: () {}),
-      ConveyorCommand(
-          label: "Stop",
-          iconData: FluentIcons.dismiss_24_filled,
-          color: Colors.redAccent,
-          onPressed: () {}),
-    ];
-
+  Widget _conveyorCommandsSection({
+    required List<ConveyorCommand> conveyorCommands,
+  }) {
     return Row(
       children: [
         Column(

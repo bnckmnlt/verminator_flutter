@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/entities/mqtt_client.dart';
+import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/core/secrets/app_secrets.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
@@ -18,6 +19,7 @@ class MqttService extends ChangeNotifier {
     'control/aeration',
     'control/fan',
     'control/pump',
+    'control/vermijuice',
     'control/sifter',
     'control/relay',
     'control/conveyor',
@@ -34,6 +36,7 @@ class MqttService extends ChangeNotifier {
     'system/device/info',
     'schedule/sifter',
     'schedule/aeration',
+    ...Constants.relayFeedbackTopics,
   ];
 
   final StreamController<String> _systemStatusController =
@@ -52,6 +55,8 @@ class MqttService extends ChangeNotifier {
       StreamController<String>.broadcast();
   final StreamController<String> _fluidLayerController =
       StreamController<String>.broadcast();
+  final StreamController<Map<String, dynamic>> _relayFeedbackController =
+      StreamController<Map<String, dynamic>>.broadcast();
 
   Stream<String> get systemStatusStream => _systemStatusController.stream;
 
@@ -70,6 +75,9 @@ class MqttService extends ChangeNotifier {
   Stream<String> get compostLayerStream => _compostLayerController.stream;
 
   Stream<String> get fluidLayerStream => _fluidLayerController.stream;
+
+  Stream<Map<String, dynamic>> get relayFeedbackStream =>
+      _relayFeedbackController.stream;
 
   void initializeMQTTClient() {
     _client.useWebSocket = true;
@@ -121,8 +129,6 @@ class MqttService extends ChangeNotifier {
             recMessage.payload.message);
         final String topic = c[0].topic;
 
-        // print('Received message: $message from topic: $topic');
-
         try {
           switch (topic) {
             case 'system/status':
@@ -140,22 +146,32 @@ class MqttService extends ChangeNotifier {
               break;
 
             case 'layer/bedding':
-              // _handleDeviceInfo(message, _beddingLayerController);
               _beddingLayerController.add(message);
               break;
 
             case 'layer/compost':
-              // _handleDeviceInfo(message, _compostLayerController);
               _compostLayerController.add(message);
               break;
 
             case 'layer/fluid':
-              // _handleDeviceInfo(message, _fluidLayerController);
               _fluidLayerController.add(message);
               break;
 
             default:
-              print('Unknown topic: $topic');
+              final relayRegExp = RegExp(r'^feedback/relay/([01])/([0-3])$');
+              final match = relayRegExp.firstMatch(topic);
+              if (match != null) {
+                final int board = int.parse(match.group(1)!);
+                final int pin = int.parse(match.group(2)!);
+
+                _relayFeedbackController.add({
+                  'board': board,
+                  'pin': pin,
+                  'state': message,
+                });
+              } else {
+                print('Unknown topic: $topic');
+              }
           }
         } catch (e) {
           print('Error processing message from topic $topic: $e');
@@ -229,6 +245,12 @@ class MqttService extends ChangeNotifier {
     } catch (e) {
       print('Error parsing device info message: $e');
     }
+  }
+
+  Stream<String> getRelayPinState(int board, int pin) {
+    return relayFeedbackStream
+        .where((event) => event['board'] == board && event['pin'] == pin)
+        .map((event) => event['state'] as String);
   }
 
   @override

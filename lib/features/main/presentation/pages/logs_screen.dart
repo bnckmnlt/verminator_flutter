@@ -11,6 +11,8 @@ import 'package:flutter_vermicomposting/features/main/presentation/widgets/logs_
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+// TODO: [✅] DONEEEEEE
+
 class LogsScreen extends StatefulWidget {
   const LogsScreen({super.key});
 
@@ -19,6 +21,18 @@ class LogsScreen extends StatefulWidget {
 }
 
 class _LogsScreenState extends State<LogsScreen> {
+  String _selectedSeverity = 'all';
+
+  String _searchQuery = '';
+
+  final List<String> _severityOptions = [
+    'all',
+    'info',
+    'warn',
+    'error',
+    'fatal',
+  ];
+
   final List<DataTableColumn> columns = [
     DataTableColumn(label: "Log Level"),
     DataTableColumn(label: "Timestamp"),
@@ -44,6 +58,9 @@ class _LogsScreenState extends State<LogsScreen> {
         return Scaffold(
           extendBody: true,
           extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+          ),
           body: BlocBuilder<LogBloc, LogState>(builder: (context, state) {
             if (state is LogsLoading) {
               return Center(child: Loader());
@@ -54,7 +71,21 @@ class _LogsScreenState extends State<LogsScreen> {
                 isError: true,
               );
             } else if (state is LogsListSuccess) {
-              final data = state.logs.map((item) {
+              final filteredLogs = state.logs.where((item) {
+                final matchesSeverity = _selectedSeverity == 'all'
+                    ? true
+                    : item.logSeverity.name == _selectedSeverity;
+
+                final matchesSearch = _searchQuery.isEmpty
+                    ? true
+                    : item.message
+                        .toLowerCase()
+                        .contains(_searchQuery.toLowerCase());
+
+                return matchesSeverity && matchesSearch;
+              }).toList();
+
+              final data = filteredLogs.map((item) {
                 final date = DateTime.parse(item.createdAt);
                 final formattedDate =
                     DateFormat("yyyy-MM-dd HH:mm:ss").format(date);
@@ -118,7 +149,7 @@ class _LogsScreenState extends State<LogsScreen> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(44, 44, 44, 0),
+                        padding: const EdgeInsets.fromLTRB(44, 64, 44, 0),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,6 +271,11 @@ class _LogsScreenState extends State<LogsScreen> {
           height: 32,
           width: 286,
           child: TextFormField(
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value;
+              });
+            },
             style: const TextStyle(
               fontSize: 12,
             ),
@@ -285,7 +321,9 @@ class _LogsScreenState extends State<LogsScreen> {
         ),
         const SizedBox(width: 2),
         OutlinedButton(
-          onPressed: () {},
+          onPressed: () {
+            context.read<LogBloc>().add(LogList());
+          },
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 8),
             shape: RoundedRectangleBorder(
@@ -298,26 +336,39 @@ class _LogsScreenState extends State<LogsScreen> {
             ),
           ),
           child: Icon(
-            FluentIcons.arrow_sync_circle_24_regular,
+            FluentIcons.arrow_sync_24_regular,
             size: 18,
             color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
           ),
         ),
         const SizedBox(width: 2),
-        DottedBorder(
-          options: RoundedRectDottedBorderOptions(
-            dashPattern: [3, 3],
-            strokeWidth: 1,
-            padding: EdgeInsets.fromLTRB(16, 7, 16, 7),
-            color: Theme.of(context).colorScheme.onSurface.withAlpha(64),
-            radius: Radius.circular(8),
-          ),
-          child: Text(
-            'Severity',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.025,
+        PopupMenuButton(
+          onSelected: (value) {
+            setState(() {
+              _selectedSeverity = value.toString();
+            });
+          },
+          itemBuilder: (context) => _severityOptions.map((item) {
+            return PopupMenuItem(
+              value: item,
+              child: Text(item[0].toUpperCase() + item.substring(1)),
+            );
+          }).toList(),
+          child: DottedBorder(
+            options: RoundedRectDottedBorderOptions(
+              dashPattern: [3, 3],
+              strokeWidth: 1,
+              padding: EdgeInsets.fromLTRB(16, 7, 16, 7),
+              color: Theme.of(context).colorScheme.onSurface.withAlpha(64),
+              radius: Radius.circular(8),
+            ),
+            child: Text(
+              _selectedSeverity.toUpperCase(),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.025,
+              ),
             ),
           ),
         ),

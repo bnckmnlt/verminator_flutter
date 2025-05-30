@@ -1,19 +1,46 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/status_badge.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/control_screen.dart';
+import 'package:flutter_vermicomposting/mqtt_service.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+
+// TODO: [✅] DONEEEEE
 
 class RakeControlWidget extends StatefulWidget {
-  const RakeControlWidget({super.key});
+  final MqttService mqttService;
+
+  const RakeControlWidget({
+    super.key,
+    required this.mqttService,
+  });
 
   @override
   State<RakeControlWidget> createState() => _RakeControlWidgetState();
 }
 
 class _RakeControlWidgetState extends State<RakeControlWidget> {
-  int _currentDuration = 1;
+  int _currerntCycle = 1;
+
+  void publishRakeCommand(String command) {
+    widget.mqttService
+        .publish("control/rake", command, qos: MqttQos.atLeastOnce);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final List<RakeCommand> rakeCommands = [
+      RakeCommand(
+          label: "Return to Origin",
+          iconData: FluentIcons.arrow_down_left_24_filled,
+          onPressed: () => publishRakeCommand("Return")),
+      RakeCommand(
+          label: "Stop",
+          iconData: FluentIcons.dismiss_24_filled,
+          color: Colors.redAccent,
+          onPressed: () => publishRakeCommand("Stop")),
+    ];
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
@@ -35,44 +62,16 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
               children: [
                 _rakeCycleSection(),
                 const SizedBox(height: 12),
-                _rakeCommandSection(),
+                _rakeCommandSection(rakeCommands: rakeCommands),
               ],
             ),
             sensorCardHeader(
-                context: context,
-                label: "Bedding Rake",
-                device: "NEMA17 Stepper",
-                optionalWidget: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 2.5, horizontal: 10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        height: 6,
-                        width: 6,
-                        decoration: BoxDecoration(
-                          color: Colors.greenAccent,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        "Active",
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.025,
-                        ),
-                      )
-                    ],
-                  ),
-                ))
+              context: context,
+              label: "Bedding Rake",
+              device: "NEMA17 Stepper",
+              optionalWidget:
+                  StatusBadge(color: Colors.greenAccent, state: "Active"),
+            )
           ],
         ),
       ),
@@ -105,21 +104,21 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
                     child: GestureDetector(
                       onTap: () {
                         setState(() {
-                          _currentDuration = item;
+                          _currerntCycle = item;
                         });
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             vertical: 4, horizontal: 12),
                         decoration: BoxDecoration(
-                          color: item == _currentDuration
+                          color: item == _currerntCycle
                               ? Theme.of(context)
                                   .colorScheme
                                   .surfaceContainerHigh
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: item == _currentDuration
+                            color: item == _currerntCycle
                                 ? Color(0xFF27272a)
                                 : Theme.of(context)
                                     .colorScheme
@@ -148,7 +147,7 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () => publishRakeCommand("Process:${_currerntCycle}"),
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6)),
@@ -184,19 +183,9 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
     );
   }
 
-  Widget _rakeCommandSection() {
-    final List<RakeCommand> rakeCommands = [
-      RakeCommand(
-          label: "Return to Origin",
-          iconData: FluentIcons.arrow_down_left_24_filled,
-          onPressed: () {}),
-      RakeCommand(
-          label: "Stop",
-          iconData: FluentIcons.dismiss_24_filled,
-          color: Colors.redAccent,
-          onPressed: () {}),
-    ];
-
+  Widget _rakeCommandSection({
+    required List<RakeCommand> rakeCommands,
+  }) {
     return Row(
       children: [
         Column(

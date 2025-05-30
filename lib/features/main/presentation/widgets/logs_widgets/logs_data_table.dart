@@ -2,6 +2,7 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/data_table_sticky.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/features/logs/domain/entity/log_entity.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -30,9 +31,14 @@ class LogsDataTable extends StatelessWidget {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 44),
-        child: Container(
+        child: SizedBox(
           height: deviceHeight * 0.75,
           child: PaginatedDataTable2(
+            empty: EmptyDisplayWidget(
+              icon: FluentIcons.table_search_20_regular,
+              title: "No results found",
+              description: "Try another search or adjust the filters",
+            ),
             border: TableBorder.symmetric(
               borderRadius: BorderRadius.circular(0),
               outside: BorderSide(

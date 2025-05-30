@@ -35,6 +35,24 @@ class Constants {
     "Plastics, styrofoam, and foil should never go into the compost stream.",
     "Always check your food waste for stray non-organic packaging before loading."
   ];
+
+  static List<String> relayFeedbackTopics = [
+    for (int board = 0; board < 2; board++)
+      for (int pin = 0; pin < 4; pin++) 'feedback/relay/$board/$pin'
+  ];
+
+  final Map<String, List<List<int>>> topicPinMapping = {
+    "control/aeration": [
+      [1, 0],
+    ],
+    "control/fan": [
+      [0, 0],
+      [0, 1]
+    ],
+    "control/sifter": [
+      [1, 1],
+    ],
+  };
 }
 
 class ReminderInterval {
@@ -118,12 +136,14 @@ class SensorControl {
   final String label;
   final IconData icon;
   late final bool state;
+  final String topic;
 
   SensorControl({
     required this.device,
     required this.label,
     required this.icon,
     required this.state,
+    required this.topic,
   });
 }
 

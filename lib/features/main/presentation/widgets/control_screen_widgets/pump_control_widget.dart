@@ -1,39 +1,88 @@
+import 'dart:async';
+
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/control_screen.dart';
+import 'package:flutter_vermicomposting/main.dart';
+import 'package:flutter_vermicomposting/mqtt_service.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+
+// TODO: [✅] DONEEEEE
 
 class PumpControlWidget extends StatefulWidget {
-  const PumpControlWidget({super.key});
+  final MqttService mqttService;
+
+  const PumpControlWidget({
+    super.key,
+    required this.mqttService,
+  });
 
   @override
   State<PumpControlWidget> createState() => _PumpControlWidgetState();
 }
 
 class _PumpControlWidgetState extends State<PumpControlWidget> {
-  late List<SensorControl> pumpControlList;
+  bool pumpControlState = false;
+  bool vermijuiceControlState = false;
+
+  StreamSubscription? _pumpSub;
+  StreamSubscription? _vermiSub;
 
   @override
   void initState() {
     super.initState();
-    pumpControlList = [
+
+    _pumpSub =
+        widget.mqttService.getRelayPinState(0, 2).listen((dynamic state) {
+      final newState = (state.toString() == "1");
+      setState(() {
+        pumpControlState = newState;
+        log.info(newState);
+      });
+    });
+
+    _vermiSub =
+        widget.mqttService.getRelayPinState(0, 3).listen((dynamic state) {
+      final newState = (state.toString() == "1");
+      setState(() {
+        vermijuiceControlState = newState;
+        log.info(newState);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _pumpSub?.cancel();
+    _vermiSub?.cancel();
+    super.dispose();
+  }
+
+  void togglePumpState(String topic, bool value) {
+    widget.mqttService
+        .publish(topic, value ? "1" : "0", qos: MqttQos.atLeastOnce);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pumpControlList = [
       SensorControl(
         device: "Pump",
         label: "Bedding Hydration",
         icon: Icons.water_drop_outlined,
-        state: false,
+        state: pumpControlState,
+        topic: "control/pump",
       ),
       SensorControl(
         device: "Pump",
         label: "Vermijuice Dispenser",
         icon: FluentIcons.drink_bottle_20_regular,
-        state: false,
+        state: vermijuiceControlState,
+        topic: "control/vermijuice",
       ),
     ];
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return Row(
       children: pumpControlList.asMap().entries.map((entry) {
         final i = entry.key;
@@ -65,16 +114,8 @@ class _PumpControlWidgetState extends State<PumpControlWidget> {
                           fit: BoxFit.fill,
                           child: Switch(
                             value: item.state,
-                            onChanged: (bool value) {
-                              setState(() {
-                                pumpControlList[i] = SensorControl(
-                                  device: item.device,
-                                  label: item.label,
-                                  icon: item.icon,
-                                  state: value,
-                                );
-                              });
-                            },
+                            onChanged: (bool value) =>
+                                togglePumpState(item.topic, value),
                           ),
                         ),
                       ),
