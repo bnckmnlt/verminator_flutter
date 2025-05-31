@@ -2,18 +2,25 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/common/entities/layer_classes.dart';
-import 'package:flutter_vermicomposting/core/common/widgets/data_table_sticky.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
-import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/core/utils/calculate_daily_averages.dart';
 import 'package:flutter_vermicomposting/core/utils/extract_by_day.dart';
+import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
+import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
+import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
+import 'package:flutter_vermicomposting/features/main/domain/entities/daily_records_cell.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_waiting_screen.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_chart_card.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_details_section.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_schedule_header_section.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/domain/entity/worm_activity.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
-import 'package:flutter_vermicomposting/main.dart';
+
+import 'daily_records_data_table.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -25,31 +32,16 @@ class ScheduleScreen extends StatefulWidget {
 class _ScheduleScreenState extends State<ScheduleScreen> {
   final formKey = GlobalKey<FormState>();
 
-  DateTime selectedDate = DateTime.now();
-
   bool _hasLoaded = false;
 
   final TextEditingController _scheduleIdentifierController =
       TextEditingController();
-
-  final List<DataTableColumn> columns = [
-    DataTableColumn(label: "Day"),
-    DataTableColumn(label: "Condition"),
-    DataTableColumn(label: "Temperature"),
-    DataTableColumn(label: "Humidity"),
-    DataTableColumn(label: "Soil Moisture"),
-    DataTableColumn(label: "Nitrogen"),
-    DataTableColumn(label: "Potassium"),
-    DataTableColumn(label: "Phosphorus"),
-    DataTableColumn(label: "Worm Activity"),
-  ];
 
   @override
   void initState() {
     super.initState();
 
     if (!_hasLoaded) {
-      context.read<SensorReadingBloc>().add(SensorReadingList());
       context.read<WormActivityBloc>().add(WormActivityList());
       _hasLoaded = true;
     }
@@ -122,500 +114,273 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           },
           child: const Icon(Icons.add),
         ),
-        body: BlocBuilder<SensorReadingBloc, SensorReadingState>(
-            builder: (context, sensorReadingState) {
-          if (sensorReadingState is SensorReadingLoading) {
-            return const Center(
-              child: Loader(),
-            );
-          } else if (sensorReadingState is SensorReadingFailure) {
-            return Center(
-              child: EmptyDisplayWidget(
-                icon: FluentIcons.cloud_error_28_regular,
-                title: "An error has occurred",
-                description: sensorReadingState.error,
-              ),
-            );
-          } else if (sensorReadingState is SensorReadingListSuccess) {
-            return BlocBuilder<WormActivityBloc, WormActivityState>(
-                builder: (context, wormActivityState) {
-              if (wormActivityState is WormActivityLoading) {
-                return const Center(
-                  child: Loader(),
-                );
-              } else if (wormActivityState is WormActivityFailure) {
-                return Scaffold(
-                  body: Center(
-                    child: EmptyDisplayWidget(
-                      icon: FluentIcons.cloud_error_28_regular,
-                      title: "An error has occurred",
-                      description: wormActivityState.error,
-                    ),
-                  ),
-                );
-              } else if (wormActivityState is WormActivityListSuccess) {
-                final List<SensorReading> sensorReadingsData =
-                    sensorReadingState.list;
-                final List<WormActivity> wormActivityData =
-                    wormActivityState.list;
-
-                List<DailyRecordsModel> data = calculateDailyAverages(
-                    sensorReadingsData, wormActivityData);
-
-                return SizedBox(
-                  height: deviceHeight,
-                  width: deviceWidth,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 64, 24, 0),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                _schedulePageHeader(),
-                                const SizedBox(height: 24),
-                                _detailedInfoSection(),
-                                const SizedBox(height: 24),
-                                _dailyRecordsTableSection(data: data),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                          decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              border: Border.all(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHigh,
-                              )),
-                        ),
-                      )
-                    ],
-                  ),
-                );
-              }
-
-              return EmptyDisplayWidget(
-                title: "An error has occurred",
-                description:
-                    "Something happened during the process. Please try again later",
-              );
-            });
-          }
-
-          return EmptyDisplayWidget(
-            title: "An error has occurred",
-            description:
-                "Something happened during the process. Please try again later",
-          );
-        }),
+        body: SensorReadingSection(),
       );
     });
   }
+}
 
-  Widget _schedulePageHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text(
-              "May Cycle",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(width: 12),
-            GestureDetector(
-              onTap: () {},
-              child: Icon(FluentIcons.edit_24_regular),
-            ),
-          ],
-        ),
-        const SizedBox(height: 2),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(
-              FluentIcons.calendar_16_regular,
-              color: Constants().textMutedFgDark,
-              size: 18,
-            ),
-            const SizedBox(width: 6),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 2.5),
-              child: Text(
-                "2 May 2025, 14:25",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Constants().textMutedFgDark,
-                  letterSpacing: 0.025,
-                ),
-              ),
-            ),
-          ],
-        )
-      ],
+class SensorReadingSection extends StatelessWidget {
+  const SensorReadingSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<SensorReadingBloc, SensorReadingState>(
+      builder: (context, state) {
+        if (state is SensorReadingLoading) return Loader();
+        if (state is SensorReadingFailure) {
+          return EmptyDisplayWidget(
+            description: state.error,
+            title: 'An error has occurred',
+            icon: FluentIcons.cloud_error_24_regular,
+          );
+        }
+        if (state is SensorReadingListSuccess) {
+          return WormActivitySection(sensorReadings: state.list);
+        }
+        return SizedBox();
+      },
     );
-  }
-
-  Widget _dailyRecordsTableSection({
-    required List<DailyRecordsModel> data,
-  }) {
-    final dataSource = data.map((item) {
-      return DataTableCell(
-        day: item.day,
-        condition: SensorStatus.good,
-        temperature: item.temperature,
-        humidity: item.humidity,
-        soilMoisture: item.soilMoisture,
-        nitrogen: item.nitrogen,
-        phosphorus: item.phosphorus,
-        potassium: item.potassium,
-        wormActivity: item.wormActivity,
-      );
-    }).toList();
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Daily Records",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            Text(
-              "Here's a list of the system records for the month!",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
-              ),
-            )
-          ],
-        ),
-        const SizedBox(height: 24),
-        Row(
-          children: [
-            SizedBox(
-              height: 32,
-              width: 250,
-              child: TextFormField(
-                style: const TextStyle(
-                  fontSize: 12,
-                ),
-                decoration: InputDecoration(
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  hintText: 'Filter conditions...',
-                  hintStyle: TextStyle(
-                    color: Theme.of(context).hintColor,
-                    fontSize: 12,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                      width: 1,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 1.5,
-                    ),
-                  ),
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(6),
-                    borderSide: BorderSide(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .outlineVariant
-                          .withOpacity(0.5),
-                      width: 1,
-                    ),
-                  ),
-                  filled: true,
-                  fillColor: Colors.transparent,
-                ),
-                cursorColor: Theme.of(context).colorScheme.primary,
-                enabled: true,
-                textAlignVertical: TextAlignVertical.center,
-              ),
-            ),
-            const SizedBox(width: 2),
-            OutlinedButton(
-              onPressed: () {
-                context.read<SensorReadingBloc>().add(SensorReadingList());
-                context.read<WormActivityBloc>().add(WormActivityList());
-              },
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                minimumSize: Size.zero,
-                side: BorderSide(
-                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  width: 1,
-                ),
-              ),
-              child: Icon(
-                FluentIcons.arrow_sync_24_regular,
-                size: 18,
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
-              ),
-            ),
-            const SizedBox(width: 2),
-            OutlinedButton(
-              onPressed: () {
-                _selectDate(context);
-              },
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                minimumSize: Size.zero,
-                side: BorderSide(
-                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    FluentIcons.clock_24_regular,
-                    size: 16,
-                    color:
-                        Theme.of(context).colorScheme.onSurface.withAlpha(124),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Last hour',
-                    style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withAlpha(124),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.025,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
-            ),
-          ),
-          // constrain the height
-          child: SizedBox(
-            height: 460,
-            child: DataTableSticky(
-              columns: columns,
-              data: dataSource,
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
-  Widget _detailedInfoSection() {
-    return Column(
-      children: [
-        Container(
-          height: 124,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                height: 164,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.07), // soft shadow
-                      blurRadius: 8,
-                      offset: Offset(0, 2), // vertical shadow
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Container(
-                height: 164,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.07), // soft shadow
-                      blurRadius: 8,
-                      offset: Offset(0, 2), // vertical shadow
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime now = DateTime.now();
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate.isAfter(now) ? now : selectedDate,
-      firstDate: DateTime(2024),
-      lastDate: now,
-    );
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-      });
-    }
   }
 }
 
-List<DailyRecordsModel> calculateDailyAverages(
-  List<SensorReading> readings,
-  List<WormActivity> wormActivities,
-) {
-  final beddingByDay = <String, List<BeddingReading>>{};
-  final compostByDay = <String, List<CompostReading>>{};
+class WormActivitySection extends StatelessWidget {
+  final List<SensorReading> sensorReadings;
 
-  // Process sensor readings
-  for (var r in readings) {
-    final day = extractDay(r.createdAt);
-    if (r.layer == SystemLayer.bedding && r.asBeddingReading != null) {
-      beddingByDay.putIfAbsent(day, () => []).add(r.asBeddingReading!);
-    } else if (r.layer == SystemLayer.compost && r.asCompostReading != null) {
-      compostByDay.putIfAbsent(day, () => []).add(r.asCompostReading!);
-    }
-  }
+  const WormActivitySection({super.key, required this.sensorReadings});
 
-  // Process worm activity
-  final wormActivityByDay = {
-    for (var w in wormActivities) extractDay(w.createdAt): w
-  };
-
-  // Collect all unique days from both sources
-  final allDays = <String>{
-    ...beddingByDay.keys,
-    ...compostByDay.keys,
-    ...wormActivityByDay.keys
-  };
-
-  // Optional: sort days (if you want chronological order, assuming formatted like 'Apr 1')
-  // final sortedDays = allDays.toList()..sort((a, b) => /* your comparison logic */);
-
-  log.info("Sensor Reading Days: ${beddingByDay.keys.toList()}");
-  log.info("Worm Activity Days: ${wormActivityByDay.keys.toList()}");
-  log.info("All Daily Records Days: ${allDays.toList()}");
-
-  return allDays.map((day) {
-    final bed = beddingByDay[day] ?? [];
-    final comp = compostByDay[day] ?? [];
-
-    double avg(List<num> nums) =>
-        nums.isEmpty ? 0.0 : nums.reduce((a, b) => a + b) / nums.length;
-
-    final avgTemp = avg(bed.map((r) => r.temperature.value).toList());
-    final avgHumidity = avg(bed.map((r) => r.humidity.value).toList());
-    final avgSoilMoisture = avg(bed.map((r) => r.soilMoisture.value).toList());
-    final nitrogen = avg(comp.map((r) => r.npk.nitrogen).toList());
-    final phosphorus = avg(comp.map((r) => r.npk.phosphorus).toList());
-    final potassium = avg(comp.map((r) => r.npk.potassium).toList());
-
-    final wormActivity = (wormActivityByDay[day]
-            ?.getActiveZoneLabel(wormActivityByDay[day]!.zones)) ??
-        "Unknown";
-
-    return DailyRecordsModel(
-      day: day,
-      condition: SensorStatus.good,
-      temperature: bed.isNotEmpty ? avgTemp.toStringAsFixed(1) : "-",
-      humidity: bed.isNotEmpty ? avgHumidity.toStringAsFixed(1) : "-",
-      soilMoisture: bed.isNotEmpty ? avgSoilMoisture.toStringAsFixed(1) : "-",
-      nitrogen: comp.isNotEmpty
-          ? (nitrogen == 0 ? "-" : nitrogen.toStringAsFixed(1))
-          : "-",
-      phosphorus: comp.isNotEmpty
-          ? (phosphorus == 0 ? "-" : phosphorus.toStringAsFixed(1))
-          : "-",
-      potassium: comp.isNotEmpty
-          ? (potassium == 0 ? "-" : potassium.toStringAsFixed(1))
-          : "-",
-      wormActivity: wormActivity.toString(),
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<WormActivityBloc, WormActivityState>(
+      builder: (context, state) {
+        if (state is WormActivityLoading) return Loader();
+        if (state is WormActivityFailure) {
+          return EmptyDisplayWidget(
+            description: state.error,
+            title: 'An error has occurred',
+            icon: FluentIcons.cloud_error_24_regular,
+          );
+        }
+        if (state is WormActivityListSuccess) {
+          return CompostScheduleSection(
+            sensorReadings: sensorReadings,
+            wormActivities: state.list,
+          );
+        }
+        return SizedBox();
+      },
     );
-  }).toList();
+  }
 }
 
-class DailyRecordsModel {
-  final String day;
-  final SensorStatus condition;
-  final String temperature;
-  final String humidity;
-  final String soilMoisture;
-  final String nitrogen;
-  final String phosphorus;
-  final String potassium;
-  final String wormActivity;
+class CompostScheduleSection extends StatelessWidget {
+  final List<SensorReading> sensorReadings;
+  final List<WormActivity> wormActivities;
 
-  DailyRecordsModel({
-    required this.day,
-    required this.condition,
-    required this.temperature,
-    required this.humidity,
-    required this.soilMoisture,
-    required this.nitrogen,
-    required this.phosphorus,
-    required this.potassium,
-    required this.wormActivity,
+  const CompostScheduleSection({
+    super.key,
+    required this.sensorReadings,
+    required this.wormActivities,
   });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CompostScheduleBloc, CompostScheduleState>(
+      builder: (context, state) {
+        if (state is CompostScheduleLoading) return Loader();
+        if (state is CompostScheduleFailure) {
+          return EmptyDisplayWidget(
+            description: state.error,
+            title: 'An error has occurred',
+            icon: FluentIcons.cloud_error_24_regular,
+          );
+        }
+        if (state is CompostScheduleListSuccess) {
+          return FoodWasteSection(
+            sensorReadings: sensorReadings,
+            wormActivities: wormActivities,
+            compostSchedules: state.compostScheduleList,
+          );
+        }
+        return SizedBox();
+      },
+    );
+  }
+}
+
+class FoodWasteSection extends StatefulWidget {
+  final List<SensorReading> sensorReadings;
+  final List<WormActivity> wormActivities;
+  final List<CompostSchedule> compostSchedules;
+
+  const FoodWasteSection({
+    super.key,
+    required this.sensorReadings,
+    required this.wormActivities,
+    required this.compostSchedules,
+  });
+
+  @override
+  State<FoodWasteSection> createState() => _FoodWasteSectionState();
+}
+
+class _FoodWasteSectionState extends State<FoodWasteSection> {
+  @override
+  Widget build(BuildContext context) {
+    final double deviceWidth = MediaQuery.of(context).size.width;
+
+    return BlocBuilder<FoodWasteBloc, FoodWasteState>(
+      builder: (context, state) {
+        if (state is FoodWasteLoading) return Loader();
+        if (state is FoodWasteFailure) {
+          return EmptyDisplayWidget(
+            description: state.error,
+            title: 'An error has occurred',
+            icon: FluentIcons.cloud_error_24_regular,
+          );
+        }
+        if (state is FoodWasteListSuccess) {
+          List<DailyRecordsCell> data = calculateDailyAverages(
+              widget.sensorReadings, widget.wormActivities);
+
+          return Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 64, 24, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SystemScheduleHeaderSection(
+                            compostSchedule: widget.compostSchedules.first),
+                        const SizedBox(height: 44),
+                        Text(
+                          "System Details",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SystemDetailsSection(
+                          compostSchedule: widget.compostSchedules.first,
+                          foodWasteList: state.foodWaste,
+                        ),
+                        const SizedBox(height: 34),
+                        _systemChartsSection(widget.sensorReadings),
+                        const SizedBox(height: 34),
+                        DailyRecordsDataTable(data: data),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      border: Border(
+                          left: BorderSide(
+                        color:
+                            Theme.of(context).colorScheme.surfaceContainerHigh,
+                      ))),
+                ),
+              )
+            ],
+          );
+        }
+        return SizedBox();
+      },
+    );
+  }
+}
+
+Widget _systemChartsSection(List<SensorReading> sensorReadings) {
+  final Map<String, List<BeddingReading>> readingsByDayBedding = {};
+  final Map<String, List<CompostReading>> readingsByDayCompost = {};
+
+  for (final reading in sensorReadings) {
+    final dateLabel = extractDay(reading.createdAt, format: "yyyy-MM-dd");
+    if (reading.layer == SystemLayer.bedding) {
+      final bedding = reading.asBeddingReading;
+      if (bedding != null) {
+        readingsByDayBedding.putIfAbsent(dateLabel, () => []).add(bedding);
+      }
+    } else if (reading.layer == SystemLayer.compost) {
+      final compost = reading.asCompostReading;
+      if (compost != null) {
+        readingsByDayCompost.putIfAbsent(dateLabel, () => []).add(compost);
+      }
+    }
+  }
+
+  final beddingConditionCharts = [
+    SystemChartDetails<BeddingReading>(
+      label: 'Temperature',
+      color: Color(0xff2563EB),
+      groupedReadings: readingsByDayBedding,
+      valueSelector: (b) => b.temperature.value.toDouble(),
+    ),
+    SystemChartDetails<BeddingReading>(
+      label: 'Humidity',
+      color: Color(0xff3B86F7),
+      groupedReadings: readingsByDayBedding,
+      valueSelector: (b) => b.humidity.value.toDouble(),
+    ),
+    SystemChartDetails<BeddingReading>(
+      label: 'Soil Moisture',
+      color: Color(0xff90C7FE),
+      groupedReadings: readingsByDayBedding,
+      valueSelector: (b) => b.soilMoisture.value.toDouble(),
+    ),
+    SystemChartDetails<CompostReading>(
+      label: 'Nitrogen',
+      color: Color(0xff2563EB),
+      groupedReadings: readingsByDayCompost,
+      valueSelector: (b) => b.npk.nitrogen.toDouble(),
+    ),
+    SystemChartDetails<CompostReading>(
+      label: 'Phosphorus',
+      color: Color(0xff3B86F7),
+      groupedReadings: readingsByDayCompost,
+      valueSelector: (b) => b.npk.phosphorus.toDouble(),
+    ),
+    SystemChartDetails<CompostReading>(
+      label: 'Potassium',
+      color: Color(0xff90C7FE),
+      groupedReadings: readingsByDayCompost,
+      valueSelector: (b) => b.npk.potassium.toDouble(),
+    ),
+  ];
+
+  return SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: Wrap(
+      spacing: 24,
+      direction: Axis.horizontal,
+      children: beddingConditionCharts.map((chart) {
+        if (chart is SystemChartDetails<BeddingReading>) {
+          return SystemChartCard<BeddingReading>(chartData: chart);
+        } else if (chart is SystemChartDetails<CompostReading>) {
+          return SystemChartCard<CompostReading>(chartData: chart);
+        } else {
+          return const SizedBox.shrink();
+        }
+      }).toList(),
+    ),
+  );
+}
+
+List<SensorReading> getFilteredReadings(
+    List<SensorReading> readings, DateTimeRange range) {
+  return readings.where((r) {
+    final timestamp = DateTime.parse(r.createdAt);
+    return timestamp
+            .isAfter(range.start.subtract(const Duration(seconds: 1))) &&
+        timestamp.isBefore(range.end.add(const Duration(seconds: 1)));
+  }).toList();
 }

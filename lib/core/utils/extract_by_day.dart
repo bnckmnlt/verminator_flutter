@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-String extractDay(String dateString) {
+String extractDay(String dateString, {String format = "MMM d"}) {
   final date = DateTime.parse(dateString);
-  return DateFormat("MMM d").format(date);
+  return DateFormat(format).format(date);
 }

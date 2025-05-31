@@ -1,10 +1,10 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_vermicomposting/core/common/widgets/data_table_sticky.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/features/logs/domain/entity/log_entity.dart';
+import 'package:flutter_vermicomposting/features/main/domain/entities/data_table_column.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class LogsDataTable extends StatelessWidget {

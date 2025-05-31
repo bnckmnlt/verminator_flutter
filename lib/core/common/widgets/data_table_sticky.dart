@@ -2,10 +2,12 @@ import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/core/utils/string_extensions.dart';
+import 'package:flutter_vermicomposting/features/main/domain/entities/daily_records_cell.dart';
+import 'package:flutter_vermicomposting/features/main/domain/entities/data_table_column.dart';
 
-class DataTableSticky extends StatelessWidget {
+class DataTableSticky<T> extends StatelessWidget {
   final List<DataTableColumn> columns;
-  final List<DataTableCell> data;
+  final List<DailyRecordsCell> data;
 
   const DataTableSticky({
     super.key,
@@ -43,7 +45,7 @@ class DataTableSticky extends StatelessWidget {
     );
   }
 
-  List<DataCell> _mapRowToCells(BuildContext context, DataTableCell row) {
+  List<DataCell> _mapRowToCells(BuildContext context, DailyRecordsCell row) {
     final fadedStyle = TextStyle(
       color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
     );
@@ -90,40 +92,4 @@ class DataTableSticky extends StatelessWidget {
       ],
     );
   }
-}
-
-class DataTableColumn {
-  final String label;
-  final IconData? icon;
-  final Color? color;
-
-  DataTableColumn({
-    required this.label,
-    this.icon,
-    this.color,
-  });
-}
-
-class DataTableCell {
-  final String day;
-  final SensorStatus condition;
-  final String temperature;
-  final String humidity;
-  final String soilMoisture;
-  final String nitrogen;
-  final String phosphorus;
-  final String potassium;
-  final String wormActivity;
-
-  DataTableCell({
-    required this.day,
-    required this.condition,
-    required this.temperature,
-    required this.humidity,
-    required this.soilMoisture,
-    required this.nitrogen,
-    required this.phosphorus,
-    required this.potassium,
-    required this.wormActivity,
-  });
 }

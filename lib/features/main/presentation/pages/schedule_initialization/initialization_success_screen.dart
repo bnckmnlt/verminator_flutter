@@ -5,7 +5,7 @@ import 'package:flutter_vermicomposting/core/common/widgets/glassmorphic_card_wi
 import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/status_card_widget.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/widgets/list_item_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_initialization_widgets/list_item_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class InitializationSuccessScreen extends StatefulWidget {
