@@ -42,7 +42,6 @@ dependencies:
   intl: ^0.20.1
   fluentui_system_icons: ^1.1.273
   liquid_progress_indicator_v2: ^0.5.0
-  easy_stepper: ^0.8.5+1
   lottie: ^3.3.1
   dotted_border: ^3.0.1
   flutter_dotenv: ^5.2.1

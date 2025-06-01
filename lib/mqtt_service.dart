@@ -9,6 +9,8 @@ import 'package:flutter_vermicomposting/core/secrets/app_secrets.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
+import 'main.dart';
+
 class MqttService extends ChangeNotifier {
   final MQTTConnStateEntity _connState = MQTTConnStateEntity();
   final MqttServerClient _client = MqttServerClient(
@@ -106,12 +108,12 @@ class MqttService extends ChangeNotifier {
   Future<void> connect() async {
     initializeMQTTClient();
     try {
-      print('Start client connecting....');
+      log.info('Start client connecting....');
       _connState.setAppConnectionState(MQTTAppConnectionState.connecting);
       updateState();
       await _client.connect();
     } on Exception catch (e) {
-      print('Client exception - $e');
+      log.shout('Client exception - $e');
       disconnect();
     }
   }
@@ -170,11 +172,11 @@ class MqttService extends ChangeNotifier {
                   'state': message,
                 });
               } else {
-                print('Unknown topic: $topic');
+                log.warning('Unknown topic: $topic');
               }
           }
         } catch (e) {
-          print('Error processing message from topic $topic: $e');
+          log.shout('Error processing message from topic $topic: $e');
         }
 
         notifyListeners();
@@ -183,21 +185,21 @@ class MqttService extends ChangeNotifier {
   }
 
   void onSubscribed(String topic) {
-    print('Subscription confirmed for topic $topic');
+    log.info('Subscription confirmed for topic $topic');
     _connState
         .setAppConnectionState(MQTTAppConnectionState.connectedSubscribed);
     updateState();
   }
 
   void onUnsubscribed(String? topic) {
-    print('Unsubscribed confirmed for topic $topic');
+    log.warning('Unsubscribed confirmed for topic $topic');
     _connState
         .setAppConnectionState(MQTTAppConnectionState.connectedUnsubscribed);
     updateState();
   }
 
   void onDisconnected() {
-    print('Disconnected from the broker.');
+    log.shout('Disconnected from the broker.');
     _connState.setAppConnectionState(MQTTAppConnectionState.disconnected);
     updateState();
   }
@@ -205,19 +207,19 @@ class MqttService extends ChangeNotifier {
   void subScribeToTopics() {
     for (var topic in _topics) {
       _client.subscribe(topic, MqttQos.atLeastOnce);
-      print('Subscribed to topic: $topic');
+      log.info('Subscribed to topic: $topic');
     }
   }
 
   void unsubScribeToTopics() {
     for (var topic in _topics) {
       _client.unsubscribe(topic);
-      print('Unsubscribed from topic: $topic');
+      log.warning('Unsubscribed from topic: $topic');
     }
   }
 
   void disconnect() {
-    print('Disconnected');
+    log.shout('Disconnected');
     _client.disconnect();
   }
 
@@ -231,7 +233,7 @@ class MqttService extends ChangeNotifier {
     builder.addString(message);
 
     _client.publishMessage(topic, qos, builder.payload!, retain: retain);
-    print('Message published: $message, Retained: $retain, QoS: $qos');
+    log.info('Message published: $message, Retained: $retain, QoS: $qos');
   }
 
   void _handleDeviceInfo(
@@ -243,7 +245,7 @@ class MqttService extends ChangeNotifier {
       );
       controller.add(deviceInfo);
     } catch (e) {
-      print('Error parsing device info message: $e');
+      log.shout('Error parsing device info message: $e');
     }
   }
 

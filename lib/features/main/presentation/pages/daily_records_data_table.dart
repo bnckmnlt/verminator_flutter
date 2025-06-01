@@ -1,19 +1,26 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_vermicomposting/core/common/entities/layer_classes.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/data_table_sticky.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/core/utils/extract_by_day.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/daily_records_cell.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/data_table_column.dart';
+import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
+import 'package:flutter_vermicomposting/features/worm_activity/domain/entity/worm_activity.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
+import 'package:intl/intl.dart';
 
 class DailyRecordsDataTable extends StatefulWidget {
-  final List<DailyRecordsCell> data;
+  final List<SensorReading> sensorReadings;
+  final List<WormActivity> wormActivities;
 
   const DailyRecordsDataTable({
     super.key,
-    required this.data,
+    required this.sensorReadings,
+    required this.wormActivities,
   });
 
   @override
@@ -21,7 +28,7 @@ class DailyRecordsDataTable extends StatefulWidget {
 }
 
 class _DailyRecordsDataTableState extends State<DailyRecordsDataTable> {
-  DateTime selectedDate = DateTime.now();
+  DateTimeRange? _selectedDateRange;
 
   late List<DailyRecordsCell> _dataSource;
 
@@ -40,39 +47,147 @@ class _DailyRecordsDataTableState extends State<DailyRecordsDataTable> {
   @override
   void initState() {
     super.initState();
-
-    _dataSource = widget.data.map((item) {
-      return DailyRecordsCell(
-        day: item.day,
-        condition: SensorStatus.good,
-        temperature: item.temperature,
-        humidity: item.humidity,
-        soilMoisture: item.soilMoisture,
-        nitrogen: item.nitrogen,
-        phosphorus: item.phosphorus,
-        potassium: item.potassium,
-        wormActivity: item.wormActivity,
-      );
-    }).toList();
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime now = DateTime.now();
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate.isAfter(now) ? now : selectedDate,
-      firstDate: DateTime(2024),
-      lastDate: now,
-    );
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool isSingleDayRange = _selectedDateRange != null &&
+        _selectedDateRange!.start.year == _selectedDateRange!.end.year &&
+        _selectedDateRange!.start.month == _selectedDateRange!.end.month &&
+        _selectedDateRange!.start.day == _selectedDateRange!.end.day;
+
+    final Map<String, List<BeddingReading>> beddingReadingsByTimeUnit = {};
+    final Map<String, List<CompostReading>> compostReadingsByTimeUnit = {};
+
+    for (final reading in widget.sensorReadings) {
+      final String timeLabel;
+      if (isSingleDayRange) {
+        final date = DateTime.parse(reading.createdAt);
+        timeLabel = DateFormat('yyyy-MM-dd HH').format(date);
+      } else {
+        timeLabel = extractDay(reading.createdAt, format: "yyyy-MM-dd");
+      }
+
+      if (reading.layer == SystemLayer.bedding) {
+        final bedding = reading.asBeddingReading;
+        if (bedding != null) {
+          beddingReadingsByTimeUnit
+              .putIfAbsent(timeLabel, () => [])
+              .add(bedding);
+        }
+      } else if (reading.layer == SystemLayer.compost) {
+        final compost = reading.asCompostReading;
+        if (compost != null) {
+          compostReadingsByTimeUnit
+              .putIfAbsent(timeLabel, () => [])
+              .add(compost);
+        }
+      }
+    }
+
+    final Map<String, WormActivity> wormActivitiesByTimeUnit = {};
+    for (var w in widget.wormActivities) {
+      final String timeLabel;
+      if (isSingleDayRange) {
+        final date = DateTime.parse(w.createdAt);
+        timeLabel = DateFormat('yyyy-MM-dd HH').format(date);
+      } else {
+        timeLabel = extractDay(w.createdAt, format: "yyyy-MM-dd");
+      }
+      wormActivitiesByTimeUnit[timeLabel] = w;
+    }
+
+    final allTimeRecords = <String>{
+      ...beddingReadingsByTimeUnit.keys,
+      ...compostReadingsByTimeUnit.keys,
+      ...wormActivitiesByTimeUnit.keys
+    };
+
+    final filteredTimeRecords = allTimeRecords.where((timeUnit) {
+      if (_selectedDateRange == null) {
+        return true;
+      }
+
+      final DateTime date;
+      if (isSingleDayRange) {
+        date = DateTime.parse(timeUnit + ":00:00");
+      } else {
+        date = DateTime.parse(timeUnit);
+      }
+
+      final start = DateTime(
+        _selectedDateRange!.start.year,
+        _selectedDateRange!.start.month,
+        _selectedDateRange!.start.day,
+      );
+      final end = DateTime(
+        _selectedDateRange!.end.year,
+        _selectedDateRange!.end.month,
+        _selectedDateRange!.end.day,
+        23,
+        59,
+        59,
+        999,
+      );
+
+      return !date.isBefore(start) && !date.isAfter(end);
+    }).toList();
+
+    filteredTimeRecords.sort((a, b) {
+      return a.compareTo(b);
+    });
+
+    final List<DailyRecordsCell> mappedRecords =
+        filteredTimeRecords.map((timeUnit) {
+      final bed = beddingReadingsByTimeUnit[timeUnit] ?? [];
+      final comp = compostReadingsByTimeUnit[timeUnit] ?? [];
+
+      double avg(List<num> nums) =>
+          nums.isEmpty ? 0.0 : nums.reduce((a, b) => a + b) / nums.length;
+
+      final avgTemp = avg(bed.map((r) => r.temperature.value).toList());
+      final avgHumidity = avg(bed.map((r) => r.humidity.value).toList());
+      final avgSoilMoisture =
+          avg(bed.map((r) => r.soilMoisture.value).toList());
+      final nitrogen = avg(comp.map((r) => r.npk.nitrogen).toList());
+      final phosphorus = avg(comp.map((r) => r.npk.phosphorus).toList());
+      final potassium = avg(comp.map((r) => r.npk.potassium).toList());
+
+      final wormActivity = (wormActivitiesByTimeUnit[timeUnit]
+              ?.getActiveZoneLabel(
+                  wormActivitiesByTimeUnit[timeUnit]!.zones)) ??
+          "Unknown";
+
+      final String displayLabel;
+      if (isSingleDayRange) {
+        final date = DateTime.parse("$timeUnit:00:00");
+        displayLabel = DateFormat('ha').format(date);
+      } else {
+        final date = DateTime.parse(timeUnit);
+        displayLabel = DateFormat('MMM d').format(date);
+      }
+
+      return DailyRecordsCell(
+        day: displayLabel,
+        condition: SensorStatus.good,
+        temperature: bed.isNotEmpty ? avgTemp.toStringAsFixed(1) : "-",
+        humidity: bed.isNotEmpty ? avgHumidity.toStringAsFixed(1) : "-",
+        soilMoisture: bed.isNotEmpty ? avgSoilMoisture.toStringAsFixed(1) : "-",
+        nitrogen: comp.isNotEmpty
+            ? (nitrogen == 0 ? "-" : nitrogen.toStringAsFixed(1))
+            : "-",
+        phosphorus: comp.isNotEmpty
+            ? (phosphorus == 0 ? "-" : phosphorus.toStringAsFixed(1))
+            : "-",
+        potassium: comp.isNotEmpty
+            ? (potassium == 0 ? "-" : potassium.toStringAsFixed(1))
+            : "-",
+        wormActivity: wormActivity.toString(),
+      );
+    }).toList();
+
+    _dataSource = mappedRecords;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,10 +285,24 @@ class _DailyRecordsDataTableState extends State<DailyRecordsDataTable> {
             ),
             const SizedBox(width: 2),
             OutlinedButton(
-              onPressed: () {
-                _selectDate(context);
+              onPressed: () async {
+                final pickedRange = await showDateRangePicker(
+                  context: context,
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2100),
+                  initialDateRange: _selectedDateRange,
+                  initialEntryMode: DatePickerEntryMode.inputOnly,
+                  useRootNavigator: false,
+                );
+                if (pickedRange != null) {
+                  setState(() {
+                    _selectedDateRange = pickedRange;
+                  });
+                }
               },
               style: OutlinedButton.styleFrom(
+                backgroundColor:
+                    Theme.of(context).colorScheme.surface.withAlpha(124),
                 padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
@@ -194,7 +323,9 @@ class _DailyRecordsDataTableState extends State<DailyRecordsDataTable> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'Last hour',
+                    _selectedDateRange != null
+                        ? "${DateFormat('MMM d').format(_selectedDateRange!.start)} - ${DateFormat('MMM d').format(_selectedDateRange!.end)}"
+                        : 'Last hour',
                     style: TextStyle(
                       color: Theme.of(context)
                           .colorScheme
@@ -218,7 +349,6 @@ class _DailyRecordsDataTableState extends State<DailyRecordsDataTable> {
               color: Theme.of(context).colorScheme.surfaceContainerHigh,
             ),
           ),
-          // constrain the height
           child: SizedBox(
             height: 460,
             child: DataTableSticky(

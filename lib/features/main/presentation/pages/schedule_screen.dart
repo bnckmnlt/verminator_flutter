@@ -1,18 +1,14 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_vermicomposting/core/common/entities/layer_classes.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
-import 'package:flutter_vermicomposting/core/utils/calculate_daily_averages.dart';
-import 'package:flutter_vermicomposting/core/utils/extract_by_day.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
-import 'package:flutter_vermicomposting/features/main/domain/entities/daily_records_cell.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_waiting_screen.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_chart_card.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_charts_section.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_details_section.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_schedule_header_section.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
@@ -31,11 +27,9 @@ class ScheduleScreen extends StatefulWidget {
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
   final formKey = GlobalKey<FormState>();
-
-  bool _hasLoaded = false;
-
   final TextEditingController _scheduleIdentifierController =
       TextEditingController();
+  bool _hasLoaded = false;
 
   @override
   void initState() {
@@ -50,11 +44,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, mainConstraints) {
-      final deviceHeight = mainConstraints.maxHeight;
-      final deviceWidth = mainConstraints.maxWidth;
-      bool isDark =
-          MediaQuery.of(context).platformBrightness == Brightness.dark;
-
       return Scaffold(
         extendBody: true,
         extendBodyBehindAppBar: true,
@@ -240,9 +229,6 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
           );
         }
         if (state is FoodWasteListSuccess) {
-          List<DailyRecordsCell> data = calculateDailyAverages(
-              widget.sensorReadings, widget.wormActivities);
-
           return Row(
             children: [
               Expanded(
@@ -270,9 +256,13 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                           foodWasteList: state.foodWaste,
                         ),
                         const SizedBox(height: 34),
-                        _systemChartsSection(widget.sensorReadings),
+                        SystemChartsSection(
+                            sensorReadings: widget.sensorReadings),
                         const SizedBox(height: 34),
-                        DailyRecordsDataTable(data: data),
+                        DailyRecordsDataTable(
+                          sensorReadings: widget.sensorReadings,
+                          wormActivities: widget.wormActivities,
+                        ),
                       ],
                     ),
                   ),
@@ -297,82 +287,6 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
       },
     );
   }
-}
-
-Widget _systemChartsSection(List<SensorReading> sensorReadings) {
-  final Map<String, List<BeddingReading>> readingsByDayBedding = {};
-  final Map<String, List<CompostReading>> readingsByDayCompost = {};
-
-  for (final reading in sensorReadings) {
-    final dateLabel = extractDay(reading.createdAt, format: "yyyy-MM-dd");
-    if (reading.layer == SystemLayer.bedding) {
-      final bedding = reading.asBeddingReading;
-      if (bedding != null) {
-        readingsByDayBedding.putIfAbsent(dateLabel, () => []).add(bedding);
-      }
-    } else if (reading.layer == SystemLayer.compost) {
-      final compost = reading.asCompostReading;
-      if (compost != null) {
-        readingsByDayCompost.putIfAbsent(dateLabel, () => []).add(compost);
-      }
-    }
-  }
-
-  final beddingConditionCharts = [
-    SystemChartDetails<BeddingReading>(
-      label: 'Temperature',
-      color: Color(0xff2563EB),
-      groupedReadings: readingsByDayBedding,
-      valueSelector: (b) => b.temperature.value.toDouble(),
-    ),
-    SystemChartDetails<BeddingReading>(
-      label: 'Humidity',
-      color: Color(0xff3B86F7),
-      groupedReadings: readingsByDayBedding,
-      valueSelector: (b) => b.humidity.value.toDouble(),
-    ),
-    SystemChartDetails<BeddingReading>(
-      label: 'Soil Moisture',
-      color: Color(0xff90C7FE),
-      groupedReadings: readingsByDayBedding,
-      valueSelector: (b) => b.soilMoisture.value.toDouble(),
-    ),
-    SystemChartDetails<CompostReading>(
-      label: 'Nitrogen',
-      color: Color(0xff2563EB),
-      groupedReadings: readingsByDayCompost,
-      valueSelector: (b) => b.npk.nitrogen.toDouble(),
-    ),
-    SystemChartDetails<CompostReading>(
-      label: 'Phosphorus',
-      color: Color(0xff3B86F7),
-      groupedReadings: readingsByDayCompost,
-      valueSelector: (b) => b.npk.phosphorus.toDouble(),
-    ),
-    SystemChartDetails<CompostReading>(
-      label: 'Potassium',
-      color: Color(0xff90C7FE),
-      groupedReadings: readingsByDayCompost,
-      valueSelector: (b) => b.npk.potassium.toDouble(),
-    ),
-  ];
-
-  return SingleChildScrollView(
-    scrollDirection: Axis.horizontal,
-    child: Wrap(
-      spacing: 24,
-      direction: Axis.horizontal,
-      children: beddingConditionCharts.map((chart) {
-        if (chart is SystemChartDetails<BeddingReading>) {
-          return SystemChartCard<BeddingReading>(chartData: chart);
-        } else if (chart is SystemChartDetails<CompostReading>) {
-          return SystemChartCard<CompostReading>(chartData: chart);
-        } else {
-          return const SizedBox.shrink();
-        }
-      }).toList(),
-    ),
-  );
 }
 
 List<SensorReading> getFilteredReadings(

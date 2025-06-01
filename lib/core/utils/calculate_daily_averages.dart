@@ -13,7 +13,7 @@ List<DailyRecordsCell> calculateDailyAverages(
   final compostByDay = <String, List<CompostReading>>{};
 
   for (var r in readings) {
-    final day = extractDay(r.createdAt);
+    final day = extractDay(r.createdAt, format: "yyyy-MM-dd");
     if (r.layer == SystemLayer.bedding && r.asBeddingReading != null) {
       beddingByDay.putIfAbsent(day, () => []).add(r.asBeddingReading!);
     } else if (r.layer == SystemLayer.compost && r.asCompostReading != null) {

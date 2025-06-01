@@ -112,6 +112,7 @@ class SystemChartCardState<T> extends State<SystemChartCard<T>> {
                         firstDate: DateTime(2000),
                         lastDate: DateTime(2100),
                         initialDateRange: _selectedDateRange,
+                        initialEntryMode: DatePickerEntryMode.inputOnly,
                         useRootNavigator: false,
                       );
                       if (pickedRange != null) {
