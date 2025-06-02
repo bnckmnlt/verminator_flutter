@@ -5,6 +5,8 @@ import 'package:flutter_vermicomposting/features/main/domain/entities/daily_reco
 import 'package:flutter_vermicomposting/features/main/domain/entities/data_table_column.dart';
 
 class DataTableSticky<T> extends StatelessWidget {
+  final void Function(DailyRecordsCell) onShowDetails;
+  final FocusNode tableFocusNode;
   final List<DataTableColumn> columns;
   final List<DailyRecordsCell> data;
 
@@ -12,6 +14,8 @@ class DataTableSticky<T> extends StatelessWidget {
     super.key,
     required this.columns,
     required this.data,
+    required this.tableFocusNode,
+    required this.onShowDetails,
   });
 
   @override
@@ -48,16 +52,62 @@ class DataTableSticky<T> extends StatelessWidget {
     final fadedStyle = TextStyle(
       color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
     );
+
     return [
-      DataCell(Text(row.day)),
-      DataCell(_textWithUnit(row.temperature, " °C", fadedStyle)),
-      DataCell(_textWithUnit(row.humidity, "%", fadedStyle)),
-      DataCell(_textWithUnit(row.soilMoisture, "%", fadedStyle)),
-      DataCell(_textWithUnit(row.nitrogen, "%", fadedStyle)),
-      DataCell(_textWithUnit(row.phosphorus, "%", fadedStyle)),
-      DataCell(_textWithUnit(row.potassium, "%", fadedStyle)),
-      DataCell(Text(row.wormActivity)),
+      DataCell(InkWell(
+          onTap: () {
+            onShowDetails(_onRowTap(context, row));
+          },
+          child: Text(row.day))),
+      DataCell(InkWell(
+          onTap: () {
+            onShowDetails(_onRowTap(context, row));
+          },
+          child: _textWithUnit(row.temperature, " °C", fadedStyle))),
+      DataCell(InkWell(
+          onTap: () {
+            onShowDetails(_onRowTap(context, row));
+          },
+          child: _textWithUnit(row.humidity, "%", fadedStyle))),
+      DataCell(InkWell(
+          onTap: () {
+            onShowDetails(_onRowTap(context, row));
+          },
+          child: _textWithUnit(row.soilMoisture, "%", fadedStyle))),
+      DataCell(InkWell(
+          onTap: () {
+            onShowDetails(_onRowTap(context, row));
+          },
+          child: _textWithUnit(row.nitrogen, "%", fadedStyle))),
+      DataCell(InkWell(
+          onTap: () {
+            onShowDetails(_onRowTap(context, row));
+          },
+          child: _textWithUnit(row.phosphorus, "%", fadedStyle))),
+      DataCell(InkWell(
+          onTap: () {
+            onShowDetails(_onRowTap(context, row));
+          },
+          child: _textWithUnit(row.potassium, "%", fadedStyle))),
+      DataCell(InkWell(
+          onTap: () {
+            onShowDetails(_onRowTap(context, row));
+          },
+          child: Text(row.wormActivity))),
     ];
+  }
+
+  DailyRecordsCell _onRowTap(BuildContext context, DailyRecordsCell row) {
+    return DailyRecordsCell(
+      day: row.day,
+      temperature: row.temperature,
+      humidity: row.humidity,
+      soilMoisture: row.soilMoisture,
+      nitrogen: row.nitrogen,
+      phosphorus: row.phosphorus,
+      potassium: row.potassium,
+      wormActivity: row.wormActivity,
+    );
   }
 
   Widget _textWithUnit(String value, String unit, TextStyle fadedStyle) {

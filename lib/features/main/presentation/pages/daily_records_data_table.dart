@@ -13,13 +13,17 @@ import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc
 import 'package:intl/intl.dart';
 
 class DailyRecordsDataTable extends StatefulWidget {
+  final FocusNode tableFocusNode;
+  final void Function(DailyRecordsCell) onShowDetails;
   final List<SensorReading> sensorReadings;
   final List<WormActivity> wormActivities;
 
   const DailyRecordsDataTable({
     super.key,
+    required this.tableFocusNode,
     required this.sensorReadings,
     required this.wormActivities,
+    required this.onShowDetails,
   });
 
   @override
@@ -351,6 +355,8 @@ class _DailyRecordsDataTableState extends State<DailyRecordsDataTable> {
             child: DataTableSticky(
               columns: columns,
               data: _dataSource,
+              tableFocusNode: widget.tableFocusNode,
+              onShowDetails: widget.onShowDetails,
             ),
           ),
         ),

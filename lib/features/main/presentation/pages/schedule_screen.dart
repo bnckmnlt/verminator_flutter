@@ -9,15 +9,17 @@ import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
+import 'package:flutter_vermicomposting/features/main/domain/entities/daily_records_cell.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_waiting_screen.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/widgets/device_information_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_charts_section.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_details_section.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_device_information.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_schedule_header_section.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/domain/entity/worm_activity.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
+import 'package:flutter_vermicomposting/main.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
 
@@ -219,10 +221,16 @@ class FoodWasteSection extends StatefulWidget {
 }
 
 class _FoodWasteSectionState extends State<FoodWasteSection> {
+  bool _isDetailsVisible = false;
+
+  final FocusNode _tableFocusNode = FocusNode();
+
   late MqttService _mqttService;
 
   late StreamSubscription<Map<String, String>> _deviceInfoStreamSubscription;
   Map<String, String> _deviceInfo = {};
+
+  late DailyRecordsCell selectedRecord;
 
   @override
   void initState() {
@@ -246,6 +254,28 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
     super.dispose();
   }
 
+  void _handleTableFocus(DailyRecordsCell currentRow) {
+    FocusScope.of(context).requestFocus(_tableFocusNode);
+    setState(() {
+      _isDetailsVisible = true;
+    });
+
+    setState(() {
+      selectedRecord = currentRow;
+    });
+  }
+
+  void _handleOutsideTap() {
+    if (_tableFocusNode.hasFocus) {
+      _tableFocusNode.unfocus();
+      setState(() {
+        _isDetailsVisible = false;
+      });
+
+      log.info(selectedRecord);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final double deviceWidth = MediaQuery.of(context).size.width;
@@ -261,108 +291,76 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
           );
         }
         if (state is FoodWasteListSuccess) {
-          return Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 64, 24, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        SystemScheduleHeaderSection(
-                            compostSchedule: widget.compostSchedules.first),
-                        const SizedBox(height: 44),
-                        Text(
-                          "System Details",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
+          return GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: _handleOutsideTap,
+            child: Focus(
+              focusNode: _tableFocusNode,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 64, 24, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SystemScheduleHeaderSection(
+                                compostSchedule: widget.compostSchedules.first),
+                            const SizedBox(height: 44),
+                            Text(
+                              "System Details",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            SystemDetailsSection(
+                              compostSchedule: widget.compostSchedules.first,
+                              foodWasteList: state.foodWaste,
+                            ),
+                            const SizedBox(height: 34),
+                            SystemChartsSection(
+                                sensorReadings: widget.sensorReadings),
+                            const SizedBox(height: 34),
+                            DailyRecordsDataTable(
+                              tableFocusNode: _tableFocusNode,
+                              sensorReadings: widget.sensorReadings,
+                              wormActivities: widget.wormActivities,
+                              onShowDetails: _handleTableFocus,
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 12),
-                        SystemDetailsSection(
-                          compostSchedule: widget.compostSchedules.first,
-                          foodWasteList: state.foodWaste,
-                        ),
-                        const SizedBox(height: 34),
-                        SystemChartsSection(
-                            sensorReadings: widget.sensorReadings),
-                        const SizedBox(height: 34),
-                        DailyRecordsDataTable(
-                          sensorReadings: widget.sensorReadings,
-                          wormActivities: widget.wormActivities,
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(24, 44, 24, 24),
-                  decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      border: Border(
-                          left: BorderSide(
-                        color:
-                            Theme.of(context).colorScheme.surfaceContainerHigh,
-                      ))),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Device Information",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Expanded(
-                        flex: 3,
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHigh,
-                                width: 1,
-                              )),
-                          padding: const EdgeInsets.fromLTRB(14, 16, 14, 20),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              spacing: 16,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                DeviceInformationWidget(
-                                  deviceInfo: _deviceInfo,
-                                  deviceIsActive: true,
-                                ),
-                              ],
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(24, 44, 24, 24),
+                      decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          border: Border(
+                              left: BorderSide(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHigh,
+                          ))),
+                      child: !_isDetailsVisible
+                          ? SystemDeviceInformation(
+                              deviceInfo: _deviceInfo,
+                            )
+                          : Center(
+                              child: Text("Record Details info"),
                             ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        "",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            ],
+                    ),
+                  )
+                ],
+              ),
+            ),
           );
         }
         return SizedBox();
