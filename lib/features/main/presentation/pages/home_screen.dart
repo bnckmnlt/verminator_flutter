@@ -59,9 +59,12 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   void dispose() {
-    super.dispose();
-
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
+
+    _mqttService.disconnect();
+    _mqttService.dispose();
+
+    super.dispose();
   }
 
   @override

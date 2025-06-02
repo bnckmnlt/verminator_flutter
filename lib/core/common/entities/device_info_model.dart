@@ -1,5 +1,4 @@
 class DeviceInfoModel {
-  final String expeditionStatus;
   final String deviceUptime;
   final String deviceBoard;
   final String operatingSystem;
@@ -8,10 +7,8 @@ class DeviceInfoModel {
   final String memoryUsage;
   final String networkInterface;
   final String storageUsage;
-  final String pressure;
 
   DeviceInfoModel({
-    required this.expeditionStatus,
     required this.deviceUptime,
     required this.deviceBoard,
     required this.operatingSystem,
@@ -20,12 +17,10 @@ class DeviceInfoModel {
     required this.memoryUsage,
     required this.networkInterface,
     required this.storageUsage,
-    required this.pressure,
   });
 
   factory DeviceInfoModel.fromJson(Map<String, String> json) {
     return DeviceInfoModel(
-      expeditionStatus: json["Expedition Status"] ?? '',
       deviceUptime: json["Device Uptime"] ?? '',
       deviceBoard: json["Device Board"] ?? '',
       operatingSystem: json["Operating System"] ?? '',
@@ -34,13 +29,11 @@ class DeviceInfoModel {
       cpuUsage: json["CPU Usage"] ?? '',
       memoryUsage: json["Memory Usage"] ?? '',
       storageUsage: json["Storage Usage"] ?? '',
-      pressure: json["Pressure"] ?? '',
     );
   }
 
   Map<String, String> toJson() {
     return {
-      "Expedition Status": expeditionStatus,
       "Device Uptime": deviceUptime,
       "Device Board": deviceBoard,
       "Operating System": operatingSystem,
@@ -49,19 +42,17 @@ class DeviceInfoModel {
       "CPU Usage": cpuUsage,
       "Memory Usage": memoryUsage,
       "Storage Usage": storageUsage,
-      "Pressure": pressure,
     };
   }
 
   bool hasValues() {
-    return expeditionStatus.isNotEmpty && deviceUptime.isNotEmpty ||
+    return deviceUptime.isNotEmpty ||
         deviceBoard.isNotEmpty ||
         operatingSystem.isNotEmpty ||
         cpuUsage.isNotEmpty ||
         cpuTemperature.isNotEmpty ||
         memoryUsage.isNotEmpty ||
         networkInterface.isNotEmpty ||
-        storageUsage.isNotEmpty ||
-        pressure.isNotEmpty;
+        storageUsage.isNotEmpty;
   }
 }

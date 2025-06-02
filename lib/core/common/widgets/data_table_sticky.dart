@@ -1,7 +1,6 @@
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
-import 'package:flutter_vermicomposting/core/utils/string_extensions.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/daily_records_cell.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/data_table_column.dart';
 
@@ -51,26 +50,6 @@ class DataTableSticky<T> extends StatelessWidget {
     );
     return [
       DataCell(Text(row.day)),
-      DataCell(
-        Row(
-          children: [
-            Container(
-              height: 8,
-              width: 8,
-              decoration: BoxDecoration(
-                color: Colors.greenAccent,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              row.condition.toString().split('.').last.firstLetterUpperCase(),
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
-        placeholder: true,
-      ),
       DataCell(_textWithUnit(row.temperature, " °C", fadedStyle)),
       DataCell(_textWithUnit(row.humidity, "%", fadedStyle)),
       DataCell(_textWithUnit(row.soilMoisture, "%", fadedStyle)),

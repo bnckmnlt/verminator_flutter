@@ -1,5 +1,4 @@
 import 'package:flutter_vermicomposting/core/common/entities/layer_classes.dart';
-import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/core/utils/extract_by_day.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/daily_records_cell.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
@@ -51,7 +50,6 @@ List<DailyRecordsCell> calculateDailyAverages(
 
     return DailyRecordsCell(
       day: day,
-      condition: SensorStatus.good,
       temperature: bed.isNotEmpty ? avgTemp.toStringAsFixed(1) : "-",
       humidity: bed.isNotEmpty ? avgHumidity.toStringAsFixed(1) : "-",
       soilMoisture: bed.isNotEmpty ? avgSoilMoisture.toStringAsFixed(1) : "-",

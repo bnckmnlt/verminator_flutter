@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/common/entities/layer_classes.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/data_table_sticky.dart';
-import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/core/utils/extract_by_day.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/daily_records_cell.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/data_table_column.dart';
@@ -34,13 +33,12 @@ class _DailyRecordsDataTableState extends State<DailyRecordsDataTable> {
 
   final List<DataTableColumn> columns = [
     DataTableColumn(label: "Day"),
-    DataTableColumn(label: "Condition"),
     DataTableColumn(label: "Temperature"),
     DataTableColumn(label: "Humidity"),
     DataTableColumn(label: "Soil Moisture"),
     DataTableColumn(label: "Nitrogen"),
-    DataTableColumn(label: "Potassium"),
     DataTableColumn(label: "Phosphorus"),
+    DataTableColumn(label: "Potassium"),
     DataTableColumn(label: "Worm Activity"),
   ];
 
@@ -169,7 +167,6 @@ class _DailyRecordsDataTableState extends State<DailyRecordsDataTable> {
 
       return DailyRecordsCell(
         day: displayLabel,
-        condition: SensorStatus.good,
         temperature: bed.isNotEmpty ? avgTemp.toStringAsFixed(1) : "-",
         humidity: bed.isNotEmpty ? avgHumidity.toStringAsFixed(1) : "-",
         soilMoisture: bed.isNotEmpty ? avgSoilMoisture.toStringAsFixed(1) : "-",

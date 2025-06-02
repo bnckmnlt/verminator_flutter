@@ -1,8 +1,5 @@
-import 'package:flutter_vermicomposting/core/constants/constants.dart';
-
 class DailyRecordsCell {
   final String day;
-  final SensorStatus condition;
   final String temperature;
   final String humidity;
   final String soilMoisture;
@@ -13,7 +10,6 @@ class DailyRecordsCell {
 
   DailyRecordsCell({
     required this.day,
-    required this.condition,
     required this.temperature,
     required this.humidity,
     required this.soilMoisture,

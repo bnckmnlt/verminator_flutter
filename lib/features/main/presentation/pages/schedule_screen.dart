@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +10,7 @@ import 'package:flutter_vermicomposting/features/compost_schedule/domain/entitie
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_waiting_screen.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/device_information_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_charts_section.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_details_section.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_schedule_header_section.dart';
@@ -15,6 +18,8 @@ import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/se
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/domain/entity/worm_activity.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
+import 'package:flutter_vermicomposting/mqtt_service.dart';
+import 'package:get_it/get_it.dart';
 
 import 'daily_records_data_table.dart';
 
@@ -214,6 +219,33 @@ class FoodWasteSection extends StatefulWidget {
 }
 
 class _FoodWasteSectionState extends State<FoodWasteSection> {
+  late MqttService _mqttService;
+
+  late StreamSubscription<Map<String, String>> _deviceInfoStreamSubscription;
+  Map<String, String> _deviceInfo = {};
+
+  @override
+  void initState() {
+    super.initState();
+
+    _mqttService = GetIt.I<MqttService>();
+    _mqttService.connect();
+
+    _deviceInfoStreamSubscription =
+        _mqttService.deviceInfoStream.listen((info) {
+      setState(() {
+        _deviceInfo = info;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _deviceInfoStreamSubscription.cancel();
+
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final double deviceWidth = MediaQuery.of(context).size.width;
@@ -271,6 +303,7 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
               Expanded(
                 flex: 1,
                 child: Container(
+                  padding: const EdgeInsets.fromLTRB(24, 44, 24, 24),
                   decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surface,
                       border: Border(
@@ -278,6 +311,55 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                         color:
                             Theme.of(context).colorScheme.surfaceContainerHigh,
                       ))),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Device Information",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Expanded(
+                        flex: 3,
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHigh,
+                                width: 1,
+                              )),
+                          padding: const EdgeInsets.fromLTRB(14, 16, 14, 20),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              spacing: 16,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                DeviceInformationWidget(
+                                  deviceInfo: _deviceInfo,
+                                  deviceIsActive: true,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        "",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               )
             ],

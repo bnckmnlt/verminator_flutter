@@ -35,7 +35,7 @@ class MqttService extends ChangeNotifier {
     'system/current_cycle',
     'system/status',
     'system/health',
-    'system/device/info',
+    'system/info',
     'schedule/sifter',
     'schedule/aeration',
     ...Constants.relayFeedbackTopics,
@@ -143,7 +143,7 @@ class MqttService extends ChangeNotifier {
               _systemHealthController.add(healthData);
               break;
 
-            case 'system/device/info':
+            case 'system/info':
               _handleDeviceInfo(message, _deviceInfoController);
               break;
 
