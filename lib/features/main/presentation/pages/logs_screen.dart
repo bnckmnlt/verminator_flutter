@@ -42,8 +42,6 @@ class _LogsScreenState extends State<LogsScreen> {
   @override
   void initState() {
     super.initState();
-
-    context.read<LogBloc>().add(LogList());
   }
 
   @override

@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 class LogsDataTable extends StatelessWidget {
   final List<DataTableColumn> columns;
   final List<LogDataTableCell> data;
+  final double? padding;
   final double deviceHeight;
 
   const LogsDataTable({
@@ -17,6 +18,7 @@ class LogsDataTable extends StatelessWidget {
     required this.columns,
     required this.data,
     required this.deviceHeight,
+    this.padding,
   });
 
   @override
@@ -30,7 +32,7 @@ class LogsDataTable extends StatelessWidget {
 
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 44),
+        padding: EdgeInsets.symmetric(horizontal: padding ?? 44),
         child: SizedBox(
           height: deviceHeight * 0.75,
           child: PaginatedDataTable2(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_vermicomposting/core/common/cubits/app_schedule/app_schedule_cubit.dart';
 import 'package:flutter_vermicomposting/core/theme/theme.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
@@ -30,6 +31,9 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
+        BlocProvider(
+          create: (_) => sl<AppScheduleCubit>()..initializeApp(),
+        ),
         BlocProvider(
           create: (_) => sl<CompostScheduleBloc>(),
         ),
@@ -62,6 +66,11 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Burmi',
@@ -69,7 +78,23 @@ class _MyAppState extends State<MyApp> {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       routes: {
-        '/': (context) => const HomeScreen(),
+        '/': (context) =>
+            BlocSelector<AppScheduleCubit, AppScheduleState, bool>(
+              selector: (state) {
+                return state is AppScheduleActive;
+              },
+              builder: (context, isActive) {
+                if (isActive) {
+                  return HomeScreen();
+                }
+
+                return Scaffold(
+                  appBar: AppBar(
+                    title: Text("ErrorPage"),
+                  ),
+                );
+              },
+            ),
         '/schedule': (context) => const ScheduleScreen(),
         '/controls': (context) => const ControlScreen(),
         '/logs': (context) => const LogsScreen(),

@@ -7,12 +7,14 @@ import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
+import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/bedding_condition_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/materials_processed_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/nutrient_summary_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/sensor_readings_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/system_information_widget.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
+import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
@@ -50,6 +52,8 @@ class _HomeScreenState extends State<HomeScreen>
       context.read<CompostScheduleBloc>().add(CompostScheduleList());
       context.read<FoodWasteBloc>().add(FoodWasteList());
       context.read<SensorReadingBloc>().add(SensorReadingList());
+      context.read<LogBloc>().add(LogList());
+      context.read<WormActivityBloc>().add(WormActivityList());
       _hasLoaded = true;
     }
   }
@@ -71,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final formattedDate = DateFormat('d, MMMM y').format(now);
+    final formattedDate = DateFormat('d MMMM y').format(now);
     final formattedTime = DateFormat('HH:mm').format(now);
 
     final toastHelper = ToastHelper(context);
@@ -312,6 +316,7 @@ class _HomeScreenState extends State<HomeScreen>
                                         if (foodWasteState
                                             is FoodWasteListSuccess) {
                                           return SystemInformationWidget(
+                                            mqttService: _mqttService,
                                             scheduleData: compostScheduleState
                                                 .compostScheduleList,
                                             foodWasteData:

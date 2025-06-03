@@ -151,7 +151,7 @@ class SystemChartCardState<T> extends State<SystemChartCard<T>> {
                           _selectedDateRange != null
                               ? DateFormat('MMM d')
                                   .format(_selectedDateRange!.start)
-                              : 'Last hour',
+                              : 'All time',
                           style: TextStyle(
                             color: Theme.of(context)
                                 .colorScheme

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_vermicomposting/core/common/cubits/app_schedule/app_schedule_cubit.dart';
 import 'package:flutter_vermicomposting/core/usecase/usecase.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/usecases/create_compost_schedule.dart';
@@ -18,6 +19,7 @@ class CompostScheduleBloc
   final PatchCompostSchedule _patchCompostSchedule;
   final RemoveCompostSchedule _removeCompostSchedule;
   final SelectOneCompostSchedule _selectOneCompostSchedule;
+  final AppScheduleCubit _appScheduleCubit;
 
   CompostScheduleBloc({
     required CreateCompostSchedule createCompostSchedule,
@@ -25,11 +27,13 @@ class CompostScheduleBloc
     required PatchCompostSchedule patchCompostSchedule,
     required RemoveCompostSchedule removeCompostSchedule,
     required SelectOneCompostSchedule selectOneCompostSchedule,
+    required AppScheduleCubit appScheduleCubit,
   })  : _createCompostSchedule = createCompostSchedule,
         _listCompostSchedule = listCompostSchedule,
         _patchCompostSchedule = patchCompostSchedule,
         _removeCompostSchedule = removeCompostSchedule,
         _selectOneCompostSchedule = selectOneCompostSchedule,
+        _appScheduleCubit = appScheduleCubit,
         super(CompostScheduleInitial()) {
     on<CompostScheduleEvent>((event, emit) => emit(CompostScheduleLoading()));
     on<CompostScheduleCreate>(_onCreateCompostSchedule);
@@ -51,7 +55,7 @@ class CompostScheduleBloc
 
     res.fold(
       (l) => emit(CompostScheduleFailure(l.message)),
-      (r) => emit(CompostScheduleSuccess(r)),
+      (r) => _emitCurrentSchedule(r, emit),
     );
   }
 
@@ -74,7 +78,7 @@ class CompostScheduleBloc
 
     res.fold(
       (l) => emit(CompostScheduleFailure(l.message)),
-      (r) => emit(CompostScheduleSuccess(r)),
+      (r) => _emitCurrentSchedule(r, emit),
     );
   }
 
@@ -100,5 +104,11 @@ class CompostScheduleBloc
       (l) => emit(CompostScheduleFailure(l.message)),
       (r) => emit(CompostScheduleRemoveSuccess(r)),
     );
+  }
+
+  void _emitCurrentSchedule(
+      CompostSchedule schedule, Emitter<CompostScheduleState> emit) {
+    _appScheduleCubit.updateCurrentSchedule(schedule);
+    emit(CompostScheduleSuccess(schedule));
   }
 }

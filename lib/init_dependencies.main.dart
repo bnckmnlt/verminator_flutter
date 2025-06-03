@@ -23,6 +23,9 @@ Future<void> initDependencies() async {
 
   await sl<MqttService>().connect();
 
+  sl.registerLazySingleton(
+    () => AppScheduleCubit(),
+  );
   sl.registerFactory<ConnectionChecker>(
     () => ConnectionCheckerImpl(
       sl(),
@@ -73,6 +76,7 @@ void _initCompostSchedule() {
         listCompostSchedule: sl(),
         patchCompostSchedule: sl(),
         removeCompostSchedule: sl(),
+        appScheduleCubit: sl(),
       ),
     );
 }

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/common/entities/layer_classes.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/data_table_sticky.dart';
 import 'package:flutter_vermicomposting/core/utils/extract_by_day.dart';
+import 'package:flutter_vermicomposting/core/utils/get_min_max.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/daily_records_cell.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/data_table_column.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
@@ -147,10 +148,23 @@ class _DailyRecordsDataTableState extends State<DailyRecordsDataTable> {
       double avg(List<num> nums) =>
           nums.isEmpty ? 0.0 : nums.reduce((a, b) => a + b) / nums.length;
 
-      final avgTemp = avg(bed.map((r) => r.temperature.value).toList());
-      final avgHumidity = avg(bed.map((r) => r.humidity.value).toList());
+      final tempValues = bed.map((r) => r.temperature.value).toList();
+      final avgTemp = tempValues.isNotEmpty ? avg(tempValues) : null;
+      final maxTemp = getMax(tempValues);
+      final minTemp = getMin(tempValues);
+
+      final humidityValues = bed.map((r) => r.humidity.value).toList();
+      final avgHumidity =
+          humidityValues.isNotEmpty ? avg(humidityValues) : null;
+      final maxHumidity = getMax(humidityValues);
+      final minHumidity = getMin(humidityValues);
+
+      final soilMoistureValues = bed.map((r) => r.soilMoisture.value).toList();
       final avgSoilMoisture =
-          avg(bed.map((r) => r.soilMoisture.value).toList());
+          soilMoistureValues.isNotEmpty ? avg(soilMoistureValues) : null;
+      final minSoilMoisture = getMin(soilMoistureValues);
+      final maxSoilMoisture = getMax(soilMoistureValues);
+
       final nitrogen = avg(comp.map((r) => r.npk.nitrogen).toList());
       final phosphorus = avg(comp.map((r) => r.npk.phosphorus).toList());
       final potassium = avg(comp.map((r) => r.npk.potassium).toList());
@@ -171,17 +185,23 @@ class _DailyRecordsDataTableState extends State<DailyRecordsDataTable> {
 
       return DailyRecordsCell(
         day: displayLabel,
-        temperature: bed.isNotEmpty ? avgTemp.toStringAsFixed(1) : "-",
-        humidity: bed.isNotEmpty ? avgHumidity.toStringAsFixed(1) : "-",
-        soilMoisture: bed.isNotEmpty ? avgSoilMoisture.toStringAsFixed(1) : "-",
+        temperature: formatDouble(avgTemp),
+        minTemp: formatDouble(minTemp),
+        maxTemp: formatDouble(maxTemp),
+        humidity: formatDouble(avgHumidity),
+        minHumidity: formatDouble(minHumidity),
+        maxHumidity: formatDouble(maxHumidity),
+        soilMoisture: formatDouble(avgSoilMoisture),
+        minSoilMoisture: formatDouble(minSoilMoisture),
+        maxSoilMoisture: formatDouble(maxSoilMoisture),
         nitrogen: comp.isNotEmpty
-            ? (nitrogen == 0 ? "-" : nitrogen.toStringAsFixed(1))
+            ? (nitrogen == 0 ? "-" : formatDouble(nitrogen))
             : "-",
         phosphorus: comp.isNotEmpty
-            ? (phosphorus == 0 ? "-" : phosphorus.toStringAsFixed(1))
+            ? (phosphorus == 0 ? "-" : formatDouble(phosphorus))
             : "-",
         potassium: comp.isNotEmpty
-            ? (potassium == 0 ? "-" : potassium.toStringAsFixed(1))
+            ? (potassium == 0 ? "-" : formatDouble(potassium))
             : "-",
         wormActivity: wormActivity.toString(),
       );

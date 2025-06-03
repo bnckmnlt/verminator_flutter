@@ -49,7 +49,7 @@ class WormActivityRemoteDatasourceImpl implements WormActivityRemoteDatasource {
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        return WormActivityModel.fromJson(jsonDecode(response.body));
       } else {
         throw ServerException(response.body.parseErrorMessage());
       }

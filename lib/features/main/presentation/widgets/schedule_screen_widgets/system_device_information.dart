@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/device_information_widget.dart';
 
-class SystemDeviceInformation extends StatefulWidget {
+class SystemDeviceInformation extends StatelessWidget {
   final Map<String, String> deviceInfo;
 
   const SystemDeviceInformation({
@@ -9,12 +9,6 @@ class SystemDeviceInformation extends StatefulWidget {
     required this.deviceInfo,
   });
 
-  @override
-  State<SystemDeviceInformation> createState() =>
-      _SystemDeviceInformationState();
-}
-
-class _SystemDeviceInformationState extends State<SystemDeviceInformation> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -46,7 +40,7 @@ class _SystemDeviceInformationState extends State<SystemDeviceInformation> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   DeviceInformationWidget(
-                    deviceInfo: widget.deviceInfo,
+                    deviceInfo: deviceInfo,
                     deviceIsActive: true,
                   ),
                 ],

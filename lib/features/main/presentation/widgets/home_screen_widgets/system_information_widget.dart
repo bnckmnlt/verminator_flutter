@@ -1,12 +1,21 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/core/utils/evaluate_soil_health.dart';
+import 'package:flutter_vermicomposting/core/utils/string_extensions.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
+import 'package:flutter_vermicomposting/features/main/data/models/sensor_values_model.dart';
+import 'package:flutter_vermicomposting/features/main/domain/entities/sensor_values.dart';
+import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // TODO: [✅] DONEEEEEEEEE
 class SystemInformationWidget extends StatefulWidget {
+  final MqttService mqttService;
   final List<CompostSchedule> scheduleData;
   final List<FoodWaste> foodWasteData;
 
@@ -14,6 +23,7 @@ class SystemInformationWidget extends StatefulWidget {
     super.key,
     required this.scheduleData,
     required this.foodWasteData,
+    required this.mqttService,
   });
 
   @override
@@ -22,7 +32,24 @@ class SystemInformationWidget extends StatefulWidget {
 }
 
 class _SystemInformationWidgetState extends State<SystemInformationWidget> {
+  late StreamSubscription<String> _beddingLayerSubscription;
+  late StreamSubscription<String> _compostLayerSubscription;
+
   late List<SummaryCardItem> _summaryItems;
+
+  Map<String, dynamic> _collectedData = {};
+
+  SensorValues sensorValues = SensorValues(
+    temperature: "0",
+    humidity: "0",
+    soilMoisture: "0",
+    nitrogen: "0",
+    phosphorus: "0",
+    potassium: "0",
+    compost: "0",
+    vermijuice: "0",
+    reservoir: "0",
+  );
 
   int totalCompostProduced = 0;
   int totalJuiceProduced = 0;
@@ -30,6 +57,11 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
   @override
   void initState() {
     super.initState();
+
+    _beddingLayerSubscription =
+        widget.mqttService.beddingLayerStream.listen(_onData);
+    _compostLayerSubscription =
+        widget.mqttService.compostLayerStream.listen(_onData);
 
     totalCompostProduced = widget.scheduleData.fold<int>(
       0,
@@ -70,6 +102,24 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
         color: Colors.indigoAccent,
       ),
     ];
+  }
+
+  @override
+  void dispose() {
+    _beddingLayerSubscription.cancel();
+    _compostLayerSubscription.cancel();
+    super.dispose();
+  }
+
+  void _onData(String? data) {
+    if (data == null) return;
+    try {
+      final map = jsonDecode(data) as Map<String, dynamic>;
+      _collectedData.addAll(map);
+      setState(() {
+        sensorValues = SensorValuesModel.fromJson(_collectedData);
+      });
+    } catch (_) {}
   }
 
   @override
@@ -170,6 +220,15 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
   }
 
   Widget _systemHealthCard(bool isLast) {
+    final result = evaluateSoilHealth(
+      temperature: safeParseDouble(sensorValues.temperature),
+      humidity: safeParseDouble(sensorValues.humidity),
+      soilMoisture: safeParseDouble(sensorValues.soilMoisture),
+      nitrogen: safeParseDouble(sensorValues.nitrogen),
+      phosphorus: safeParseDouble(sensorValues.phosphorus),
+      potassium: safeParseDouble(sensorValues.potassium),
+    );
+
     return Padding(
       padding: EdgeInsets.fromLTRB(0, 0, 0, isLast ? 0.0 : 16.0),
       child: ClipRRect(
@@ -192,8 +251,8 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      Colors.greenAccent.withOpacity(0.05),
-                      Colors.greenAccent.withOpacity(0.1),
+                      result['color'].withOpacity(0.05),
+                      result['color'].withOpacity(0.1),
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
@@ -229,8 +288,8 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    const Text(
-                      "Excellent",
+                    Text(
+                      result["status"].toString().toUpperCase(),
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w500,

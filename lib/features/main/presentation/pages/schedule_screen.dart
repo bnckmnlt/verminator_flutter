@@ -14,12 +14,12 @@ import 'package:flutter_vermicomposting/features/main/presentation/pages/schedul
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_charts_section.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_details_section.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_device_information.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_record_details_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_schedule_header_section.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/domain/entity/worm_activity.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
-import 'package:flutter_vermicomposting/main.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
 
@@ -36,16 +36,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   final formKey = GlobalKey<FormState>();
   final TextEditingController _scheduleIdentifierController =
       TextEditingController();
-  bool _hasLoaded = false;
 
   @override
   void initState() {
     super.initState();
-
-    if (!_hasLoaded) {
-      context.read<WormActivityBloc>().add(WormActivityList());
-      _hasLoaded = true;
-    }
   }
 
   @override
@@ -54,8 +48,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       return Scaffold(
         extendBody: true,
         extendBodyBehindAppBar: true,
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
+          elevation: 0.0,
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
@@ -271,8 +267,6 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
       setState(() {
         _isDetailsVisible = false;
       });
-
-      log.info(selectedRecord);
     }
   }
 
@@ -339,24 +333,24 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                   ),
                   Expanded(
                     flex: 1,
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(24, 44, 24, 24),
-                      decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          border: Border(
-                              left: BorderSide(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHigh,
-                          ))),
-                      child: !_isDetailsVisible
-                          ? SystemDeviceInformation(
+                    child: !_isDetailsVisible
+                        ? Container(
+                            padding: const EdgeInsets.fromLTRB(24, 44, 24, 24),
+                            decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surface,
+                                border: Border(
+                                    left: BorderSide(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHigh,
+                                ))),
+                            child: SystemDeviceInformation(
                               deviceInfo: _deviceInfo,
-                            )
-                          : Center(
-                              child: Text("Record Details info"),
                             ),
-                    ),
+                          )
+                        : SystemRecordDetails(
+                            currentRecord: selectedRecord,
+                          ),
                   )
                 ],
               ),

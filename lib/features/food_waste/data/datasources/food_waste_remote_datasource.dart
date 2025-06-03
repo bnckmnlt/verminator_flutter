@@ -49,7 +49,7 @@ class FoodWasteRemoteDatasourceImpl implements FoodWasteRemoteDatasource {
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        return FoodWasteModel.fromJson(jsonDecode(response.body));
       } else {
         throw ServerException(response.body.parseErrorMessage());
       }
