@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/data/models/compost_schedule_model.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
-import 'package:flutter_vermicomposting/main.dart';
 import 'package:http/http.dart' as http;
 
 part 'app_schedule_state.dart';
@@ -45,7 +44,6 @@ class AppScheduleCubit extends Cubit<AppScheduleState> {
     if (schedule == null) {
       emit(AppScheduleInitial());
     } else {
-      log.severe(schedule);
       emit(AppScheduleActive(schedule));
     }
   }

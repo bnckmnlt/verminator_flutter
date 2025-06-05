@@ -1,6 +1,8 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/common/cubits/app_schedule/app_schedule_cubit.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/theme/theme.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
@@ -8,8 +10,8 @@ import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc
 import 'package:flutter_vermicomposting/features/main/presentation/pages/control_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/home_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/logs_screen.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_waiting_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_screen.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/settings_screen.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
 import 'package:flutter_vermicomposting/init_dependencies.dart';
@@ -89,8 +91,12 @@ class _MyAppState extends State<MyApp> {
                 }
 
                 return Scaffold(
-                  appBar: AppBar(
-                    title: Text("ErrorPage"),
+                  body: Center(
+                    child: EmptyDisplayWidget(
+                        icon: FluentIcons.cloud_sync_24_regular,
+                        title: "Loading application data",
+                        description:
+                            "The application is initializing. Please wait while we fetch the latest data. If this takes too long, kindly try again shortly"),
                   ),
                 );
               },
@@ -98,7 +104,7 @@ class _MyAppState extends State<MyApp> {
         '/schedule': (context) => const ScheduleScreen(),
         '/controls': (context) => const ControlScreen(),
         '/logs': (context) => const LogsScreen(),
-        '/settings': (context) => const SettingsScreen(),
+        '/settings': (context) => const InitializationWaitingScreen(),
       },
     );
   }

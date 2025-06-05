@@ -22,28 +22,30 @@ class ClassListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: iconColor,
-              size: iconSize,
-            ),
-            SizedBox(width: spacing),
-            Text(
-              text,
-              overflow: TextOverflow.ellipsis,
-              style: textStyle ??
-                  TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-          ],
+    return Container(
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                color: iconColor,
+                size: iconSize,
+              ),
+              SizedBox(width: spacing),
+              Text(
+                text,
+                overflow: TextOverflow.ellipsis,
+                style: textStyle ??
+                    TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+            ],
+          ),
         ),
       ),
     );

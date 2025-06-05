@@ -7,7 +7,12 @@ import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'initialization_waiting_screen.dart';
 
 class InitializationFailedScreen extends StatefulWidget {
-  const InitializationFailedScreen({super.key});
+  final List<bool> errorStatusList;
+
+  const InitializationFailedScreen({
+    super.key,
+    required this.errorStatusList,
+  });
 
   @override
   State<InitializationFailedScreen> createState() =>
@@ -29,32 +34,32 @@ class _InitializationFailedScreenState
     super.initState();
   }
 
-  List<ProcessInformation> informationItemList = [
-    const ProcessInformation(
-      icon: FluentIcons.food_20_regular,
-      title: "No valid food waste is loaded to the machine",
-      message:
-          "The system was unable to detect any valid food waste during the loading process. Please ensure only acceptable materials are placed onto the conveyor. Refer to the approved material guide to avoid misclassification.",
-      currentError: false,
-    ),
-    const ProcessInformation(
-      icon: FluentIcons.hourglass_24_regular,
-      title: "User doesn't load valid materials during the duration",
-      message:
-          "No valid items were detected within the required loading time window. This may result in skipped compost cycles. Load materials promptly once the system prompts for input to avoid delays.",
-      currentError: true,
-    ),
-    const ProcessInformation(
-      icon: FluentIcons.globe_error_24_regular,
-      title: "Something went wrong during the process",
-      message:
-          "An unexpected error occurred while processing the input materials. Please restart the operation and monitor the loading steps. Ensure that the sensors and mechanical components are not obstructed or overloaded.",
-      currentError: false,
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    List<ProcessInformation> informationItemList = [
+      ProcessInformation(
+        icon: FluentIcons.food_20_regular,
+        title: "No valid food waste is loaded to the machine",
+        message:
+            "The system was unable to detect any valid food waste during the loading process. Please ensure only acceptable materials are placed onto the conveyor. Refer to the approved material guide to avoid misclassification.",
+        currentError: widget.errorStatusList[0],
+      ),
+      ProcessInformation(
+        icon: FluentIcons.hourglass_24_regular,
+        title: "User doesn't load valid materials during the duration",
+        message:
+            "No valid items were detected within the required loading time window. This may result in skipped compost cycles. Load materials promptly once the system prompts for input to avoid delays.",
+        currentError: widget.errorStatusList[1],
+      ),
+      ProcessInformation(
+        icon: FluentIcons.globe_error_24_regular,
+        title: "Something went wrong during the process",
+        message:
+            "An unexpected error occurred while processing the input materials. Please restart the operation and monitor the loading steps. Ensure that the sensors and mechanical components are not obstructed or overloaded.",
+        currentError: widget.errorStatusList[2],
+      ),
+    ];
+
     return LayoutBuilder(builder: (context, constraints) {
       final double deviceHeight = MediaQuery.of(context).size.height;
       final double deviceWidth = MediaQuery.of(context).size.width;
@@ -80,7 +85,7 @@ class _InitializationFailedScreenState
               ),
               const SizedBox(width: 24),
               Expanded(
-                child: _processInformationComponent(),
+                child: _processInformationComponent(informationItemList),
               ),
             ],
           ),
@@ -89,11 +94,12 @@ class _InitializationFailedScreenState
     });
   }
 
-  Widget _processInformationComponent() {
+  Widget _processInformationComponent(
+      List<ProcessInformation> informationItemList) {
     return GlassmorphicCardWidget(
       child: Column(
         children: [
-          _infoCard(),
+          _infoCard(context),
           const SizedBox(height: 24),
           Column(
             children: List<Widget>.generate(
@@ -121,7 +127,7 @@ class _InitializationFailedScreenState
     );
   }
 
-  Widget _infoCard() {
+  Widget _infoCard(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: Row(
@@ -211,7 +217,7 @@ class _InitializationFailedScreenState
                             ),
                           );
                         },
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
@@ -224,6 +230,7 @@ class _InitializationFailedScreenState
                             SizedBox(width: 4),
                             Icon(
                               FluentIcons.open_24_regular,
+                              color: Theme.of(context).colorScheme.onSurface,
                               size: 14,
                             ),
                           ],

@@ -1,10 +1,16 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/error_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/glassmorphic_card_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/status_card_widget.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
+import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_initialization_widgets/list_item_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -108,41 +114,66 @@ class _InitializationSuccessScreenState
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: GlassmorphicCardWidget(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _summaryHeaderSection(),
-                      _materialsValidatedSection(),
-                      const SizedBox(height: 32),
-                      _configurationSection(),
-                      const SizedBox(height: 32),
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              width: 1,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHigh),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 8, horizontal: 20),
-                        child: Text(
-                          "Initial configuration uses recommended defaults. All parameters can be modified post-setup.",
-                          style: GoogleFonts.manrope(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 12,
-                            letterSpacing: 0.025,
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
+              BlocBuilder<FoodWasteBloc, FoodWasteState>(
+                  builder: (context, state) {
+                if (state is FoodWasteLoading) {
+                  return const Loader();
+                } else if (state is FoodWasteFailure) {
+                  return Center(
+                    child: GeneralErrorWidget(
+                      errorTitle: "An error has occurred during fetching",
+                      errorMessage: state.error,
+                    ),
+                  );
+                } else if (state is FoodWasteListSuccess) {
+                  final invalidData = state.foodWaste
+                      .where((item) =>
+                          item.foodWasteScheduleId == 1 &&
+                          item.classname == FoodWasteClassname.invalid)
+                      .map((item) {
+                    return FoodWasteClass(
+                      pathname: item.filePath,
+                      icon: getClassnameIconData(item.classname),
+                      classname: item.classname,
+                      color: Colors.redAccent,
+                    );
+                  }).toList();
+
+                  final validData = state.foodWaste
+                      .where((item) =>
+                          item.foodWasteScheduleId == 1 &&
+                          item.classname != FoodWasteClassname.invalid)
+                      .map((item) {
+                    return FoodWasteClass(
+                      pathname: item.filePath,
+                      icon: getClassnameIconData(item.classname),
+                      classname: item.classname != FoodWasteClassname.invalid
+                          ? item.classname
+                          : FoodWasteClassname.invalid,
+                      color: Colors.greenAccent,
+                    );
+                  }).toList();
+
+                  return Expanded(
+                    child: GlassmorphicCardWidget(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _summaryHeaderSection(),
+                          _materialsValidatedSection(validData, invalidData),
+                          const SizedBox(height: 32),
+                          _configurationSection(),
+                          const SizedBox(height: 32),
+                          _configInfoSection(),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return SizedBox();
+              }),
               const SizedBox(width: 24),
               Expanded(
                 child: StatusCardWidget(
@@ -203,7 +234,10 @@ class _InitializationSuccessScreenState
     );
   }
 
-  Widget _materialsValidatedSection() {
+  Widget _materialsValidatedSection(
+    List<FoodWasteClass> validData,
+    List<FoodWasteClass> invalidData,
+  ) {
     return Expanded(
       flex: 2,
       child: Column(
@@ -285,9 +319,9 @@ class _InitializationSuccessScreenState
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _classList(validMaterials),
+                _classList(validData),
                 const SizedBox(width: 20),
-                _classList(invalidMaterials),
+                _classList(invalidData),
               ],
             ),
           ),
@@ -389,7 +423,7 @@ class _InitializationSuccessScreenState
     );
   }
 
-  Widget _classList(List<ClassListItem> items) {
+  Widget _classList(List<FoodWasteClass> items) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
@@ -399,16 +433,73 @@ class _InitializationSuccessScreenState
             color: Theme.of(context).colorScheme.surfaceContainerHigh,
           ),
         ),
-        child: ListView.builder(
-          itemCount: items.length,
-          shrinkWrap: true,
-          itemBuilder: (_, index) => ClassListItem(
-            icon: items[index].icon,
-            text: items[index].text,
-            iconColor: items[index].iconColor,
-          ),
+        child: items.length != 0
+            ? ListView.builder(
+                itemCount: items.length,
+                shrinkWrap: true,
+                itemBuilder: (_, index) => ClassListItem(
+                  icon: items[index].icon,
+                  text: items[index].pathname.split("/").last,
+                  iconColor: items[index].color,
+                ),
+              )
+            : Center(
+                child: EmptyDisplayWidget(
+                    title: "No results found",
+                    description: "No invalid data has been found"),
+              ),
+      ),
+    );
+  }
+
+  Widget _configInfoSection() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+            width: 1,
+            color: Theme.of(context).colorScheme.surfaceContainerHigh),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+      child: Text(
+        "Initial configuration uses recommended defaults. All parameters can be modified post-setup.",
+        style: GoogleFonts.manrope(
+          color: Theme.of(context).colorScheme.onSurface,
+          fontSize: 12,
+          letterSpacing: 0.025,
         ),
       ),
     );
   }
+}
+
+class FoodWasteClass {
+  final String pathname;
+  final IconData icon;
+  final FoodWasteClassname classname;
+  final Color color;
+
+  FoodWasteClass({
+    required this.pathname,
+    required this.icon,
+    required this.classname,
+    required this.color,
+  });
+}
+
+IconData getClassnameIconData(FoodWasteClassname classname) {
+  IconData iconData;
+
+  switch (classname) {
+    case FoodWasteClassname.fruit:
+      iconData = FluentIcons.food_apple_24_regular;
+    case FoodWasteClassname.vegetable:
+      iconData = FluentIcons.plant_grass_24_regular;
+    case FoodWasteClassname.grain:
+      iconData = FluentIcons.food_20_regular;
+    case FoodWasteClassname.invalid:
+      iconData = FluentIcons.prohibited_24_regular;
+  }
+
+  return iconData;
 }
