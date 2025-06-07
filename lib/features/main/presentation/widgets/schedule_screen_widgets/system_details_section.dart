@@ -49,7 +49,7 @@ class _SystemDetailsSectionState extends State<SystemDetailsSection> {
         "unit": "kg",
       },
       {
-        "label": "Vermijuice Produced",
+        "label": "Vermitea Produced",
         "value": widget.compostSchedule.juiceProduced,
         "unit": "L",
       },

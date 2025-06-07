@@ -88,7 +88,7 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
         color: Colors.greenAccent,
       ),
       SummaryCardItem(
-        label: "Total Vermijuice Collected",
+        label: "Total Vermitea Collected",
         value: totalJuiceProduced.toString(),
         unit: "L",
         icon: FluentIcons.drink_bottle_20_regular,

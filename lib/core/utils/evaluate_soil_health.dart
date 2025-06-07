@@ -31,7 +31,7 @@ Map<String, dynamic> evaluateSoilHealth({
       value >= min && value <= max;
 
   final conditions = [
-    inRange(temperature!, 18, 27),
+    inRange(temperature!, 18, 28),
     inRange(humidity!, 60, 80),
     inRange(soilMoisture!, 60, 70),
     inRange(nitrogen!, 20, 50),

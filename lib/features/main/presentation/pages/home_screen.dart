@@ -3,21 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/error_widget.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
+import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/bedding_condition_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/liquid_and_compost_level_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/materials_processed_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/nutrient_summary_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/sensor_readings_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/system_information_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/video_feed_widget.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
+import 'package:liquid_progress_indicator_v2/liquid_progress_indicator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -228,10 +233,13 @@ class _HomeScreenState extends State<HomeScreen>
                                             .surfaceContainerHigh,
                                       ),
                                     ),
-                                    // child: const VideoFeedWidget(
-                                    //   cameraChannel:
-                                    //       "http://192.168.1.22:8080/video_feed",
-                                    // ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(2),
+                                      child: const VideoFeedWidget(
+                                        cameraChannel:
+                                            "https://vermirender.thinkio.me/",
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(height: 16),
                                   // TODO: Worm monitoring window
@@ -247,11 +255,18 @@ class _HomeScreenState extends State<HomeScreen>
                                             .surfaceContainerHigh,
                                       ),
                                     ),
-                                    // child: const VideoFeedWidget(
-                                    //   cameraChannel:
-                                    //       "http://192.168.1.22:5000/",
-                                    // ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(2),
+                                      child: const VideoFeedWidget(
+                                        cameraChannel:
+                                            "https://vermirender.thinkio.me/",
+                                      ),
+                                    ),
                                   ),
+                                  // TODO: Liquid and Compost levels
+                                  const SizedBox(height: 16),
+                                  LiquidAndCompostLevelWidget(
+                                      mqttService: _mqttService),
                                 ],
                               ),
                             ),
