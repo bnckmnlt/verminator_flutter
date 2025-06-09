@@ -10,8 +10,8 @@ import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc
 import 'package:flutter_vermicomposting/features/main/presentation/pages/control_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/home_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/logs_screen.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_waiting_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_screen.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/settings_screen.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
 import 'package:flutter_vermicomposting/init_dependencies.dart';
@@ -87,7 +87,7 @@ class _MyAppState extends State<MyApp> {
               },
               builder: (context, isActive) {
                 if (isActive) {
-                  return HomeScreen();
+                  return SafeArea(child: HomeScreen());
                 }
 
                 return Scaffold(
@@ -101,10 +101,10 @@ class _MyAppState extends State<MyApp> {
                 );
               },
             ),
-        '/schedule': (context) => const ScheduleScreen(),
-        '/controls': (context) => const ControlScreen(),
-        '/logs': (context) => const LogsScreen(),
-        '/settings': (context) => const InitializationWaitingScreen(),
+        '/schedule': (context) => SafeArea(child: const ScheduleScreen()),
+        '/controls': (context) => SafeArea(child: const ControlScreen()),
+        '/logs': (context) => SafeArea(child: const LogsScreen()),
+        '/settings': (context) => SafeArea(child: SettingsScreen()),
       },
     );
   }

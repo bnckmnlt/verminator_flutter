@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/app_background.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -52,44 +54,50 @@ class _InitializationWaitingScreenState
       return Scaffold(
         extendBody: true,
         extendBodyBehindAppBar: true,
-        body: Padding(
-          padding: EdgeInsets.all(deviceHeight * 0.10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _scheduleDetailsSection(
-                deviceWidth: deviceWidth,
-                scheduleIdentifier: "May Cycle",
-                response: "Awaiting food waste to be loaded...",
-              ),
-              Column(
+        body: Glassmorphism(
+          blur: 64,
+          opacity: 0.3,
+          child: AppBackground(
+            child: Padding(
+              padding: EdgeInsets.all(deviceHeight * 0.10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  _scheduleDetailsSection(
+                    deviceWidth: deviceWidth,
+                    scheduleIdentifier: "May Cycle",
+                    response: "Awaiting food waste to be loaded...",
+                  ),
+                  Column(
                     children: [
-                      _materialsListSection(
-                        listLabel: "Valid Materials",
-                      ),
-                      _materialIndicatorWidget(
-                        value: 8,
-                        label: "Valid Materials",
-                        chipColor: Colors.blueAccent,
-                      ),
-                      _materialIndicatorWidget(
-                          value: 12,
-                          label: "Invalid Materials",
-                          chipColor: Colors.redAccent),
-                      _materialsListSection(
-                        listLabel: "Invalid Materials",
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _materialsListSection(
+                            listLabel: "Valid Materials",
+                          ),
+                          _materialIndicatorWidget(
+                            value: 8,
+                            label: "Valid Materials",
+                            chipColor: Colors.blueAccent,
+                          ),
+                          _materialIndicatorWidget(
+                              value: 12,
+                              label: "Invalid Materials",
+                              chipColor: Colors.redAccent),
+                          _materialsListSection(
+                            listLabel: "Invalid Materials",
+                          ),
+                        ],
                       ),
                     ],
                   ),
+                  _bottomInformationSection(),
                 ],
               ),
-              _bottomInformationSection(),
-            ],
+            ),
           ),
         ),
       );

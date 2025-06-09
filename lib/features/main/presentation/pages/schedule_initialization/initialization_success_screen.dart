@@ -12,7 +12,10 @@ import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_initialization_widgets/list_item_widget.dart';
+import 'package:flutter_vermicomposting/mqtt_service.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 
 class InitializationSuccessScreen extends StatefulWidget {
   const InitializationSuccessScreen({super.key});
@@ -24,61 +27,7 @@ class InitializationSuccessScreen extends StatefulWidget {
 
 class _InitializationSuccessScreenState
     extends State<InitializationSuccessScreen> {
-  final List<ClassListItem> validMaterials = const [
-    ClassListItem(
-      icon: FluentIcons.food_apple_24_regular,
-      text: "Fruits_5123512.jpg",
-      iconColor: Colors.indigo,
-    ),
-    ClassListItem(
-      icon: FluentIcons.food_apple_24_regular,
-      text: "Vegetable_23232362.jpg",
-      iconColor: Colors.green,
-    ),
-    ClassListItem(
-      icon: FluentIcons.food_apple_24_regular,
-      text: "Vegetable_736234.jpg",
-      iconColor: Colors.green,
-    ),
-    ClassListItem(
-      icon: FluentIcons.food_apple_24_regular,
-      text: "Grain_2342623.jpg",
-      iconColor: Colors.amber,
-    ),
-    ClassListItem(
-      icon: FluentIcons.food_apple_24_regular,
-      text: "Fruits_482341.jpg",
-      iconColor: Colors.indigo,
-    ),
-    ClassListItem(
-      icon: FluentIcons.food_apple_24_regular,
-      text: "Grain_981300.jpg",
-      iconColor: Colors.amber,
-    ),
-  ];
-
-  final List<ClassListItem> invalidMaterials = const [
-    ClassListItem(
-      icon: FluentIcons.prohibited_24_regular,
-      text: "Invalid_5123512.jpg",
-      iconColor: Colors.red,
-    ),
-    ClassListItem(
-      icon: FluentIcons.prohibited_24_regular,
-      text: "Invalid_23232362.jpg",
-      iconColor: Colors.red,
-    ),
-    ClassListItem(
-      icon: FluentIcons.prohibited_24_regular,
-      text: "Invalid_736234.jpg",
-      iconColor: Colors.red,
-    ),
-    ClassListItem(
-      icon: FluentIcons.prohibited_24_regular,
-      text: "Invalid_4826712.jpg",
-      iconColor: Colors.red,
-    ),
-  ];
+  late MqttService _mqttService;
 
   final List<ConfigInformation> _configInfoList = [
     ConfigInformation(label: "Ambient Fan", setting: "30°C : 80%"),
@@ -90,6 +39,10 @@ class _InitializationSuccessScreenState
   @override
   void initState() {
     super.initState();
+
+    _mqttService = GetIt.I<MqttService>();
+    _mqttService.connect();
+
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
   }
 
@@ -183,7 +136,15 @@ class _InitializationSuccessScreenState
                       "System configuration complete and ready for vermiculture operations",
                   buttonLabel: "RETURN TO HOME",
                   buttonColor: Colors.blueAccent,
-                  buttonBehavior: () {},
+                  buttonBehavior: () {
+                    _mqttService.publish("system/status", "active",
+                        qos: MqttQos.atLeastOnce, retain: true);
+                    _mqttService.publish("system/current_cycle", "1",
+                        qos: MqttQos.atLeastOnce, retain: true);
+
+                    Navigator.of(context)
+                        .pushNamedAndRemoveUntil('/', (route) => false);
+                  },
                   deviceHeight: deviceHeight,
                 ),
               ),

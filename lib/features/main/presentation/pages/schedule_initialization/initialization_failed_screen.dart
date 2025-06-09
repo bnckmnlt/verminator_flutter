@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/glassmorphic_card_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/status_card_widget.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_instruction_screen.dart';
 
-import 'initialization_waiting_screen.dart';
+// TODO: [✅] DONEEEEEEEE
 
 class InitializationFailedScreen extends StatefulWidget {
   final List<bool> errorStatusList;
@@ -39,14 +40,14 @@ class _InitializationFailedScreenState
     List<ProcessInformation> informationItemList = [
       ProcessInformation(
         icon: FluentIcons.food_20_regular,
-        title: "No valid food waste is loaded to the machine",
+        title: "Valid food waste is loaded to the machine",
         message:
             "The system was unable to detect any valid food waste during the loading process. Please ensure only acceptable materials are placed onto the conveyor. Refer to the approved material guide to avoid misclassification.",
         currentError: widget.errorStatusList[0],
       ),
       ProcessInformation(
         icon: FluentIcons.hourglass_24_regular,
-        title: "User doesn't load valid materials during the duration",
+        title: "User load valid materials during the duration",
         message:
             "No valid items were detected within the required loading time window. This may result in skipped compost cycles. Load materials promptly once the system prompts for input to avoid delays.",
         currentError: widget.errorStatusList[1],
@@ -79,7 +80,9 @@ class _InitializationFailedScreenState
                       "The compost schedule setup didn’t go through due to an issue.\nPlease click the button below to restart the process",
                   buttonLabel: "RESTART PROCESS",
                   buttonColor: Colors.redAccent,
-                  buttonBehavior: () {},
+                  buttonBehavior: () {
+                    Navigator.of(context).pop();
+                  },
                   deviceHeight: deviceHeight,
                 ),
               ),
@@ -209,12 +212,8 @@ class _InitializationFailedScreenState
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const InitializationWaitingScreen(),
-                            ),
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => InitializationInstructionScreen()),
                           );
                         },
                         child: Row(

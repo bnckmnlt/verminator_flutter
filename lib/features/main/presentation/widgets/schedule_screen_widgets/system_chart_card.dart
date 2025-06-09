@@ -77,10 +77,10 @@ class SystemChartCardState<T> extends State<SystemChartCard<T>> {
       return ChartData(label, entry.value);
     }).toList();
 
-    return AppBackground(
-      child: Glassmorphism(
-        blur: 64,
-        opacity: 0.3,
+    return Glassmorphism(
+      blur: 64,
+      opacity: 0.3,
+      child: AppBackground(
         child: Container(
           width: deviceWidth * 0.4,
           padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),

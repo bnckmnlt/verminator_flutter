@@ -93,7 +93,7 @@ class _LiquidAndCompostLevelWidgetState
         Container(
           height: 160,
           width: 320,
-          padding: const EdgeInsets.all(2),
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
@@ -173,7 +173,7 @@ class _LiquidAndCompostLevelWidgetState
             children: containerItems.sublist(1).map((item) {
               return Expanded(
                 child: Container(
-                  padding: const EdgeInsets.all(2),
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(

@@ -23,6 +23,63 @@ class Constants {
     ReminderInterval(label: ' 14', days: 14),
   ];
 
+  static const List<String> validMaterialsPlaceholder = [
+    'Fruits (e.g., banana peels, apple cores)',
+    'Vegetables (e.g., lettuce, cucumber peels)',
+    'Grains (e.g., rice, bread crumbs)',
+  ];
+
+  static const List<Map<String, dynamic>> titleDescriptionPlaceholder = [
+    {
+      'title': "Know what goes in",
+      'description':
+          "Welcome to the automated vermicomposting system. To ensure optimal operation and worm health, only specific types of food waste are accepted",
+      'note': 'Ensure items are clean, unseasoned, and cut into small pieces',
+    },
+    {
+      'title': "Feeding Instructions & System Feedback",
+      'description':
+          "Place materials gently and evenly on the center of the conveyor belt. Avoid stacking or overloading the tray",
+      'note':
+          'Wait until the system finishes processing before placing the next item',
+    },
+    {
+      'title': "Maintain System Health",
+      'description': "To keep the composting system running efficiently:",
+      'note': 'Remember, healthy input = rich compost',
+    },
+  ];
+
+  static const List<Map<String, dynamic>> serverList = [
+    {
+      "src": 'https://camera.thinkio.me/video_feed',
+      "topic": 'control/monitoring/camera',
+    },
+    {
+      "src": 'https://thermal.thinkio.me/',
+      "topic": 'control/monitoring/thermal',
+    },
+  ];
+
+  static const List<String> invalidMaterialsPlaceholder = [
+    'Citrus (e.g., oranges, lemons) — too acidic for worms',
+    'Meat/Fish/Dairy — causes odor and attracts pests',
+    'Foreign Objects (e.g., plastic, foil, glass)',
+  ];
+
+  static const List<String> systemSetupPlaceholder = [
+    'The camera module scans items in real time',
+    'Detected items are classified as Valid or Invalid',
+    'Items are either:',
+  ];
+
+  static const List<String> systemHealthPlaceholder = [
+    'Feed small portions regularly, not all at once',
+    'Remove foreign objects immediately to prevent jams',
+    'Clean the conveyor and sensors weekly',
+    'Ensure the environment stays within optimal temperature and humidity',
+  ];
+
   static List<String> loadingTips = [
     "Avoid placing plastic wrappers or utensils on the conveyor — they are not compostable.",
     "Add food waste one item at a time for accurate sorting and classification.",

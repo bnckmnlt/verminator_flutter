@@ -141,7 +141,6 @@ class _SensorReadingsWidgetState extends State<SensorReadingsWidget> {
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
           decoration: BoxDecoration(
-            color: Colors.blueGrey.withAlpha(6),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               width: 1,

@@ -43,6 +43,10 @@ class MqttService extends ChangeNotifier {
 
   final StreamController<String> _systemStatusController =
       StreamController<String>.broadcast();
+  final StreamController<String> _controlMonitoringCamera =
+      StreamController<String>.broadcast();
+  final StreamController<String> _controlMonitoringThermal =
+      StreamController<String>.broadcast();
   final StreamController<Map<String, dynamic>> _systemHealthController =
       StreamController<Map<String, dynamic>>.broadcast();
   final StreamController<int> _currentCycleController =
@@ -61,6 +65,10 @@ class MqttService extends ChangeNotifier {
       StreamController<Map<String, dynamic>>.broadcast();
 
   Stream<String> get systemStatusStream => _systemStatusController.stream;
+
+  Stream<String> get controlCameraStream => _controlMonitoringCamera.stream;
+
+  Stream<String> get controlThermalStream => _controlMonitoringThermal.stream;
 
   Stream<Map<String, dynamic>> get systemHealthStream =>
       _systemHealthController.stream;
@@ -135,6 +143,14 @@ class MqttService extends ChangeNotifier {
           switch (topic) {
             case 'system/status':
               _systemStatusController.add(message);
+              break;
+
+            case 'control/monitoring/thermal':
+              _controlMonitoringThermal.add(message);
+              break;
+
+            case 'control/monitoring/camera':
+              _controlMonitoringCamera.add(message);
               break;
 
             case 'system/health':
