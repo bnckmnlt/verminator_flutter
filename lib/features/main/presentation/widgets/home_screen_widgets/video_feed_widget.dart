@@ -3,10 +3,12 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 class VideoFeedWidget extends StatefulWidget {
   final String cameraChannel;
+  final void Function(WebViewController controller) onWebViewCreated;
 
   const VideoFeedWidget({
     super.key,
     required this.cameraChannel,
+    required this.onWebViewCreated,
   });
 
   @override
@@ -14,21 +16,24 @@ class VideoFeedWidget extends StatefulWidget {
 }
 
 class _VideoFeedWidgetState extends State<VideoFeedWidget> {
-  late WebViewController _videoController;
+  late final WebViewController _controller;
 
   @override
   void initState() {
     super.initState();
-    _videoController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.disabled)
+
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadRequest(Uri.parse(widget.cameraChannel));
+
+    widget.onWebViewCreated(_controller);
   }
 
   @override
   void didUpdateWidget(VideoFeedWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.cameraChannel != widget.cameraChannel) {
-      _videoController.loadRequest(Uri.parse(widget.cameraChannel));
+      _controller.loadRequest(Uri.parse(widget.cameraChannel));
     }
   }
 
@@ -36,6 +41,6 @@ class _VideoFeedWidgetState extends State<VideoFeedWidget> {
   Widget build(BuildContext context) {
     return ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: WebViewWidget(controller: _videoController));
+        child: WebViewWidget(controller: _controller));
   }
 }

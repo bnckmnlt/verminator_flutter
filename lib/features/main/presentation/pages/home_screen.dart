@@ -9,6 +9,7 @@ import 'package:flutter_vermicomposting/core/common/widgets/error_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc.dart';
@@ -25,6 +26,7 @@ import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -39,12 +41,17 @@ class _HomeScreenState extends State<HomeScreen> {
   late StreamSubscription<String> _controlCameraSubscription;
   late StreamSubscription<String> _controlThermalSubscription;
 
+  WebViewController? cameraFeedController;
+  WebViewController? thermalFeedController;
+
   late bool cameraState;
   late bool thermalState;
 
   final DateTime now = DateTime.now();
 
   int _currentTab = 0;
+
+  late CompostSchedule currentSchedule;
 
   @override
   void initState() {
@@ -106,6 +113,11 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialsProcessedWidget(),
       NutrientSummaryWidget(),
       BeddingConditionWidget(),
+    ];
+
+    final List<WebViewController?> controllerList = [
+      cameraFeedController,
+      thermalFeedController,
     ];
 
     return LayoutBuilder(
@@ -272,6 +284,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                             children: [
                                               monitoringStates[index]
                                                   ? VideoFeedWidget(
+                                                      onWebViewCreated:
+                                                          (controller) {
+                                                        controllerList[index] =
+                                                            controller;
+                                                      },
                                                       cameraChannel:
                                                           serverSrc['src'],
                                                     )
@@ -372,50 +389,123 @@ class _HomeScreenState extends State<HomeScreen> {
                                               Positioned(
                                                 top: 6,
                                                 left: 6,
-                                                child: OutlinedButton(
-                                                  onPressed: () {
-                                                    _mqttService.publish(
-                                                        serverSrc['topic'],
-                                                        monitoringStates[index]
-                                                            ? "off"
-                                                            : "on",
-                                                        qos:
-                                                            MqttQos.atLeastOnce,
-                                                        retain: true);
-                                                  },
-                                                  style:
-                                                      OutlinedButton.styleFrom(
-                                                    backgroundColor: Theme.of(
-                                                            context)
-                                                        .colorScheme
-                                                        .surfaceContainerHighest
-                                                        .withAlpha(77),
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        vertical: 7,
-                                                        horizontal: 8),
-                                                    shape:
-                                                        RoundedRectangleBorder(
+                                                child: Row(
+                                                  spacing: 8,
+                                                  children: [
+                                                    ClipRRect(
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                              6),
+                                                              4),
+                                                      child: Material(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .surfaceContainerHighest
+                                                            .withAlpha(24),
+                                                        shape:
+                                                            RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(4),
+                                                          side: BorderSide(
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .colorScheme
+                                                                .surfaceContainerHighest
+                                                                .withAlpha(32),
+                                                            width: 1,
+                                                          ),
+                                                        ),
+                                                        child: InkWell(
+                                                          onTap: () {
+                                                            _mqttService.publish(
+                                                                serverSrc[
+                                                                    'topic'],
+                                                                monitoringStates[
+                                                                        index]
+                                                                    ? "off"
+                                                                    : "on",
+                                                                qos: MqttQos
+                                                                    .atLeastOnce,
+                                                                retain: true);
+                                                          },
+                                                          splashColor: Theme.of(
+                                                                  context)
+                                                              .colorScheme
+                                                              .primary
+                                                              .withOpacity(0.1),
+                                                          highlightColor: Colors
+                                                              .transparent,
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(8.0),
+                                                            child: Icon(
+                                                              FluentIcons
+                                                                  .power_24_filled,
+                                                              size: 18,
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .colorScheme
+                                                                  .onSurface,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
                                                     ),
-                                                    side: BorderSide(
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .surfaceContainerHighest
-                                                          .withAlpha(32),
-                                                      width: 1,
-                                                    ),
-                                                    minimumSize: Size.zero,
-                                                  ),
-                                                  child: Icon(
-                                                    FluentIcons.power_24_filled,
-                                                    size: 18,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .onSurface,
-                                                  ),
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              4),
+                                                      child: Material(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .surfaceContainerHighest
+                                                            .withAlpha(24),
+                                                        shape:
+                                                            RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(4),
+                                                          side: BorderSide(
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .colorScheme
+                                                                .surfaceContainerHighest
+                                                                .withAlpha(32),
+                                                            width: 1,
+                                                          ),
+                                                        ),
+                                                        child: InkWell(
+                                                          onTap: () {
+                                                            reloadWebView(
+                                                                controllerList[
+                                                                    index]);
+                                                          },
+                                                          splashColor: Theme.of(
+                                                                  context)
+                                                              .colorScheme
+                                                              .primary
+                                                              .withOpacity(0.1),
+                                                          highlightColor: Colors
+                                                              .transparent,
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(8.0),
+                                                            child: Icon(
+                                                              FluentIcons
+                                                                  .arrow_sync_24_filled,
+                                                              size: 18,
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .colorScheme
+                                                                  .onSurface,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    )
+                                                  ],
                                                 ),
                                               ),
                                             ],
@@ -609,6 +699,10 @@ class _HomeScreenState extends State<HomeScreen> {
         )
       ],
     );
+  }
+
+  void reloadWebView(WebViewController? _webViewController) {
+    _webViewController?.reload();
   }
 }
 

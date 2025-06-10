@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_vermicomposting/core/common/cubits/app_schedule/app_schedule_cubit.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/core/utils/evaluate_soil_health.dart';
 import 'package:flutter_vermicomposting/core/utils/string_extensions.dart';
@@ -10,6 +12,7 @@ import 'package:flutter_vermicomposting/features/compost_schedule/domain/entitie
 import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
 import 'package:flutter_vermicomposting/features/main/data/models/sensor_values_model.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/sensor_values.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_screen.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -39,6 +42,8 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
 
   Map<String, dynamic> _collectedData = {};
 
+  late CompostSchedule currentSchedule;
+
   SensorValues sensorValues = SensorValues(
     temperature: "0",
     humidity: "0",
@@ -57,6 +62,12 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
   @override
   void initState() {
     super.initState();
+
+    final appState = context.read<AppScheduleCubit>().state;
+
+    if (appState case AppScheduleActive(:final compostSchedule)) {
+      currentSchedule = compostSchedule;
+    }
 
     _beddingLayerSubscription =
         widget.mqttService.beddingLayerStream.listen(_onData);
@@ -299,24 +310,35 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-                color: Colors.white.withAlpha(32),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "View Schedule Record",
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w500,
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          ScheduleScreen(scheduleId: currentSchedule.id),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                  color: Colors.white.withAlpha(32),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "View Schedule Record",
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    Icon(
-                      FluentIcons.chevron_right_24_filled,
-                      size: 16,
-                    ),
-                  ],
+                      Icon(
+                        FluentIcons.chevron_right_24_filled,
+                        size: 16,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

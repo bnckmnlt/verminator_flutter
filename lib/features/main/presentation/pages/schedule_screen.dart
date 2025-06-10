@@ -3,14 +3,13 @@ import 'dart:async';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/daily_records_cell.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_waiting_screen.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/daily_records_data_table.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_charts_section.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_details_section.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_device_information.dart';
@@ -23,20 +22,19 @@ import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
 
-import 'daily_records_data_table.dart';
-
 class ScheduleScreen extends StatefulWidget {
-  const ScheduleScreen({super.key});
+  final int scheduleId;
+
+  const ScheduleScreen({
+    super.key,
+    required this.scheduleId,
+  });
 
   @override
   State<ScheduleScreen> createState() => _ScheduleScreenState();
 }
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
-  final formKey = GlobalKey<FormState>();
-  final TextEditingController _scheduleIdentifierController =
-      TextEditingController();
-
   @override
   void initState() {
     super.initState();
@@ -53,67 +51,19 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0.0,
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return GeneralDialog(
-                    title: 'Create compost schedule',
-                    description:
-                        'Give your composting cycle a name (e.g., Backyard Pile 1)',
-                    confirmButtonLabel: 'Continue',
-                    widget: Form(
-                      key: formKey,
-                      child: TextFormField(
-                        controller: _scheduleIdentifierController,
-                        validator: (value) {
-                          if (value!.isEmpty || value.length <= 8) {
-                            return "Compost schedule name is invalid";
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    approvedFunction: () {
-                      if (formKey.currentState!.validate()) {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return GeneralDialog(
-                              title: 'Begin monitoring',
-                              description:
-                                  'Would you like to begin tracking ${_scheduleIdentifierController.text}?',
-                              confirmButtonLabel: 'Confirm',
-                              approvedFunction: () {
-                                Navigator.pop(context);
-
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        InitializationWaitingScreen(),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        );
-                      }
-                    },
-                  );
-                });
-          },
-          child: const Icon(Icons.add),
-        ),
-        body: SensorReadingSection(),
+        body: SensorReadingSection(scheduleId: widget.scheduleId),
       );
     });
   }
 }
 
 class SensorReadingSection extends StatelessWidget {
-  const SensorReadingSection({super.key});
+  final int scheduleId;
+
+  const SensorReadingSection({
+    super.key,
+    required this.scheduleId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +78,12 @@ class SensorReadingSection extends StatelessWidget {
           );
         }
         if (state is SensorReadingListSuccess) {
-          return WormActivitySection(sensorReadings: state.list);
+          return WormActivitySection(
+            scheduleId: scheduleId,
+            sensorReadings: state.list
+                .where((activity) => activity.sensorScheduleId == scheduleId)
+                .toList(),
+          );
         }
         return SizedBox();
       },
@@ -137,9 +92,14 @@ class SensorReadingSection extends StatelessWidget {
 }
 
 class WormActivitySection extends StatelessWidget {
+  final int scheduleId;
   final List<SensorReading> sensorReadings;
 
-  const WormActivitySection({super.key, required this.sensorReadings});
+  const WormActivitySection({
+    super.key,
+    required this.sensorReadings,
+    required this.scheduleId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -155,8 +115,11 @@ class WormActivitySection extends StatelessWidget {
         }
         if (state is WormActivityListSuccess) {
           return CompostScheduleSection(
+            scheduleId: scheduleId,
             sensorReadings: sensorReadings,
-            wormActivities: state.list,
+            wormActivities: state.list
+                .where((schedule) => schedule.wormScheduleId == scheduleId)
+                .toList(),
           );
         }
         return SizedBox();
@@ -166,6 +129,7 @@ class WormActivitySection extends StatelessWidget {
 }
 
 class CompostScheduleSection extends StatelessWidget {
+  final int scheduleId;
   final List<SensorReading> sensorReadings;
   final List<WormActivity> wormActivities;
 
@@ -173,6 +137,7 @@ class CompostScheduleSection extends StatelessWidget {
     super.key,
     required this.sensorReadings,
     required this.wormActivities,
+    required this.scheduleId,
   });
 
   @override
@@ -191,7 +156,9 @@ class CompostScheduleSection extends StatelessWidget {
           return FoodWasteSection(
             sensorReadings: sensorReadings,
             wormActivities: wormActivities,
-            compostSchedules: state.compostScheduleList,
+            compostSchedule: state.compostScheduleList
+                .where((schedule) => schedule.id == scheduleId)
+                .first,
           );
         }
         return SizedBox();
@@ -203,13 +170,13 @@ class CompostScheduleSection extends StatelessWidget {
 class FoodWasteSection extends StatefulWidget {
   final List<SensorReading> sensorReadings;
   final List<WormActivity> wormActivities;
-  final List<CompostSchedule> compostSchedules;
+  final CompostSchedule compostSchedule;
 
   const FoodWasteSection({
     super.key,
     required this.sensorReadings,
     required this.wormActivities,
-    required this.compostSchedules,
+    required this.compostSchedule,
   });
 
   @override
@@ -291,6 +258,7 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
             child: Focus(
               focusNode: _tableFocusNode,
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     flex: 2,
@@ -302,7 +270,7 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             SystemScheduleHeaderSection(
-                                compostSchedule: widget.compostSchedules.first),
+                                compostSchedule: widget.compostSchedule),
                             const SizedBox(height: 44),
                             Text(
                               "System Details",
@@ -313,7 +281,7 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                             ),
                             const SizedBox(height: 12),
                             SystemDetailsSection(
-                              compostSchedule: widget.compostSchedules.first,
+                              compostSchedule: widget.compostSchedule,
                               foodWasteList: state.foodWaste,
                             ),
                             const SizedBox(height: 34),

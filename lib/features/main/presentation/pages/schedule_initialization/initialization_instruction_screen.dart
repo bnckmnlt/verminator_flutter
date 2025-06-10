@@ -160,8 +160,7 @@ class _InitializationInstructionScreenState
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(0, 24, 0, 0),
                     child: Row(
-                      spacing: 12,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Indicator<LinePainter>(
@@ -178,6 +177,17 @@ class _InitializationInstructionScreenState
                         ),
                         currentIndex == pagesLength - 1
                             ? ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blueAccent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  padding:
+                                      const EdgeInsets.fromLTRB(44, 8, 44, 8),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
                                 onPressed: () {
                                   Navigator.of(context).pushReplacement(
                                     MaterialPageRoute(
@@ -185,7 +195,14 @@ class _InitializationInstructionScreenState
                                             InitializationWaitingScreen()),
                                   );
                                 },
-                                child: const Text("Continue"),
+                                child: Text(
+                                  "Start Feeding",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.025,
+                                  ),
+                                ),
                               )
                             : IconButton.outlined(
                                 style: ElevatedButton.styleFrom(

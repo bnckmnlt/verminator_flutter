@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:flutter_vermicomposting/core/common/cubits/app_schedule/app_schedule_cubit.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/app_background.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
@@ -23,6 +25,8 @@ import 'initialization_success_screen.dart';
 
 // TODO: [✅] DONEEEEEE
 
+enum TtsState { playing, stopped, paused, continued }
+
 class InitializationWaitingScreen extends StatefulWidget {
   const InitializationWaitingScreen({super.key});
 
@@ -33,6 +37,8 @@ class InitializationWaitingScreen extends StatefulWidget {
 
 class _InitializationWaitingScreenState
     extends State<InitializationWaitingScreen> {
+  late final FlutterTts flutterTts;
+
   DateTime? _latestTimestamp;
 
   late MqttService _mqttService;
@@ -42,7 +48,6 @@ class _InitializationWaitingScreenState
       _foodWasteSubscription;
 
   late CompostSchedule currentSchedule;
-  final List<FoodWasteModel> _foodWasteList = [];
 
   bool isProcessing = false;
   int _currentTipIndex = 0;
@@ -54,6 +59,9 @@ class _InitializationWaitingScreenState
   @override
   void initState() {
     super.initState();
+
+    flutterTts = FlutterTts();
+    _initializeFlutterTTS();
 
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
 
@@ -73,27 +81,29 @@ class _InitializationWaitingScreenState
           .gte('created_at', nowIso)
           .order('created_at')
           .listen((rawData) {
-            final foodWaste = rawData
-                .map(FoodWasteModel.fromJsonRealtime)
-                .where((item) => item.foodWasteScheduleId == currentSchedule.id)
-                .where((item) {
+            final newEntries =
+                rawData.map(FoodWasteModel.fromJsonRealtime).where((item) {
               final created = DateTime.tryParse(item.createdAt);
-              return created != null &&
+              return item.foodWasteScheduleId == 2 &&
+                  created != null &&
                   (_latestTimestamp == null ||
                       created.isAfter(_latestTimestamp!));
-            }).toList()
-              ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+            }).toList();
 
-            if (foodWaste.isNotEmpty) {
-              setState(() {
-                _foodWasteList.insertAll(0, foodWaste);
-              });
+            if (newEntries.isEmpty) return;
 
-              // Update latest timestamp
-              _latestTimestamp = foodWaste
-                  .map((e) => DateTime.parse(e.createdAt))
-                  .reduce((a, b) => a.isAfter(b) ? a : b);
+            for (final item in newEntries) {
+              if (item.materialStatus.name == 'valid') {
+                speak(
+                    "Valid material detected. Proceeding with classification.");
+              } else if (item.materialStatus.name == 'invalid') {
+                speak("Invalid material identified. Redirecting for disposal.");
+              }
             }
+
+            _latestTimestamp = newEntries
+                .map((e) => DateTime.parse(e.createdAt))
+                .reduce((a, b) => a.isAfter(b) ? a : b);
           });
     }
 
@@ -139,10 +149,24 @@ class _InitializationWaitingScreenState
           MediaQuery.of(context).platformBrightness == Brightness.dark;
 
       return PopScope(
-        onPopInvoked: (didPop) {
-          if (!didPop) {
-            Navigator.popUntil(context, (route) => route.isFirst);
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) {
+            return;
           }
+
+          showDialog(
+              context: context,
+              builder: (context) {
+                return GeneralDialog(
+                  title: "Cancel Feeding",
+                  description: "Do you want to cancel this process?",
+                  confirmButtonLabel: "Cancel Process",
+                  approvedFunction: () {
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                  },
+                );
+              });
         },
         child: Scaffold(
           extendBody: true,
@@ -163,31 +187,13 @@ class _InitializationWaitingScreenState
                       response: "Awaiting food waste to be loaded...",
                     ),
                     !isProcessing
-                        ? Row(
-                            children: [
-                              SizedBox(
-                                height: 320,
-                                width: 320,
-                                child: ListView.builder(
-                                  itemCount: _foodWasteList.length,
-                                  itemBuilder: (context, index) {
-                                    final item = _foodWasteList[index];
-                                    return ListTile(
-                                      title: Text(item.classname.name),
-                                      subtitle: Text(item.createdAt.toString()),
-                                    );
-                                  },
-                                ),
-                              ),
-                              Text(
-                                '${(_start ~/ 60).toString().padLeft(1, '0')}:${(_start % 60).toString().padLeft(2, '0')}',
-                                style: const TextStyle(
-                                  fontSize: 164,
-                                  fontWeight: FontWeight.w700,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              )
-                            ],
+                        ? Text(
+                            '${(_start ~/ 60).toString().padLeft(1, '0')}:${(_start % 60).toString().padLeft(2, '0')}',
+                            style: const TextStyle(
+                              fontSize: 164,
+                              fontWeight: FontWeight.w700,
+                              fontStyle: FontStyle.italic,
+                            ),
                           )
                         : Column(
                             spacing: 24,
@@ -466,5 +472,24 @@ class _InitializationWaitingScreenState
         ],
       ),
     );
+  }
+
+  Future<void> _initializeFlutterTTS() async {
+    await flutterTts.setLanguage('en-US');
+    await flutterTts.setPitch(1.0);
+    await flutterTts.setVolume(0.8);
+    await flutterTts.setSpeechRate(0.5);
+  }
+
+  Future<void> speak(String text) async {
+    await flutterTts.speak(text);
+  }
+
+  Future<void> stop() async {
+    await flutterTts.stop();
+  }
+
+  Future<void> pause() async {
+    await flutterTts.pause();
   }
 }
