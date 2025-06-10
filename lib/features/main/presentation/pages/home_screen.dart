@@ -33,8 +33,9 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with AutomaticKeepAliveClientMixin<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> {
+  late MqttService _mqttService;
+
   late StreamSubscription<String> _controlCameraSubscription;
   late StreamSubscription<String> _controlThermalSubscription;
 
@@ -42,7 +43,6 @@ class _HomeScreenState extends State<HomeScreen>
   late bool thermalState;
 
   final DateTime now = DateTime.now();
-  late MqttService _mqttService;
 
   int _currentTab = 0;
 
@@ -89,22 +89,14 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   @override
-  bool get wantKeepAlive => true;
-
-  @override
   void dispose() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
-
-    _mqttService.disconnect();
-    _mqttService.dispose();
 
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
     final formattedDate = DateFormat('d MMMM y').format(now);
     final formattedTime = DateFormat('HH:mm').format(now);
 
@@ -431,8 +423,6 @@ class _HomeScreenState extends State<HomeScreen>
                                         ),
                                       );
                                     }),
-                                    // TODO: Liquid and Compost levels
-                                    const SizedBox(height: 16),
                                     LiquidAndCompostLevelWidget(
                                         mqttService: _mqttService),
                                   ],

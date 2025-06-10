@@ -4,6 +4,7 @@ import 'package:flutter_vermicomposting/core/common/widgets/glassmorphic_card_wi
 import 'package:flutter_vermicomposting/core/common/widgets/status_card_widget.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_instruction_screen.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_waiting_screen.dart';
 
 // TODO: [✅] DONEEEEEEEE
 
@@ -36,30 +37,54 @@ class _InitializationFailedScreenState
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    List<ProcessInformation> informationItemList = [
-      ProcessInformation(
-        icon: FluentIcons.food_20_regular,
-        title: "Valid food waste is loaded to the machine",
-        message:
-            "The system was unable to detect any valid food waste during the loading process. Please ensure only acceptable materials are placed onto the conveyor. Refer to the approved material guide to avoid misclassification.",
-        currentError: widget.errorStatusList[0],
-      ),
-      ProcessInformation(
-        icon: FluentIcons.hourglass_24_regular,
-        title: "User load valid materials during the duration",
-        message:
-            "No valid items were detected within the required loading time window. This may result in skipped compost cycles. Load materials promptly once the system prompts for input to avoid delays.",
-        currentError: widget.errorStatusList[1],
-      ),
-      ProcessInformation(
-        icon: FluentIcons.globe_error_24_regular,
-        title: "Something went wrong during the process",
-        message:
-            "An unexpected error occurred while processing the input materials. Please restart the operation and monitor the loading steps. Ensure that the sensors and mechanical components are not obstructed or overloaded.",
-        currentError: widget.errorStatusList[2],
-      ),
-    ];
+    final List<ProcessInformation> informationItemList =
+        List.generate(3, (index) {
+      final isError = widget.errorStatusList[index];
+
+      switch (index) {
+        case 0:
+          return ProcessInformation(
+            icon: FluentIcons.food_20_regular,
+            title: isError
+                ? "No valid food waste is loaded to the machine"
+                : "Valid food waste detected",
+            message: isError
+                ? "The system was unable to detect any valid food waste during the loading process. Please ensure only acceptable materials are placed onto the conveyor. Refer to the approved material guide to avoid misclassification."
+                : "Valid food waste was successfully detected and categorized by the system. Proceeding with the composting cycle.",
+            currentError: isError,
+          );
+        case 1:
+          return ProcessInformation(
+            icon: FluentIcons.hourglass_24_regular,
+            title: isError
+                ? "User didn't load materials during the duration"
+                : "Materials were loaded on time",
+            message: isError
+                ? "No valid items were detected within the required loading time window. This may result in skipped compost cycles. Load materials promptly once the system prompts for input to avoid delays."
+                : "Materials were loaded within the expected time window. Proceeding to the next stage.",
+            currentError: isError,
+          );
+        case 2:
+          return ProcessInformation(
+            icon: FluentIcons.globe_error_24_regular,
+            title: isError
+                ? "Something went wrong during the process"
+                : "Process completed without critical issues",
+            message: isError
+                ? "An unexpected error occurred while processing the input materials. Please restart the operation and monitor the loading steps. Ensure that the sensors and mechanical components are not obstructed or overloaded."
+                : "The loading and detection process completed without system-level errors. Ready for next phase.",
+            currentError: isError,
+          );
+        default:
+          throw Exception("Invalid error index");
+      }
+    });
 
     return LayoutBuilder(builder: (context, constraints) {
       final double deviceHeight = MediaQuery.of(context).size.height;
@@ -81,7 +106,12 @@ class _InitializationFailedScreenState
                   buttonLabel: "RESTART PROCESS",
                   buttonColor: Colors.redAccent,
                   buttonBehavior: () {
-                    Navigator.of(context).pop();
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const InitializationWaitingScreen()),
+                      (Route<dynamic> route) => route.isFirst,
+                    );
                   },
                   deviceHeight: deviceHeight,
                 ),
@@ -212,8 +242,11 @@ class _InitializationFailedScreenState
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (context) => InitializationInstructionScreen()),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const InitializationInstructionScreen()),
                           );
                         },
                         child: Row(

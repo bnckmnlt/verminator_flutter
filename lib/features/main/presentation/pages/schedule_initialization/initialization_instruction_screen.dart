@@ -35,6 +35,11 @@ class _InitializationInstructionScreenState
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     activePainter.color = Colors.white;
     activePainter.strokeWidth = 6;

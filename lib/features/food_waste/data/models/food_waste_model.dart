@@ -24,6 +24,19 @@ class FoodWasteModel extends FoodWaste {
     );
   }
 
+  factory FoodWasteModel.fromJsonRealtime(Map<String, dynamic> json) {
+    return FoodWasteModel(
+      id: json['id'] as int,
+      foodWasteScheduleId: json['food_waste_schedule_id'] as int,
+      filePath: json['file_path'] as String,
+      materialStatus:
+          MaterialStatus.values.byName(json['material_status'] as String),
+      confidence: json['confidence'].toDouble() ?? 0.0,
+      classname: FoodWasteClassname.values.byName(json['classname'] as String),
+      createdAt: json['created_at'] as String,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

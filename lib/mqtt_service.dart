@@ -12,6 +12,8 @@ import 'package:mqtt_client/mqtt_server_client.dart';
 import 'main.dart';
 
 class MqttService extends ChangeNotifier {
+  late bool isConnected = false;
+
   final MQTTConnStateEntity _connState = MQTTConnStateEntity();
   final MqttServerClient _client = MqttServerClient(
     AppSecrets.clusterUrl,
@@ -19,8 +21,8 @@ class MqttService extends ChangeNotifier {
   );
   final List<String> _topics = [
     'control/aeration',
-    'control/fan',
     'control/pump',
+    'control/fan',
     'control/vermijuice',
     'control/sifter',
     'control/relay',
@@ -133,6 +135,8 @@ class MqttService extends ChangeNotifier {
 
     _client.updates!.listen(
       (List<MqttReceivedMessage<MqttMessage?>>? c) {
+        isConnected = true;
+
         final MqttPublishMessage recMessage =
             c![0].payload as MqttPublishMessage;
         final String message = MqttPublishPayload.bytesToStringAsString(

@@ -2,13 +2,26 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_vermicomposting/core/common/cubits/app_schedule/app_schedule_cubit.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/app_background.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
+import 'package:flutter_vermicomposting/features/food_waste/data/models/food_waste_model.dart';
+import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_failed_screen.dart';
+import 'package:flutter_vermicomposting/mqtt_service.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'initialization_success_screen.dart';
+
+// TODO: [✅] DONEEEEEE
 
 class InitializationWaitingScreen extends StatefulWidget {
   const InitializationWaitingScreen({super.key});
@@ -20,27 +33,101 @@ class InitializationWaitingScreen extends StatefulWidget {
 
 class _InitializationWaitingScreenState
     extends State<InitializationWaitingScreen> {
+  DateTime? _latestTimestamp;
+
+  late MqttService _mqttService;
+  late SupabaseClient _supabaseClient;
+
+  late final StreamSubscription<List<Map<String, dynamic>>>
+      _foodWasteSubscription;
+
+  late CompostSchedule currentSchedule;
+  final List<FoodWasteModel> _foodWasteList = [];
+
+  bool isProcessing = false;
   int _currentTipIndex = 0;
+
+  late Timer _timer;
+  int _start = 120;
   Timer? _tipTimer;
 
   @override
   void initState() {
     super.initState();
+
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
 
-    _tipTimer = Timer.periodic(Duration(seconds: 6), (timer) {
-      setState(() {
-        _currentTipIndex =
-            ((_currentTipIndex + 1) % Constants.loadingTips.length);
-      });
-    });
+    _mqttService = GetIt.I<MqttService>();
+    _supabaseClient = GetIt.I<SupabaseClient>();
+
+    final appState = context.read<AppScheduleCubit>().state;
+
+    if (appState case AppScheduleActive(:final compostSchedule)) {
+      currentSchedule = compostSchedule;
+
+      final nowIso = DateTime.now().toUtc().toIso8601String();
+
+      _foodWasteSubscription = _supabaseClient
+          .from('food_waste')
+          .stream(primaryKey: ['id'])
+          .gte('created_at', nowIso)
+          .order('created_at')
+          .listen((rawData) {
+            final foodWaste = rawData
+                .map(FoodWasteModel.fromJsonRealtime)
+                .where((item) => item.foodWasteScheduleId == currentSchedule.id)
+                .where((item) {
+              final created = DateTime.tryParse(item.createdAt);
+              return created != null &&
+                  (_latestTimestamp == null ||
+                      created.isAfter(_latestTimestamp!));
+            }).toList()
+              ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+            if (foodWaste.isNotEmpty) {
+              setState(() {
+                _foodWasteList.insertAll(0, foodWaste);
+              });
+
+              // Update latest timestamp
+              _latestTimestamp = foodWaste
+                  .map((e) => DateTime.parse(e.createdAt))
+                  .reduce((a, b) => a.isAfter(b) ? a : b);
+            }
+          });
+    }
+
+    if (MqttConnectionState == MqttConnectionState.connected) {
+      _mqttService.publish("system/status", "inactive",
+          qos: MqttQos.atLeastOnce, retain: true);
+      _mqttService.publish("system/feeding", "active",
+          qos: MqttQos.atLeastOnce, retain: true);
+      _mqttService.publish("control/monitoring/camera", "on",
+          qos: MqttQos.atLeastOnce, retain: true);
+    }
+
+    _tipTimer = Timer.periodic(
+      const Duration(seconds: 6),
+      (_) {
+        setState(() {
+          _currentTipIndex =
+              (_currentTipIndex + 1) % Constants.loadingTips.length;
+        });
+      },
+    );
+
+    startTimer();
   }
 
   @override
   void dispose() {
+    _foodWasteSubscription.cancel();
     _tipTimer?.cancel();
-    super.dispose();
+    _timer.cancel();
+
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
+
+    super.dispose();
   }
 
   @override
@@ -51,57 +138,170 @@ class _InitializationWaitingScreenState
       final isDarkMode =
           MediaQuery.of(context).platformBrightness == Brightness.dark;
 
-      return Scaffold(
-        extendBody: true,
-        extendBodyBehindAppBar: true,
-        body: Glassmorphism(
-          blur: 64,
-          opacity: 0.3,
-          child: AppBackground(
-            child: Padding(
-              padding: EdgeInsets.all(deviceHeight * 0.10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _scheduleDetailsSection(
-                    deviceWidth: deviceWidth,
-                    scheduleIdentifier: "May Cycle",
-                    response: "Awaiting food waste to be loaded...",
-                  ),
-                  Column(
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _materialsListSection(
-                            listLabel: "Valid Materials",
+      return PopScope(
+        onPopInvoked: (didPop) {
+          if (!didPop) {
+            Navigator.popUntil(context, (route) => route.isFirst);
+          }
+        },
+        child: Scaffold(
+          extendBody: true,
+          extendBodyBehindAppBar: true,
+          body: Glassmorphism(
+            blur: 64,
+            opacity: 0.3,
+            child: AppBackground(
+              child: Padding(
+                padding: EdgeInsets.all(deviceHeight * 0.10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _scheduleDetailsSection(
+                      deviceWidth: deviceWidth,
+                      scheduleIdentifier: currentSchedule.scheduleName,
+                      response: "Awaiting food waste to be loaded...",
+                    ),
+                    !isProcessing
+                        ? Row(
+                            children: [
+                              SizedBox(
+                                height: 320,
+                                width: 320,
+                                child: ListView.builder(
+                                  itemCount: _foodWasteList.length,
+                                  itemBuilder: (context, index) {
+                                    final item = _foodWasteList[index];
+                                    return ListTile(
+                                      title: Text(item.classname.name),
+                                      subtitle: Text(item.createdAt.toString()),
+                                    );
+                                  },
+                                ),
+                              ),
+                              Text(
+                                '${(_start ~/ 60).toString().padLeft(1, '0')}:${(_start % 60).toString().padLeft(2, '0')}',
+                                style: const TextStyle(
+                                  fontSize: 164,
+                                  fontWeight: FontWeight.w700,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              )
+                            ],
+                          )
+                        : Column(
+                            spacing: 24,
+                            children: [
+                              SizedBox(
+                                  height: 248,
+                                  width: 248,
+                                  child: Lottie.asset(
+                                      "assets/animations/processing.json")),
+                              Text(
+                                "PROCESSING RECORDS...",
+                                style: GoogleFonts.openSans(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.025,
+                                ),
+                              )
+                            ],
                           ),
-                          _materialIndicatorWidget(
-                            value: 8,
-                            label: "Valid Materials",
-                            chipColor: Colors.blueAccent,
-                          ),
-                          _materialIndicatorWidget(
-                              value: 12,
-                              label: "Invalid Materials",
-                              chipColor: Colors.redAccent),
-                          _materialsListSection(
-                            listLabel: "Invalid Materials",
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  _bottomInformationSection(),
-                ],
+                    !isProcessing
+                        ? _bottomInformationSection()
+                        : const SizedBox(),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       );
     });
+  }
+
+  void startTimer() {
+    const oneSec = Duration(seconds: 1);
+    _timer = Timer.periodic(
+      oneSec,
+      (Timer timer) async {
+        if (_start == 0) {
+          setState(() {
+            isProcessing = true;
+          });
+
+          final foodWasteBloc = context.read<FoodWasteBloc>();
+          foodWasteBloc.add(FoodWasteList());
+
+          final state = await foodWasteBloc.stream.firstWhere(
+            (state) =>
+                state is FoodWasteListSuccess || state is FoodWasteFailure,
+          );
+
+          List<bool> errorList = [false, false, false];
+          bool isError = false;
+
+          if (state is FoodWasteFailure) {
+            errorList[2] = true;
+            isError = true;
+          } else if (state is FoodWasteListSuccess) {
+            final wasteList = state.foodWaste
+                .where(
+                    (waste) => waste.foodWasteScheduleId == currentSchedule.id)
+                .toList();
+
+            if (wasteList.isEmpty) {
+              errorList[1] = true;
+              isError = true;
+            } else {
+              const validClassNames = ['fruit', 'vegetable', 'grains'];
+              final hasValid = wasteList.any((waste) {
+                return validClassNames
+                    .contains(waste.classname.name.toLowerCase());
+              });
+
+              if (!hasValid) {
+                errorList[0] = true;
+                isError = true;
+              }
+            }
+          }
+
+          timer.cancel();
+          _tipTimer?.cancel();
+
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (!mounted) return;
+
+            if (isError) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      InitializationFailedScreen(errorStatusList: errorList),
+                ),
+              );
+            } else {
+              _mqttService.publish("system/feeding", "inactive",
+                  qos: MqttQos.atLeastOnce, retain: true);
+              _mqttService.publish("control/monitoring/camera", "off",
+                  qos: MqttQos.atLeastOnce, retain: true);
+
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const InitializationSuccessScreen(),
+                ),
+              );
+            }
+          });
+        } else {
+          setState(() {
+            _start--;
+          });
+        }
+      },
+    );
   }
 
   Widget _scheduleDetailsSection({
@@ -208,13 +408,13 @@ class _InitializationWaitingScreenState
   }
 
   Widget _bottomInformationSection() {
-    return Column(
-      children: [
-        const SizedBox(height: 24, width: 24, child: Loader()),
-        const SizedBox(height: 32),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               GestureDetector(
@@ -260,8 +460,11 @@ class _InitializationWaitingScreenState
               ),
             ],
           ),
-        ),
-      ],
+          Align(
+              alignment: Alignment.bottomRight,
+              child: const SizedBox(height: 24, width: 24, child: Loader())),
+        ],
+      ),
     );
   }
 }

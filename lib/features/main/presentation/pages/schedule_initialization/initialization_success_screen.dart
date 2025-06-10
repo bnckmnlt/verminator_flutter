@@ -2,6 +2,8 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_vermicomposting/core/common/cubits/app_schedule/app_schedule_cubit.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/app_background.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/error_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/glassmorphic_card_widget.dart';
@@ -9,6 +11,7 @@ import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/status_card_widget.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_initialization_widgets/list_item_widget.dart';
@@ -16,6 +19,8 @@ import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+
+// TODO: [✅] DONEEEEEE
 
 class InitializationSuccessScreen extends StatefulWidget {
   const InitializationSuccessScreen({super.key});
@@ -27,6 +32,8 @@ class InitializationSuccessScreen extends StatefulWidget {
 
 class _InitializationSuccessScreenState
     extends State<InitializationSuccessScreen> {
+  late CompostSchedule currentSchedule;
+
   late MqttService _mqttService;
 
   final List<ConfigInformation> _configInfoList = [
@@ -41,9 +48,14 @@ class _InitializationSuccessScreenState
     super.initState();
 
     _mqttService = GetIt.I<MqttService>();
-    _mqttService.connect();
 
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
+
+    final appState = context.read<AppScheduleCubit>().state;
+
+    if (appState case AppScheduleActive(:final compostSchedule)) {
+      setState(() => currentSchedule = compostSchedule);
+    }
   }
 
   @override
@@ -70,7 +82,11 @@ class _InitializationSuccessScreenState
               BlocBuilder<FoodWasteBloc, FoodWasteState>(
                   builder: (context, state) {
                 if (state is FoodWasteLoading) {
-                  return const Loader();
+                  return Expanded(
+                      child: Glassmorphism(
+                          blur: 64,
+                          opacity: 0.3,
+                          child: AppBackground(child: const Loader())));
                 } else if (state is FoodWasteFailure) {
                   return Center(
                     child: GeneralErrorWidget(
@@ -81,7 +97,7 @@ class _InitializationSuccessScreenState
                 } else if (state is FoodWasteListSuccess) {
                   final invalidData = state.foodWaste
                       .where((item) =>
-                          item.foodWasteScheduleId == 1 &&
+                          item.foodWasteScheduleId == currentSchedule.id &&
                           item.classname == FoodWasteClassname.invalid)
                       .map((item) {
                     return FoodWasteClass(
@@ -94,7 +110,7 @@ class _InitializationSuccessScreenState
 
                   final validData = state.foodWaste
                       .where((item) =>
-                          item.foodWasteScheduleId == 1 &&
+                          item.foodWasteScheduleId == currentSchedule.id &&
                           item.classname != FoodWasteClassname.invalid)
                       .map((item) {
                     return FoodWasteClass(
@@ -179,7 +195,7 @@ class _InitializationSuccessScreenState
                     const EdgeInsets.symmetric(vertical: 2, horizontal: 10),
                 backgroundColor: Colors.amberAccent.withAlpha(44),
                 label: Text(
-                  "ID - 1",
+                  "ID - ${currentSchedule.id}",
                   style: GoogleFonts.notoSans(
                     color: Colors.amber,
                     fontWeight: FontWeight.w800,

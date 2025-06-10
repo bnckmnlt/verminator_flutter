@@ -26,7 +26,6 @@ class _ControlScreenState extends State<ControlScreen> {
     super.initState();
 
     _mqttService = GetIt.I<MqttService>();
-    _mqttService.connect();
 
     _sensorsList = [
       SensorControl(
