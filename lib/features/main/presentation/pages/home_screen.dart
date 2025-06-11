@@ -68,14 +68,14 @@ class _HomeScreenState extends State<HomeScreen> {
     _controlCameraSubscription =
         _mqttService.controlCameraStream.listen((value) {
       setState(() {
-        cameraState = value == 'on' ? true : false;
+        cameraState = value == 'active' ? true : false;
       });
     });
 
     _controlThermalSubscription =
         _mqttService.controlThermalStream.listen((value) {
       setState(() {
-        thermalState = value == 'on' ? true : false;
+        thermalState = value == 'active' ? true : false;
       });
     });
   }
@@ -353,7 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     )),
                                               ),
                                               Positioned(
-                                                bottom: 6,
+                                                bottom: 10,
                                                 left: 6,
                                                 child: Container(
                                                     padding: const EdgeInsets
@@ -363,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             .colorScheme
                                                             .surfaceContainerHighest
                                                             .withValues(
-                                                                alpha: 0.3),
+                                                                alpha: 0.5),
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(12),
@@ -387,8 +387,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     )),
                                               ),
                                               Positioned(
-                                                top: 6,
-                                                left: 6,
+                                                bottom: 6,
+                                                right: 6,
                                                 child: Row(
                                                   spacing: 8,
                                                   children: [
@@ -400,7 +400,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         color: Theme.of(context)
                                                             .colorScheme
                                                             .surfaceContainerHighest
-                                                            .withAlpha(24),
+                                                            .withValues(
+                                                                alpha: 0.5),
                                                         shape:
                                                             RoundedRectangleBorder(
                                                           borderRadius:
@@ -422,8 +423,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                     'topic'],
                                                                 monitoringStates[
                                                                         index]
-                                                                    ? "off"
-                                                                    : "on",
+                                                                    ? "inactive"
+                                                                    : "active",
                                                                 qos: MqttQos
                                                                     .atLeastOnce,
                                                                 retain: true);
@@ -460,7 +461,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         color: Theme.of(context)
                                                             .colorScheme
                                                             .surfaceContainerHighest
-                                                            .withAlpha(24),
+                                                            .withValues(
+                                                                alpha: 0.5),
                                                         shape:
                                                             RoundedRectangleBorder(
                                                           borderRadius:

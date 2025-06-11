@@ -112,7 +112,7 @@ class _InitializationWaitingScreenState
           qos: MqttQos.atLeastOnce, retain: true);
       _mqttService.publish("system/feeding", "active",
           qos: MqttQos.atLeastOnce, retain: true);
-      _mqttService.publish("control/monitoring/camera", "on",
+      _mqttService.publish("control/monitoring/camera", "active",
           qos: MqttQos.atLeastOnce, retain: true);
     }
 
@@ -290,7 +290,7 @@ class _InitializationWaitingScreenState
             } else {
               _mqttService.publish("system/feeding", "inactive",
                   qos: MqttQos.atLeastOnce, retain: true);
-              _mqttService.publish("control/monitoring/camera", "off",
+              _mqttService.publish("control/monitoring/camera", "inactive",
                   qos: MqttQos.atLeastOnce, retain: true);
 
               Navigator.pushReplacement(
