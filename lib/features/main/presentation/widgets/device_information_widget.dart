@@ -78,7 +78,7 @@ class _DeviceInformationWidgetState extends State<DeviceInformationWidget> {
                     child: Text(
                       item.value.length != 0 ? item.value : "Connecting...",
                       textAlign: TextAlign.start,
-                      style: GoogleFonts.spaceMono(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),

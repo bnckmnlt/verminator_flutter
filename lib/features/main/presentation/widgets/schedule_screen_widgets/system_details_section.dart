@@ -93,94 +93,109 @@ class _SystemDetailsSectionState extends State<SystemDetailsSection> {
       },
     ];
 
-    return Container(
-      decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface.withAlpha(124),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            width: 1,
-            color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          )),
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 18),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          ...detailList.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-            return Column(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 12,
+      children: [
+        Text(
+          "System Details",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface.withAlpha(124),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                width: 1,
+                color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              )),
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 18),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              ...detailList.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                return Column(
                   children: [
-                    Text(item['label'],
-                        style: TextStyle(
-                          color: Constants().textMutedFgDark,
-                          fontWeight: FontWeight.w500,
-                        )),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "${item['value'].toString()}${item['unit']}",
-                          style: TextStyle(
-                            fontSize: 16,
-                          ),
+                        Text(item['label'],
+                            style: TextStyle(
+                              color: Constants().textMutedFgDark,
+                              fontWeight: FontWeight.w500,
+                            )),
+                        Row(
+                          children: [
+                            Text(
+                              "${item['value'].toString()}${item['unit']}",
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
+                    if (index != detailList.length - 1)
+                      Divider(
+                        height: 16,
+                        color:
+                            Theme.of(context).colorScheme.surfaceContainerHigh,
+                      ),
                   ],
-                ),
-                if (index != detailList.length - 1)
-                  Divider(
-                    height: 16,
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                );
+              }),
+              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: Text(
+                  "Food Waste Processed",
+                  textAlign: TextAlign.start,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
                   ),
-              ],
-            );
-          }),
-          const SizedBox(height: 24),
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: Text(
-              "Food Waste Processed",
-              textAlign: TextAlign.start,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          ...foodWasteRows.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-            return Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              const SizedBox(height: 16),
+              ...foodWasteRows.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                return Column(
                   children: [
-                    Text(item['label'],
-                        style: TextStyle(
-                          color: Constants().textMutedFgDark,
-                          fontWeight: FontWeight.w500,
-                        )),
-                    Text(
-                      "${item['value']} items",
-                      style: TextStyle(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(item['label'],
+                            style: TextStyle(
+                              color: Constants().textMutedFgDark,
+                              fontWeight: FontWeight.w500,
+                            )),
+                        Text(
+                          "${item['value']} items",
+                          style: TextStyle(),
+                        ),
+                      ],
                     ),
+                    if (index != foodWasteRows.length - 1)
+                      Divider(
+                        height: 16,
+                        color:
+                            Theme.of(context).colorScheme.surfaceContainerHigh,
+                      ),
                   ],
-                ),
-                if (index != foodWasteRows.length - 1)
-                  Divider(
-                    height: 16,
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  ),
-              ],
-            );
-          }).toList(),
-        ],
-      ),
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

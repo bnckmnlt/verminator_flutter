@@ -7,12 +7,15 @@ import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
+import 'package:flutter_vermicomposting/features/food_waste/data/models/food_waste_model.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/daily_records_cell.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/daily_records_data_table.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_charts_section.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_details_section.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_device_information.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_food_waste_records.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_image_details.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_record_details_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_schedule_header_section.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
@@ -21,6 +24,7 @@ import 'package:flutter_vermicomposting/features/worm_activity/domain/entity/wor
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ScheduleScreen extends StatefulWidget {
   final int scheduleId;
@@ -42,6 +46,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final double deviceHeight = MediaQuery.of(context).size.height;
+    final double deviceWidth = MediaQuery.of(context).size.width;
+
     return LayoutBuilder(builder: (context, mainConstraints) {
       return Scaffold(
         extendBody: true,
@@ -51,7 +58,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0.0,
         ),
-        body: SensorReadingSection(scheduleId: widget.scheduleId),
+        body: Container(
+            height: deviceHeight,
+            width: deviceWidth,
+            child: SensorReadingSection(scheduleId: widget.scheduleId)),
       );
     });
   }
@@ -185,9 +195,13 @@ class FoodWasteSection extends StatefulWidget {
 
 class _FoodWasteSectionState extends State<FoodWasteSection> {
   bool _isDetailsVisible = false;
+  bool _isImageDetailsVisible = false;
+  int _currentSelectedImage = 0;
+  int _currentItemLength = 36;
 
   final FocusNode _tableFocusNode = FocusNode();
 
+  late SupabaseClient _supabaseClient;
   late MqttService _mqttService;
 
   late StreamSubscription<Map<String, String>> _deviceInfoStreamSubscription;
@@ -199,8 +213,8 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
   void initState() {
     super.initState();
 
+    _supabaseClient = GetIt.I<SupabaseClient>();
     _mqttService = GetIt.I<MqttService>();
-    _mqttService.connect();
 
     _deviceInfoStreamSubscription =
         _mqttService.deviceInfoStream.listen((info) {
@@ -221,6 +235,7 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
     FocusScope.of(context).requestFocus(_tableFocusNode);
     setState(() {
       _isDetailsVisible = true;
+      _isImageDetailsVisible = false;
     });
 
     setState(() {
@@ -237,10 +252,15 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
     }
   }
 
+  void _handleImageSelector(int index) {
+    setState(() {
+      _isImageDetailsVisible = true;
+      _currentSelectedImage = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final double deviceWidth = MediaQuery.of(context).size.width;
-
     return BlocBuilder<FoodWasteBloc, FoodWasteState>(
       builder: (context, state) {
         if (state is FoodWasteLoading) return Loader();
@@ -252,6 +272,17 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
           );
         }
         if (state is FoodWasteListSuccess) {
+          final List<FoodWasteModel> itemList = state.foodWaste
+              .where((entry) => entry.foodWasteScheduleId == 1)
+              .map((foodWaste) {
+            final foodWasteModel = foodWaste as FoodWasteModel;
+            final publicUrl = _supabaseClient.storage
+                .from('image')
+                .getPublicUrl(foodWasteModel.filePath);
+
+            return foodWasteModel.copyWith(filePath: publicUrl);
+          }).toList();
+
           return GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: _handleOutsideTap,
@@ -266,28 +297,24 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(24, 64, 24, 0),
                         child: Column(
+                          spacing: 34,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            SystemScheduleHeaderSection(
-                                compostSchedule: widget.compostSchedule),
-                            const SizedBox(height: 44),
-                            Text(
-                              "System Details",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
+                              child: SystemScheduleHeaderSection(
+                                  compostSchedule: widget.compostSchedule),
                             ),
-                            const SizedBox(height: 12),
+                            SystemFoodWasteRecords(
+                                foodWasteList: itemList,
+                                imageSelector: _handleImageSelector),
                             SystemDetailsSection(
                               compostSchedule: widget.compostSchedule,
                               foodWasteList: state.foodWaste,
                             ),
-                            const SizedBox(height: 34),
                             SystemChartsSection(
                                 sensorReadings: widget.sensorReadings),
-                            const SizedBox(height: 34),
                             DailyRecordsDataTable(
                               tableFocusNode: _tableFocusNode,
                               sensorReadings: widget.sensorReadings,
@@ -301,24 +328,50 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                   ),
                   Expanded(
                     flex: 1,
-                    child: !_isDetailsVisible
+                    child: _isImageDetailsVisible
                         ? Container(
                             padding: const EdgeInsets.fromLTRB(24, 44, 24, 24),
                             decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.surface,
-                                border: Border(
-                                    left: BorderSide(
+                              color: Theme.of(context).colorScheme.surface,
+                              border: Border(
+                                left: BorderSide(
                                   color: Theme.of(context)
                                       .colorScheme
                                       .surfaceContainerHigh,
-                                ))),
-                            child: SystemDeviceInformation(
-                              deviceInfo: _deviceInfo,
+                                ),
+                              ),
+                            ),
+                            child: SystemImageDetails(
+                              foodWaste: itemList[_currentSelectedImage],
+                              onShowDetails: () => setState(() {
+                                _isImageDetailsVisible =
+                                    !_isImageDetailsVisible;
+                              }),
                             ),
                           )
-                        : SystemRecordDetails(
-                            currentRecord: selectedRecord,
-                          ),
+                        : _isDetailsVisible
+                            ? Container(
+                                child: SystemRecordDetails(
+                                  currentRecord: selectedRecord,
+                                ),
+                              )
+                            : Container(
+                                padding:
+                                    const EdgeInsets.fromLTRB(24, 44, 24, 24),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surface,
+                                  border: Border(
+                                    left: BorderSide(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .surfaceContainerHigh,
+                                    ),
+                                  ),
+                                ),
+                                child: SystemDeviceInformation(
+                                  deviceInfo: _deviceInfo,
+                                ),
+                              ),
                   )
                 ],
               ),

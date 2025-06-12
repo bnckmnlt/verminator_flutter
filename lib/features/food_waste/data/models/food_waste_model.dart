@@ -48,4 +48,24 @@ class FoodWasteModel extends FoodWaste {
       'createdAt': createdAt,
     };
   }
+
+  FoodWasteModel copyWith({
+    int? id,
+    int? foodWasteScheduleId,
+    String? filePath,
+    MaterialStatus? materialStatus,
+    double? confidence,
+    FoodWasteClassname? classname,
+    String? createdAt,
+  }) {
+    return FoodWasteModel(
+      id: id ?? this.id,
+      foodWasteScheduleId: foodWasteScheduleId ?? this.foodWasteScheduleId,
+      filePath: filePath ?? this.filePath,
+      materialStatus: materialStatus ?? this.materialStatus,
+      confidence: confidence ?? this.confidence,
+      classname: classname ?? this.classname,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }
