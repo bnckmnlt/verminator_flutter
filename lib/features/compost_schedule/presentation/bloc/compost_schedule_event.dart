@@ -30,12 +30,16 @@ final class CompostSchedulePatch extends CompostScheduleEvent {
   final String? scheduleName;
   final String? compostProduced;
   final String? juiceProduced;
+  final bool? isCompleted;
+  final String? dateReleased;
 
   CompostSchedulePatch({
     required this.id,
     this.scheduleName,
     this.compostProduced,
     this.juiceProduced,
+    this.isCompleted,
+    this.dateReleased,
   });
 }
 

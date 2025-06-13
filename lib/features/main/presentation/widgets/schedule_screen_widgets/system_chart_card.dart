@@ -169,6 +169,9 @@ class SystemChartCardState<T> extends State<SystemChartCard<T>> {
               ),
               const SizedBox(height: 32),
               MainChart(
+                title: widget.chartData.label == "Temperature"
+                    ? "Measured °C"
+                    : "Percentage(%)",
                 mainWidth: 1,
                 sensorChart: chartData,
                 chartSize: 168,

@@ -86,8 +86,14 @@ class CompostScheduleBloc
     CompostSchedulePatch event,
     Emitter<CompostScheduleState> emit,
   ) async {
-    final res =
-        await _patchCompostSchedule(PatchCompostScheduleParams(id: event.id));
+    final res = await _patchCompostSchedule(PatchCompostScheduleParams(
+      id: event.id,
+      scheduleName: event.scheduleName,
+      compostProduced: event.compostProduced,
+      juiceProduced: event.juiceProduced,
+      isCompleted: event.isCompleted,
+      dateReleased: event.dateReleased,
+    ));
 
     res.fold(
       (l) => emit(CompostScheduleFailure(l.message)),

@@ -6,7 +6,7 @@ enum SensorStatus { good, fair, bad }
 
 enum CompostingStatus {
   initial,
-  processing,
+  active,
   ready,
   released,
 }

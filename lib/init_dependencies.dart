@@ -27,6 +27,12 @@ import 'package:flutter_vermicomposting/features/sensor_reading/data/repositorie
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/repositories/sensor_reading_repository.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/usecases/list_sensor_reading.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
+import 'package:flutter_vermicomposting/features/status/data/datasources/status_remote_datasource.dart';
+import 'package:flutter_vermicomposting/features/status/data/repositories/status_repository_impl.dart';
+import 'package:flutter_vermicomposting/features/status/domain/repositories/status_repository.dart';
+import 'package:flutter_vermicomposting/features/status/domain/usecases/list_status_records.dart';
+import 'package:flutter_vermicomposting/features/status/domain/usecases/select_one_status_record.dart';
+import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/data/datasources/worm_activity_remote_datasource.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/data/repositories/worm_activity_repository_impl.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/domain/repository/worm_activity_repository.dart';

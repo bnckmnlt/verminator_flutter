@@ -19,13 +19,13 @@ abstract interface class CompostScheduleRemoteDatasource {
     required String juiceProduced,
   });
 
-  Future<CompostSchedule> patchCompostSchedule({
-    required int id,
-    String? scheduleName,
-    String? compostProduced,
-    String? juiceProduced,
-    bool? isCompleted,
-  });
+  Future<CompostSchedule> patchCompostSchedule(
+      {required int id,
+      String? scheduleName,
+      String? compostProduced,
+      String? juiceProduced,
+      bool? isCompleted,
+      String? dateReleased});
 
   Future<String> removeCompostSchedule({
     required int id,
@@ -115,6 +115,7 @@ class CompostScheduleRemoteDatasourceImpl
     String? compostProduced,
     String? juiceProduced,
     bool? isCompleted,
+    String? dateReleased,
   }) async {
     try {
       final response = await http.patch(
@@ -123,10 +124,11 @@ class CompostScheduleRemoteDatasourceImpl
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode(<String, dynamic>{
-          'scheduleName': scheduleName ?? "",
-          'compostProduced': compostProduced ?? "",
-          'juiceProduced': juiceProduced ?? "",
-          'isCompleted': isCompleted,
+          'scheduleName': scheduleName ?? null,
+          'compostProduced': compostProduced ?? null,
+          'juiceProduced': juiceProduced ?? null,
+          'isCompleted': isCompleted ?? false,
+          'dateReleased': dateReleased ?? null
         }),
       );
 

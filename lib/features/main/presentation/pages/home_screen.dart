@@ -21,6 +21,7 @@ import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/system_information_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/video_feed_widget.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
+import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
@@ -91,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context.read<SensorReadingBloc>().add(SensorReadingList());
       context.read<LogBloc>().add(LogList());
       context.read<WormActivityBloc>().add(WormActivityList());
+      context.read<StatusRecordBloc>().add(StatusRecordList());
       _hasLoaded = true;
     }
   }

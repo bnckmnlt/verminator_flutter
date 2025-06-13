@@ -8,6 +8,7 @@ Future<void> initDependencies() async {
   _initSensorReading();
   _initLogs();
   _initWormActivity();
+  _initStatusRecord();
 
   await dotenv.load(fileName: ".env");
 
@@ -175,6 +176,32 @@ void _initWormActivity() {
       () => WormActivityBloc(
         listWormActivity: sl(),
         selectOneWormActivity: sl(),
+      ),
+    );
+}
+
+void _initStatusRecord() {
+  sl
+    ..registerFactory<StatusRemoteDatasource>(
+      () => StatusRemoteDatasourceImpl(),
+    )
+    ..registerFactory<StatusRepository>(
+      () => StatusRepositoryImpl(sl(), sl()),
+    )
+    ..registerFactory(
+      () => ListStatusRecords(
+        sl(),
+      ),
+    )
+    ..registerFactory(
+      () => SelectOneStatusRecord(
+        sl(),
+      ),
+    )
+    ..registerLazySingleton(
+      () => StatusRecordBloc(
+        listStatusRecords: sl(),
+        selectOneStatusRecord: sl(),
       ),
     );
 }

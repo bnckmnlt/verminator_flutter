@@ -28,7 +28,7 @@ class _SystemImageDetailsState extends State<SystemImageDetails> {
       {
         'label': 'Confidence Score',
         'widget': Text(
-          widget.foodWaste.confidence.toString(),
+          widget.foodWaste.confidence.toStringAsFixed(2),
           style: GoogleFonts.spaceMono(
             fontWeight: FontWeight.w600,
             letterSpacing: 0.025,
@@ -57,44 +57,46 @@ class _SystemImageDetailsState extends State<SystemImageDetails> {
       spacing: 24,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Column(
           children: [
-            SizedBox(
-              width: 248,
-              child: Text(
-                widget.foodWaste.filePath.split("/").last.toString(),
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.025,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                  width: 248,
+                  child: Text(
+                    widget.foodWaste.filePath.split("/").last.toString(),
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.025,
+                    ),
+                  ),
                 ),
-              ),
+                IconButton(
+                  onPressed: widget.onShowDetails,
+                  icon: Icon(
+                    Icons.close,
+                    color:
+                        Theme.of(context).colorScheme.onSurface.withAlpha(124),
+                  ),
+                ),
+              ],
             ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                onPressed: widget.onShowDetails,
-                icon: Icon(
-                  Icons.close,
-                  color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
-                ),
+            Container(
+              height: 320,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                  border: Border.all(
+                color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              )),
+              child: Image.network(
+                widget.foodWaste.filePath,
+                fit: BoxFit.contain,
               ),
             ),
           ],
-        ),
-        Container(
-          height: 320,
-          width: double.infinity,
-          decoration: BoxDecoration(
-              border: Border.all(
-            color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          )),
-          child: Image.network(
-            widget.foodWaste.filePath,
-            fit: BoxFit.contain,
-          ),
         ),
         Column(
           spacing: 10,

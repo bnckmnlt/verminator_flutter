@@ -8,6 +8,7 @@ class MainChart extends StatefulWidget {
   final bool showAxisLine;
   final double mainWidth;
   final Color color;
+  final String? title;
 
   const MainChart({
     super.key,
@@ -16,6 +17,7 @@ class MainChart extends StatefulWidget {
     this.showAxisLine = false,
     this.mainWidth = 0.0,
     required this.color,
+    this.title,
   });
 
   @override
@@ -23,8 +25,12 @@ class MainChart extends StatefulWidget {
 }
 
 class _MainChartState extends State<MainChart> {
+  late TooltipBehavior _tooltipBehavior;
+
   @override
   void initState() {
+    _tooltipBehavior = TooltipBehavior(enable: true);
+
     super.initState();
   }
 
@@ -33,6 +39,7 @@ class _MainChartState extends State<MainChart> {
     return SizedBox(
       height: widget.chartSize,
       child: SfCartesianChart(
+        tooltipBehavior: _tooltipBehavior,
         margin: const EdgeInsets.all(0),
         plotAreaBorderWidth: 0,
         plotAreaBackgroundColor: Colors.transparent,
@@ -49,6 +56,14 @@ class _MainChartState extends State<MainChart> {
           ),
         ),
         primaryYAxis: NumericAxis(
+          labelFormat: '{value} ${widget.title == "Temperature" ? "°C" : "%"}',
+          // title: AxisTitle(
+          //     text: widget.title ?? "",
+          //     textStyle: TextStyle(
+          //       color: Colors.amberAccent,
+          //       fontSize: 12,
+          //       fontWeight: FontWeight.w500,
+          //     )),
           isVisible: widget.showAxisLine ?? false,
           axisLine: AxisLine(width: 0),
           majorGridLines: MajorGridLines(width: 0),
@@ -56,6 +71,7 @@ class _MainChartState extends State<MainChart> {
         ),
         series: <CartesianSeries<ChartData, String>>[
           SplineSeries<ChartData, String>(
+            enableTooltip: true,
             color: widget.color,
             width: widget.mainWidth,
             dataSource: widget.sensorChart,
@@ -63,6 +79,7 @@ class _MainChartState extends State<MainChart> {
             yValueMapper: (ChartData d, _) => d.y,
           ),
           SplineAreaSeries<ChartData, String>(
+            enableTooltip: true,
             gradient: LinearGradient(
               colors: [
                 widget.color.withAlpha(64),

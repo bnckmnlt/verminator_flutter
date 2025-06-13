@@ -19,6 +19,7 @@ class PatchCompostSchedule
       compostProduced: params.compostProduced,
       juiceProduced: params.juiceProduced,
       isCompleted: params.isCompleted,
+      dateReleased: params.dateReleased,
     );
   }
 }
@@ -29,6 +30,7 @@ class PatchCompostScheduleParams {
   final String? compostProduced;
   final String? juiceProduced;
   final bool? isCompleted;
+  final String? dateReleased;
 
   PatchCompostScheduleParams({
     required this.id,
@@ -36,5 +38,6 @@ class PatchCompostScheduleParams {
     this.compostProduced,
     this.juiceProduced,
     this.isCompleted,
+    this.dateReleased,
   });
 }

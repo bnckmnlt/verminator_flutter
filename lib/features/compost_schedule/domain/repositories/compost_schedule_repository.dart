@@ -21,6 +21,7 @@ abstract interface class CompostScheduleRepository {
     String? compostProduced,
     String? juiceProduced,
     bool? isCompleted,
+    String? dateReleased,
   });
 
   Future<Either<Failure, String>> removeCompostSchedule({

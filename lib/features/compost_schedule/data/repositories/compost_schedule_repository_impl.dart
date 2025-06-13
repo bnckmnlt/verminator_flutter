@@ -60,11 +60,16 @@ class CompostScheduleRepositoryImpl implements CompostScheduleRepository {
     String? compostProduced,
     String? juiceProduced,
     bool? isCompleted,
+    String? dateReleased,
   }) {
     return _getCompostSchedule(
       () async => await remoteDataSource.patchCompostSchedule(
-        id: id,
-      ),
+          id: id,
+          scheduleName: scheduleName,
+          compostProduced: compostProduced,
+          juiceProduced: juiceProduced,
+          isCompleted: isCompleted,
+          dateReleased: dateReleased),
     );
   }
 

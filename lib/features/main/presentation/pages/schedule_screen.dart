@@ -18,6 +18,7 @@ import 'package:flutter_vermicomposting/features/main/presentation/widgets/sched
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_image_details.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_record_details_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_schedule_header_section.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widgets/system_status_progress.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/domain/entity/worm_activity.dart';
@@ -298,23 +299,30 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                         padding: const EdgeInsets.fromLTRB(24, 64, 24, 0),
                         child: Column(
                           spacing: 34,
+                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(0, 0, 0, 20),
-                              child: SystemScheduleHeaderSection(
-                                  compostSchedule: widget.compostSchedule),
+                              padding: const EdgeInsets.fromLTRB(0, 24, 0, 12),
+                              child: SystemStatusProgress(),
                             ),
-                            SystemFoodWasteRecords(
-                                foodWasteList: itemList,
-                                imageSelector: _handleImageSelector),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 0, 0, 14),
+                              child: SystemScheduleHeaderSection(
+                                mqttService: _mqttService,
+                                compostSchedule: widget.compostSchedule,
+                              ),
+                            ),
                             SystemDetailsSection(
                               compostSchedule: widget.compostSchedule,
                               foodWasteList: state.foodWaste,
                             ),
                             SystemChartsSection(
                                 sensorReadings: widget.sensorReadings),
+                            SystemFoodWasteRecords(
+                                foodWasteList: itemList,
+                                imageSelector: _handleImageSelector),
                             DailyRecordsDataTable(
                               tableFocusNode: _tableFocusNode,
                               sensorReadings: widget.sensorReadings,
