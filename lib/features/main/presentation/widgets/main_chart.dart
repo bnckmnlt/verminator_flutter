@@ -56,7 +56,7 @@ class _MainChartState extends State<MainChart> {
           ),
         ),
         primaryYAxis: NumericAxis(
-          labelFormat: '{value} ${widget.title == "Temperature" ? "°C" : "%"}',
+          labelFormat: '{value}${widget.title}',
           // title: AxisTitle(
           //     text: widget.title ?? "",
           //     textStyle: TextStyle(
