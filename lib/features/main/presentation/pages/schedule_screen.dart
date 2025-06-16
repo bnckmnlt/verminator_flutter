@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/animation.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
@@ -54,15 +55,18 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       return Scaffold(
         extendBody: true,
         extendBodyBehindAppBar: true,
-        backgroundColor: Colors.transparent,
         appBar: AppBar(
+          iconTheme:
+              IconThemeData(color: Theme.of(context).colorScheme.onSurface),
           backgroundColor: Colors.transparent,
           elevation: 0.0,
         ),
         body: Container(
             height: deviceHeight,
             width: deviceWidth,
-            child: SensorReadingSection(scheduleId: widget.scheduleId)),
+            child: SensorReadingSection(
+              scheduleId: widget.scheduleId,
+            )),
       );
     });
   }
@@ -305,8 +309,11 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                           children: [
                             Padding(
                               padding: const EdgeInsets.fromLTRB(0, 24, 0, 12),
-                              child: SystemStatusProgress(
-                                scheduleId: widget.compostSchedule.id,
+                              child: BounceWithFadeAnimation(
+                                delay: 5,
+                                child: SystemStatusProgress(
+                                  scheduleId: widget.compostSchedule.id,
+                                ),
                               ),
                             ),
                             /** HEADER CONTROLS: [✅] **/

@@ -11,7 +11,6 @@ import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc
 import 'package:flutter_vermicomposting/features/main/domain/entities/daily_records_cell.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/data_table_column.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/logs_widgets/logs_data_table.dart';
-import 'package:flutter_vermicomposting/main.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
@@ -365,8 +364,6 @@ class _SystemRecordDetailsState extends State<SystemRecordDetails> {
 
           return currentDayMatched;
         });
-
-        log.info(filteredLogs);
 
         final data = filteredLogs.map((item) {
           final date = DateTime.parse(item.createdAt);

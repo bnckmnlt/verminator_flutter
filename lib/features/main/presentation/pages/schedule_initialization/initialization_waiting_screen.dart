@@ -17,7 +17,6 @@ import 'package:flutter_vermicomposting/features/compost_schedule/domain/entitie
 import 'package:flutter_vermicomposting/features/food_waste/data/models/food_waste_model.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_failed_screen.dart';
-import 'package:flutter_vermicomposting/main.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -55,6 +54,8 @@ class _InitializationWaitingScreenState
     extends State<InitializationWaitingScreen> {
   late final FlutterTts flutterTts;
 
+  bool _hasInitialized = false;
+
   DateTime? _latestTimestamp;
 
   late MqttService _mqttService;
@@ -69,7 +70,7 @@ class _InitializationWaitingScreenState
   int _currentTipIndex = 0;
 
   late Timer _timer;
-  int _start = 120;
+  int _start = 30;
   Timer? _tipTimer;
 
   @override
@@ -142,7 +143,10 @@ class _InitializationWaitingScreenState
       },
     );
 
-    startTimer();
+    if (!_hasInitialized) {
+      startTimer();
+      _hasInitialized = true;
+    }
   }
 
   @override
@@ -150,6 +154,9 @@ class _InitializationWaitingScreenState
     _foodWasteSubscription.cancel();
     _tipTimer?.cancel();
     _timer.cancel();
+    _hasInitialized = false;
+    isProcessing = false;
+    _currentTipIndex = 0;
 
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
 
@@ -276,20 +283,20 @@ class _InitializationWaitingScreenState
 
             if (wasteList.isEmpty) {
               errorList[1] = true;
-              isError = true;
-            } else {
-              const validClassNames = ['fruit', 'vegetable', 'grains'];
-              final hasValid = wasteList.any((waste) {
-                return validClassNames
-                    .contains(waste.classname.name.toLowerCase());
-              });
+            }
 
-              if (!hasValid) {
-                errorList[0] = true;
-                isError = true;
-              }
+            const validClassNames = ['fruit', 'vegetable', 'grains'];
+            final hasValid = wasteList.any((waste) {
+              return validClassNames
+                  .contains(waste.classname.name.toLowerCase());
+            });
+
+            if (!hasValid) {
+              errorList[0] = true;
             }
           }
+
+          isError = errorList.contains(true);
 
           timer.cancel();
           _tipTimer?.cancel();
@@ -307,66 +314,90 @@ class _InitializationWaitingScreenState
                   ),
                 ),
               );
-            } else {
-              _mqttService.publish("system/status", "idle",
-                  qos: MqttQos.atLeastOnce, retain: true);
-              _mqttService.publish("control/monitoring/camera", "inactive",
-                  qos: MqttQos.atLeastOnce, retain: true);
+              return;
+            }
 
-              Future<void> fail(String title, String message) async {
-                Navigator.pop(context);
-                toastHelper.show(
-                    title: title, description: message, isError: true);
+            _mqttService.publish("system/status", "idle",
+                qos: MqttQos.atLeastOnce, retain: true);
+            _mqttService.publish("control/monitoring/camera", "inactive",
+                qos: MqttQos.atLeastOnce, retain: true);
+
+            Future<void> fail(String title, String message) async {
+              if (!mounted) return;
+              Navigator.pop(context);
+              toastHelper.show(
+                  title: title, description: message, isError: true);
+            }
+
+            try {
+              final patched = await _supabaseClient
+                  .from("status_records")
+                  .update({
+                    'is_completed': true,
+                    'remarks': "none",
+                  })
+                  .eq('status_schedule_id', widget.scheduleId)
+                  .eq("status", "initial")
+                  .select();
+
+              if (!mounted) return;
+
+              if (!patched.first['is_completed']) {
+                await fail(
+                  "Updating schedule status failed",
+                  "An error has occurred while processing the records",
+                );
+                return;
               }
 
-              try {
-                final patched = await _supabaseClient
-                    .from("status_records")
-                    .update({
-                      'is_completed': true,
-                      'remarks': "none",
-                    })
-                    .eq('status_schedule_id', widget.scheduleId)
-                    .eq("status", "initial")
-                    .select();
+              final statusResp = await http.post(
+                Uri.parse("https://verminator.thinkio.me/status"),
+                headers: {'Content-Type': 'application/json; charset=UTF-8'},
+                body: jsonEncode({
+                  "statusScheduleId": widget.scheduleId,
+                  "status": "active",
+                  "remarks": null,
+                }),
+              );
 
-                log.severe(patched);
+              if (!mounted) return;
 
-                // if (!patched.isCompleted) {
-                //   await fail(
-                //     "Updating schedule status failed",
-                //     "An error has occurred while processing the records",
-                //   );
-                //   return;
-                // }
+              if (statusResp.statusCode != 200) {
+                final body = jsonDecode(statusResp.body);
+                final msg = (body['message'] ?? '').toString().toLowerCase();
 
-                final statusResp = await http.post(
-                  Uri.parse("https://verminator.thinkio.me/status"),
-                  headers: {'Content-Type': 'application/json; charset=UTF-8'},
-                  body: jsonEncode({
-                    "statusScheduleId": widget.scheduleId,
-                    "status": "active",
-                    "remarks": null
-                  }),
-                );
-
-                if (statusResp.statusCode != 200) {
-                  await fail("Status update failed",
-                      statusResp.body.parseErrorMessage());
+                if (msg.contains('duplicate') ||
+                    msg.contains('already active')) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => InitializationSuccessScreen(
+                        scheduleId: widget.scheduleId,
+                      ),
+                    ),
+                  );
                   return;
                 }
 
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => InitializationSuccessScreen(
-                      scheduleId: widget.scheduleId,
-                    ),
-                  ),
-                );
-              } catch (e) {
-                await fail("Unexpected Error", e.toString());
+                await fail("Status update failed",
+                    statusResp.body.parseErrorMessage());
+                return;
               }
+
+              if (!mounted) return;
+
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => InitializationSuccessScreen(
+                    scheduleId: widget.scheduleId,
+                  ),
+                ),
+              );
+
+              return;
+            } catch (e) {
+              await fail("Unexpected Error", e.toString());
             }
           });
         } else {

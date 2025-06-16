@@ -10,6 +10,7 @@ import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/data/models/compost_schedule_model.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
+import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -38,6 +39,8 @@ class _SystemScheduleHeaderSectionState
   final TextEditingController scheduleIdentifierController =
       TextEditingController();
 
+  bool _isReadyToComplete = false;
+
   @override
   void dispose() {
     super.dispose();
@@ -51,65 +54,65 @@ class _SystemScheduleHeaderSectionState
 
     final toastHelper = ToastHelper(context);
 
-    return BlocListener<CompostScheduleBloc, CompostScheduleState>(
-      listener: (context, state) {
-        if (state is CompostScheduleFailure) {
-          toastHelper.show(
-            title: "An error has occured",
-            description: state.error,
-            isError: true,
-          );
-        } else if (state is CompostScheduleSuccess) {
-          toastHelper.show(
-            title: "Update success",
-            description:
-                "Successfully changed the schedule name to ${state.compostSchedule.scheduleName}",
-            isError: false,
-          );
-        }
-      },
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.compostSchedule.scheduleName,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w600,
-                ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.compostSchedule.scheduleName,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 2),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    FluentIcons.calendar_16_regular,
-                    color: Constants().textMutedFgDark,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 6),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 2.5),
-                    child: Text(
-                      formattedDate,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Constants().textMutedFgDark,
-                      ),
+            ),
+            const SizedBox(height: 2),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(
+                  FluentIcons.calendar_16_regular,
+                  color: Constants().textMutedFgDark,
+                  size: 18,
+                ),
+                const SizedBox(width: 6),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 2.5),
+                  child: Text(
+                    formattedDate,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Constants().textMutedFgDark,
                     ),
                   ),
-                ],
-              )
-            ],
-          ),
-          Row(
-            spacing: 8,
-            children: [
-              IconButton(
+                ),
+              ],
+            )
+          ],
+        ),
+        Row(
+          spacing: 8,
+          children: [
+            BlocListener<CompostScheduleBloc, CompostScheduleState>(
+              listener: (ctx, state) {
+                if (state is CompostScheduleFailure) {
+                  toastHelper.show(
+                    title: "An error has occured",
+                    description: state.error,
+                    isError: true,
+                  );
+                } else if (state is CompostScheduleSuccess) {
+                  toastHelper.show(
+                    title: "Update success",
+                    description:
+                        "Successfully changed the schedule name to ${state.compostSchedule.scheduleName}",
+                    isError: false,
+                  );
+                }
+              },
+              child: IconButton(
                 style: OutlinedButton.styleFrom(
                   // backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
                   shape: RoundedRectangleBorder(
@@ -128,50 +131,74 @@ class _SystemScheduleHeaderSectionState
                   size: 18,
                 ),
               ),
-              OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  // backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.outlineVariant,
-                    width: 1,
-                  ),
-                  padding: const EdgeInsets.fromLTRB(14, 8.5, 12, 8),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                onPressed: () => _handleEndSchedule(toastHelper),
-                child: Row(
-                  spacing: 6,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      FluentIcons.task_list_square_database_20_regular,
-                      // or FluentIcons.checkmark_circle_16_filled
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withOpacity(0.8),
-                      size: 14,
-                    ),
-                    Text(
-                      "End Cycle",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
-                        letterSpacing: 0.025,
+            ),
+            BlocListener<StatusRecordBloc, StatusRecordState>(
+              listener: (ctx, state) {
+                if (state is StatusRecordFailure) {
+                } else if (state is StatusRecordListSuccess) {
+                  final statusList = state.statusRecordList
+                      .where((status) =>
+                          status.scheduleId == widget.compostSchedule.id)
+                      .toList()
+                    ..sort((a, b) => DateTime.parse(b.createdAt)
+                        .compareTo(DateTime.parse(a.createdAt)));
+
+                  final firstStatus = statusList.first;
+                  final isCompleted = firstStatus.isCompleted;
+
+                  setState(() {
+                    _isReadyToComplete =
+                        firstStatus.status == CompostingStatus.ready &&
+                            isCompleted;
+                  });
+                }
+              },
+              child: _isReadyToComplete
+                  ? OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        // backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        side: BorderSide(
+                          color: Theme.of(context).colorScheme.outlineVariant,
+                          width: 1,
+                        ),
+                        padding: const EdgeInsets.fromLTRB(14, 8.5, 12, 8),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+                      onPressed: () => _handleEndSchedule(toastHelper),
+                      child: Row(
+                        spacing: 6,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            FluentIcons.task_list_square_database_20_regular,
+                            // or FluentIcons.checkmark_circle_16_filled
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withOpacity(0.8),
+                            size: 14,
+                          ),
+                          Text(
+                            "End Cycle",
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                              letterSpacing: 0.025,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -195,7 +222,7 @@ class _SystemScheduleHeaderSectionState
                 },
               ),
             ),
-            approvedFunction: () {
+            approvedFunction: () async {
               if (formKey.currentState!.validate()) {
                 showDialog(
                   context: context,
@@ -247,19 +274,40 @@ class _SystemScheduleHeaderSectionState
         });
   }
 
-  void _handleEndSchedule(ToastHelper toastHelper) {
+  void _handleEndSchedule(ToastHelper toastHelper) async {
+    final rootContext = context; // Capture safe root context
     final MqttService mqttService = widget.mqttService;
     final now = DateTime.now().toIso8601String();
 
     showDialog(
-      context: context,
-      builder: (BuildContext context) {
+      context: rootContext,
+      builder: (BuildContext dialogContext) {
         return GeneralDialog(
           title: 'Finalize Vermicomposting Cycle',
           description:
               'Are you sure you want to mark this vermicomposting cycle as complete? This action will finalize all associated data',
           confirmButtonLabel: 'Confirm',
           approvedFunction: () async {
+            Navigator.of(dialogContext).pop(); // Close confirmation dialog
+            await Future.delayed(const Duration(milliseconds: 150));
+
+            showDialog(
+              context: rootContext,
+              barrierDismissible: false,
+              builder: (_) => const Center(child: CircularProgressIndicator()),
+              useRootNavigator: true,
+            );
+
+            Future<void> fail(String title, String message) async {
+              Navigator.of(rootContext, rootNavigator: true)
+                  .pop(); // Close spinner
+              toastHelper.show(
+                title: title,
+                description: message,
+                isError: true,
+              );
+            }
+
             try {
               final scheduleUri = Uri.parse(
                 "https://verminator.thinkio.me/schedule/${widget.compostSchedule.id}",
@@ -283,7 +331,28 @@ class _SystemScheduleHeaderSectionState
               );
 
               if (scheduleResponse.statusCode != 200) {
-                throw Exception(scheduleResponse.body.parseErrorMessage());
+                await fail("Schedule update failed",
+                    scheduleResponse.body.parseErrorMessage());
+                return;
+              }
+
+              final statusPayload = {
+                'statusScheduleId': widget.compostSchedule.id,
+                'status': CompostingStatus.released.name,
+                'remarks': null,
+                'isCompleted': true,
+              };
+
+              final statusResponse = await http.post(
+                statusUri,
+                headers: {'Content-Type': 'application/json; charset=UTF-8'},
+                body: jsonEncode(statusPayload),
+              );
+
+              if (statusResponse.statusCode != 200) {
+                await fail("Status update failed",
+                    statusResponse.body.parseErrorMessage());
+                return;
               }
 
               mqttService.publish(
@@ -293,21 +362,8 @@ class _SystemScheduleHeaderSectionState
                 retain: true,
               );
 
-              final statusPayload = {
-                'statusScheduleId': widget.compostSchedule.id,
-                'status': CompostingStatus.released.name,
-                'remarks': "",
-              };
-
-              final statusResponse = await http.patch(
-                statusUri,
-                headers: {'Content-Type': 'application/json; charset=UTF-8'},
-                body: jsonEncode(statusPayload),
-              );
-
-              if (statusResponse.statusCode != 200) {
-                throw Exception(statusResponse.body.parseErrorMessage());
-              }
+              Navigator.of(rootContext, rootNavigator: true)
+                  .pop(); // Close spinner
 
               toastHelper.show(
                 title: "Cycle Finalized",
@@ -318,14 +374,12 @@ class _SystemScheduleHeaderSectionState
 
               context.read<CompostScheduleBloc>().add(CompostScheduleList());
 
-              Navigator.of(context, rootNavigator: true)
+              await Future.delayed(const Duration(milliseconds: 100));
+
+              Navigator.of(rootContext, rootNavigator: true)
                   .popUntil((route) => route is PageRoute);
             } catch (e) {
-              toastHelper.show(
-                title: "An error has occurred",
-                description: e.toString(),
-                isError: true,
-              );
+              await fail("Unexpected Error", e.toString());
             }
           },
         );

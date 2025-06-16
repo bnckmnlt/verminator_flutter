@@ -48,12 +48,23 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
         extendBody: true,
         extendBodyBehindAppBar: true,
         appBar: AppBar(
+          iconTheme:
+              IconThemeData(color: Theme.of(context).colorScheme.onSurface),
           backgroundColor: Colors.transparent,
-          elevation: 0,
+          elevation: 0.0,
         ),
         floatingActionButton: FloatingActionButton(
+          elevation: 0,
+          backgroundColor: Colors.blueAccent.withAlpha(64),
+          foregroundColor: Theme.of(context).colorScheme.onSurface,
+          shape: CircleBorder(
+            side: BorderSide(color: Colors.blueAccent),
+          ),
           onPressed: () => _handleScheduleCreation(context, toastHelper),
-          child: const Icon(Icons.add),
+          child: const Icon(
+            size: 28,
+            Icons.add,
+          ),
         ),
         body: BlocBuilder<CompostScheduleBloc, CompostScheduleState>(
           builder: (context, state) {
@@ -81,7 +92,9 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
                     icon: FluentIcons.cloud_error_24_regular,
                   );
                 } else if (statusState is StatusRecordListSuccess) {
-                  final statusList = statusState.statusRecordList.toList();
+                  final statusList = statusState.statusRecordList
+                    ..sort((a, b) => DateTime.parse(a.createdAt)
+                        .compareTo(DateTime.parse(b.createdAt)));
 
                   if (statusList.isEmpty) return const SizedBox();
 
@@ -190,11 +203,11 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
                                             ),
                                             StatusBadge(
                                               color: !schedule.isCompleted
-                                                  ? Colors.greenAccent
-                                                  : Colors.redAccent,
+                                                  ? Colors.amber
+                                                  : Colors.greenAccent,
                                               state: !schedule.isCompleted
-                                                  ? "Active"
-                                                  : "Inactive",
+                                                  ? "In Progress"
+                                                  : "Completed",
                                             )
                                           ],
                                         ),
@@ -239,8 +252,12 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
                                                     Theme.of(context)
                                                         .colorScheme
                                                         .surfaceContainerHigh,
-                                                color: statusRecord!.isCompleted
-                                                    ? Colors.blueAccent
+                                                color: statusRecord.isCompleted
+                                                    ? statusRecord.status ==
+                                                            CompostingStatus
+                                                                .released
+                                                        ? Colors.greenAccent
+                                                        : Colors.blueAccent
                                                     : Colors.grey,
                                                 value: _getProgressValue(
                                                     statusRecord.status),
@@ -392,6 +409,8 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
               body: jsonEncode({
                 "statusScheduleId": inserted.id,
                 "status": CompostingStatus.initial.name,
+                "remarks": null,
+                "isCompleted": false,
               }),
             );
 

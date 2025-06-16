@@ -63,7 +63,10 @@ class _ControlScreenState extends State<ControlScreen> {
           extendBody: true,
           extendBodyBehindAppBar: true,
           appBar: AppBar(
+            iconTheme:
+                IconThemeData(color: Theme.of(context).colorScheme.onSurface),
             backgroundColor: Colors.transparent,
+            elevation: 0.0,
           ),
           body: Container(
             height: deviceHeight,

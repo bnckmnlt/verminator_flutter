@@ -59,8 +59,11 @@ class _SystemStatusProgressState extends State<SystemStatusProgress> {
           final isCompleted = firstStatus.isCompleted;
           final gaugeValue = _getGaugeValue(firstStatus.status);
 
-          final Color activeColor =
-              isCompleted ? Colors.blue : Colors.grey.shade700;
+          final Color activeColor = isCompleted
+              ? gaugeValue == 90
+                  ? Colors.greenAccent
+                  : Colors.blue
+              : Colors.grey.shade700;
 
           return SfLinearGauge(
             key: myKey,
@@ -112,6 +115,7 @@ class _SystemStatusProgressState extends State<SystemStatusProgress> {
               final isActive = gaugeValue >= value;
 
               return LinearWidgetPointer(
+                enableAnimation: false,
                 value: value,
                 position: LinearElementPosition.cross,
                 child: Container(
@@ -128,7 +132,9 @@ class _SystemStatusProgressState extends State<SystemStatusProgress> {
                       (index + 1).toString(),
                       style: GoogleFonts.spaceMono(
                         color: isActive
-                            ? Colors.white
+                            ? gaugeValue == 90
+                                ? Colors.black87
+                                : Colors.white
                             : Constants().textMutedFgDark,
                         fontWeight: FontWeight.bold,
                       ),

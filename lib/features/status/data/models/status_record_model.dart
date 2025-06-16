@@ -35,4 +35,16 @@ class StatusRecordModel extends StatusRecord {
       "updatedAt": updatedAt,
     };
   }
+
+  factory StatusRecordModel.fromJsonSupabase(Map<String, dynamic> json) {
+    return StatusRecordModel(
+      id: json["id"] as int,
+      scheduleId: json["status_schedule_id"] as int,
+      status: CompostingStatus.values.byName(json["status"] as String),
+      remarks: json["remarks"] as String?,
+      isCompleted: json["is_completed"] as bool,
+      createdAt: json["created_at"],
+      updatedAt: json["updated_at"],
+    );
+  }
 }

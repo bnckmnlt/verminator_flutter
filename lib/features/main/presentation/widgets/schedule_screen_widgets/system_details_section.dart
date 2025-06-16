@@ -197,9 +197,11 @@ class _SystemDetailsSectionState extends State<SystemDetailsSection> {
                               });
                         },
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.greenAccent.withAlpha(32),
+                            elevation: 0.75,
+                            backgroundColor:
+                                Colors.greenAccent.shade200.withAlpha(64),
                             foregroundColor: Colors.greenAccent,
-                            padding: const EdgeInsets.fromLTRB(18, 6, 18, 6),
+                            padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
                             minimumSize: Size.zero,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(24))),
