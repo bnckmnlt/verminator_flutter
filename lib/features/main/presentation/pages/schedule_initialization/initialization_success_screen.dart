@@ -23,7 +23,14 @@ import 'package:mqtt_client/mqtt_client.dart';
 // TODO: [✅] DONEEEEEE
 
 class InitializationSuccessScreen extends StatefulWidget {
-  const InitializationSuccessScreen({super.key});
+  final int scheduleId;
+
+  const InitializationSuccessScreen({super.key, required this.scheduleId});
+
+  static MaterialPageRoute route(int scheduleId) => MaterialPageRoute(
+      builder: (_) => InitializationSuccessScreen(
+            scheduleId: scheduleId,
+          ));
 
   @override
   State<InitializationSuccessScreen> createState() =>
@@ -97,7 +104,7 @@ class _InitializationSuccessScreenState
                 } else if (state is FoodWasteListSuccess) {
                   final invalidData = state.foodWaste
                       .where((item) =>
-                          item.foodWasteScheduleId == currentSchedule.id &&
+                          item.foodWasteScheduleId == widget.scheduleId &&
                           item.classname == FoodWasteClassname.invalid)
                       .map((item) {
                     return FoodWasteClass(
@@ -110,7 +117,7 @@ class _InitializationSuccessScreenState
 
                   final validData = state.foodWaste
                       .where((item) =>
-                          item.foodWasteScheduleId == currentSchedule.id &&
+                          item.foodWasteScheduleId == widget.scheduleId &&
                           item.classname != FoodWasteClassname.invalid)
                       .map((item) {
                     return FoodWasteClass(
@@ -195,7 +202,7 @@ class _InitializationSuccessScreenState
                     const EdgeInsets.symmetric(vertical: 2, horizontal: 10),
                 backgroundColor: Colors.amberAccent.withAlpha(44),
                 label: Text(
-                  "ID - ${currentSchedule.id}",
+                  "ID - ${widget.scheduleId}",
                   style: GoogleFonts.notoSans(
                     color: Colors.amber,
                     fontWeight: FontWeight.w800,
@@ -472,7 +479,7 @@ IconData getClassnameIconData(FoodWasteClassname classname) {
       iconData = FluentIcons.food_apple_24_regular;
     case FoodWasteClassname.vegetable:
       iconData = FluentIcons.plant_grass_24_regular;
-    case FoodWasteClassname.grain:
+    case FoodWasteClassname.grains:
       iconData = FluentIcons.food_20_regular;
     case FoodWasteClassname.invalid:
       iconData = FluentIcons.prohibited_24_regular;

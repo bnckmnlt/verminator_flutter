@@ -10,7 +10,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 class SystemStatusProgress extends StatefulWidget {
-  const SystemStatusProgress({super.key});
+  final int scheduleId;
+
+  const SystemStatusProgress({
+    super.key,
+    required this.scheduleId,
+  });
 
   @override
   State<SystemStatusProgress> createState() => _SystemStatusProgressState();
@@ -43,7 +48,7 @@ class _SystemStatusProgressState extends State<SystemStatusProgress> {
 
         if (state is StatusRecordListSuccess) {
           final statusList = state.statusRecordList
-              .where((status) => status.scheduleId == 1)
+              .where((status) => status.scheduleId == widget.scheduleId)
               .toList()
             ..sort((a, b) => DateTime.parse(b.createdAt)
                 .compareTo(DateTime.parse(a.createdAt)));

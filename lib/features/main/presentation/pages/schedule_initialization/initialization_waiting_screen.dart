@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,14 +10,18 @@ import 'package:flutter_vermicomposting/core/common/widgets/app_background.dart'
 import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/food_waste/data/models/food_waste_model.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_failed_screen.dart';
+import 'package:flutter_vermicomposting/main.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:lottie/lottie.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -28,7 +33,18 @@ import 'initialization_success_screen.dart';
 enum TtsState { playing, stopped, paused, continued }
 
 class InitializationWaitingScreen extends StatefulWidget {
-  const InitializationWaitingScreen({super.key});
+  final int scheduleId;
+
+  const InitializationWaitingScreen({
+    super.key,
+    required this.scheduleId,
+  });
+
+  static MaterialPageRoute route(int scheduleId) => MaterialPageRoute(
+        builder: (_) => InitializationWaitingScreen(
+          scheduleId: scheduleId,
+        ),
+      );
 
   @override
   State<InitializationWaitingScreen> createState() =>
@@ -84,7 +100,7 @@ class _InitializationWaitingScreenState
             final newEntries =
                 rawData.map(FoodWasteModel.fromJsonRealtime).where((item) {
               final created = DateTime.tryParse(item.createdAt);
-              return item.foodWasteScheduleId == 2 &&
+              return item.foodWasteScheduleId == widget.scheduleId &&
                   created != null &&
                   (_latestTimestamp == null ||
                       created.isAfter(_latestTimestamp!));
@@ -95,7 +111,7 @@ class _InitializationWaitingScreenState
             for (final item in newEntries) {
               if (item.materialStatus.name == 'valid') {
                 speak(
-                    "Valid material detected. Proceeding with classification.");
+                    "Valid material detected. Proceeding to the bedding layer.");
               } else if (item.materialStatus.name == 'invalid') {
                 speak("Invalid material identified. Redirecting for disposal.");
               }
@@ -108,9 +124,9 @@ class _InitializationWaitingScreenState
     }
 
     if (MqttConnectionState == MqttConnectionState.connected) {
-      _mqttService.publish("system/status", "inactive",
+      _mqttService.publish("system/status", "feeding",
           qos: MqttQos.atLeastOnce, retain: true);
-      _mqttService.publish("system/feeding", "active",
+      _mqttService.publish("system/feeding/id", "1",
           qos: MqttQos.atLeastOnce, retain: true);
       _mqttService.publish("control/monitoring/camera", "active",
           qos: MqttQos.atLeastOnce, retain: true);
@@ -227,6 +243,8 @@ class _InitializationWaitingScreenState
   }
 
   void startTimer() {
+    final toastHelper = ToastHelper(context);
+
     const oneSec = Duration(seconds: 1);
     _timer = Timer.periodic(
       oneSec,
@@ -253,7 +271,7 @@ class _InitializationWaitingScreenState
           } else if (state is FoodWasteListSuccess) {
             final wasteList = state.foodWaste
                 .where(
-                    (waste) => waste.foodWasteScheduleId == currentSchedule.id)
+                    (waste) => waste.foodWasteScheduleId == widget.scheduleId)
                 .toList();
 
             if (wasteList.isEmpty) {
@@ -276,29 +294,79 @@ class _InitializationWaitingScreenState
           timer.cancel();
           _tipTimer?.cancel();
 
-          Future.delayed(const Duration(milliseconds: 500), () {
+          Future.delayed(const Duration(milliseconds: 500), () async {
             if (!mounted) return;
 
             if (isError) {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      InitializationFailedScreen(errorStatusList: errorList),
+                  builder: (context) => InitializationFailedScreen(
+                    errorStatusList: errorList,
+                    scheduleId: widget.scheduleId,
+                  ),
                 ),
               );
             } else {
-              _mqttService.publish("system/feeding", "inactive",
+              _mqttService.publish("system/status", "idle",
                   qos: MqttQos.atLeastOnce, retain: true);
               _mqttService.publish("control/monitoring/camera", "inactive",
                   qos: MqttQos.atLeastOnce, retain: true);
 
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const InitializationSuccessScreen(),
-                ),
-              );
+              Future<void> fail(String title, String message) async {
+                Navigator.pop(context);
+                toastHelper.show(
+                    title: title, description: message, isError: true);
+              }
+
+              try {
+                final patched = await _supabaseClient
+                    .from("status_records")
+                    .update({
+                      'is_completed': true,
+                      'remarks': "none",
+                    })
+                    .eq('status_schedule_id', widget.scheduleId)
+                    .eq("status", "initial")
+                    .select();
+
+                log.severe(patched);
+
+                // if (!patched.isCompleted) {
+                //   await fail(
+                //     "Updating schedule status failed",
+                //     "An error has occurred while processing the records",
+                //   );
+                //   return;
+                // }
+
+                final statusResp = await http.post(
+                  Uri.parse("https://verminator.thinkio.me/status"),
+                  headers: {'Content-Type': 'application/json; charset=UTF-8'},
+                  body: jsonEncode({
+                    "statusScheduleId": widget.scheduleId,
+                    "status": "active",
+                    "remarks": null
+                  }),
+                );
+
+                if (statusResp.statusCode != 200) {
+                  await fail("Status update failed",
+                      statusResp.body.parseErrorMessage());
+                  return;
+                }
+
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => InitializationSuccessScreen(
+                      scheduleId: widget.scheduleId,
+                    ),
+                  ),
+                );
+              } catch (e) {
+                await fail("Unexpected Error", e.toString());
+              }
             }
           });
         } else {
@@ -423,26 +491,14 @@ class _InitializationWaitingScreenState
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => InitializationSuccessScreen(),
-                    ),
-                  );
-                },
-                child: Badge(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  backgroundColor: Colors.amberAccent,
-                  label: Text(
-                    "TIP",
-                    style: GoogleFonts.notoSans(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12,
-                    ),
+              Badge(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                backgroundColor: Colors.amberAccent,
+                label: Text(
+                  "TIP",
+                  style: GoogleFonts.notoSans(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
                   ),
                 ),
               ),

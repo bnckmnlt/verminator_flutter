@@ -91,7 +91,7 @@ class _SystemFoodWasteRecordsState extends State<SystemFoodWasteRecords> {
                 mainAxisSpacing: 8,
                 childAspectRatio: 1.0,
               ),
-              itemCount: 36,
+              itemCount: widget.foodWasteList.length,
               itemBuilder: (BuildContext context, int index) {
                 return GestureDetector(
                   onTap: () => widget.imageSelector(index),

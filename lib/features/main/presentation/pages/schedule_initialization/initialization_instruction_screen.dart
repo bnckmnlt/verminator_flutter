@@ -11,7 +11,14 @@ import 'package:onboarding/onboarding.dart';
 // TODO: [✅] DONEEEEEEEE
 
 class InitializationInstructionScreen extends StatefulWidget {
-  const InitializationInstructionScreen({super.key});
+  final int scheduleId;
+
+  const InitializationInstructionScreen({super.key, required this.scheduleId});
+
+  static MaterialPageRoute route(int scheduleId) => MaterialPageRoute(
+      builder: (_) => InitializationInstructionScreen(
+            scheduleId: scheduleId,
+          ));
 
   @override
   State<InitializationInstructionScreen> createState() =>
@@ -192,7 +199,9 @@ class _InitializationInstructionScreenState
                                   Navigator.of(context).pushReplacement(
                                     MaterialPageRoute(
                                         builder: (_) =>
-                                            InitializationWaitingScreen()),
+                                            InitializationWaitingScreen(
+                                              scheduleId: widget.scheduleId,
+                                            )),
                                   );
                                 },
                                 child: Text(

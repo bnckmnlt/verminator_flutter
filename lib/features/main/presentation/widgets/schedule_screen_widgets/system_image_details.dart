@@ -53,110 +53,114 @@ class _SystemImageDetailsState extends State<SystemImageDetails> {
       },
     ];
 
-    return Column(
-      spacing: 24,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  width: 248,
-                  child: Text(
-                    widget.foodWaste.filePath.split("/").last.toString(),
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.025,
+    return SingleChildScrollView(
+      child: Column(
+        spacing: 24,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    width: 248,
+                    child: Text(
+                      widget.foodWaste.filePath.split("/").last.toString(),
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.025,
+                      ),
                     ),
                   ),
+                  IconButton(
+                    onPressed: widget.onShowDetails,
+                    icon: Icon(
+                      Icons.close,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withAlpha(124),
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                height: 320,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                    border: Border.all(
+                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                )),
+                child: Image.network(
+                  widget.foodWaste.filePath,
+                  fit: BoxFit.contain,
                 ),
-                IconButton(
-                  onPressed: widget.onShowDetails,
-                  icon: Icon(
-                    Icons.close,
-                    color:
-                        Theme.of(context).colorScheme.onSurface.withAlpha(124),
+              ),
+            ],
+          ),
+          Column(
+            spacing: 10,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Image Details',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
                   ),
                 ),
-              ],
-            ),
-            Container(
-              height: 320,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                  border: Border.all(
-                color: Theme.of(context).colorScheme.surfaceContainerHigh,
-              )),
-              child: Image.network(
-                widget.foodWaste.filePath,
-                fit: BoxFit.contain,
-              ),
-            ),
-          ],
-        ),
-        Column(
-          spacing: 10,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Image Details',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                ),
-              ),
-              child: Column(children: [
-                ...itemList.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final item = entry.value;
+                child: Column(children: [
+                  ...itemList.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final item = entry.value;
 
-                  return Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            item['label'],
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withAlpha(124),
-                              fontWeight: FontWeight.w500,
+                    return Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              item['label'],
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withAlpha(124),
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                          item['widget']
-                        ],
-                      ),
-                      if (index != itemList.length - 1)
-                        Divider(
-                          height: 16,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHigh,
+                            item['widget']
+                          ],
                         ),
-                    ],
-                  );
-                }),
-              ]),
-            ),
-          ],
-        )
-      ],
+                        if (index != itemList.length - 1)
+                          Divider(
+                            height: 16,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHigh,
+                          ),
+                      ],
+                    );
+                  }),
+                ]),
+              ),
+            ],
+          )
+        ],
+      ),
     );
   }
 
@@ -171,7 +175,7 @@ class _SystemImageDetailsState extends State<SystemImageDetails> {
       case FoodWasteClassname.vegetable:
         icon = FluentIcons.plant_grass_24_regular;
         color = Colors.greenAccent;
-      case FoodWasteClassname.grain:
+      case FoodWasteClassname.grains:
         icon = FluentIcons.plant_grass_24_regular;
         color = Colors.amberAccent;
       default:

@@ -9,12 +9,22 @@ import 'package:flutter_vermicomposting/features/main/presentation/pages/schedul
 // TODO: [✅] DONEEEEEEEE
 
 class InitializationFailedScreen extends StatefulWidget {
+  final int scheduleId;
   final List<bool> errorStatusList;
 
   const InitializationFailedScreen({
     super.key,
     required this.errorStatusList,
+    required this.scheduleId,
   });
+
+  static MaterialPageRoute route(List<bool> errorStatusList, int scheduleId) =>
+      MaterialPageRoute(
+        builder: (_) => InitializationFailedScreen(
+          errorStatusList: errorStatusList,
+          scheduleId: scheduleId,
+        ),
+      );
 
   @override
   State<InitializationFailedScreen> createState() =>
@@ -109,7 +119,9 @@ class _InitializationFailedScreenState
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
-                          builder: (_) => const InitializationWaitingScreen()),
+                          builder: (_) => InitializationWaitingScreen(
+                                scheduleId: widget.scheduleId,
+                              )),
                       (Route<dynamic> route) => route.isFirst,
                     );
                   },
@@ -245,8 +257,9 @@ class _InitializationFailedScreenState
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) =>
-                                    const InitializationInstructionScreen()),
+                                builder: (_) => InitializationInstructionScreen(
+                                      scheduleId: widget.scheduleId,
+                                    )),
                           );
                         },
                         child: Row(

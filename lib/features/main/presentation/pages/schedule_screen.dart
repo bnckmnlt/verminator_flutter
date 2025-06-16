@@ -198,7 +198,6 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
   bool _isDetailsVisible = false;
   bool _isImageDetailsVisible = false;
   int _currentSelectedImage = 0;
-  int _currentItemLength = 36;
 
   final FocusNode _tableFocusNode = FocusNode();
 
@@ -274,7 +273,8 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
         }
         if (state is FoodWasteListSuccess) {
           final List<FoodWasteModel> itemList = state.foodWaste
-              .where((entry) => entry.foodWasteScheduleId == 1)
+              .where((entry) =>
+                  entry.foodWasteScheduleId == widget.compostSchedule.id)
               .map((foodWaste) {
             final foodWasteModel = foodWaste as FoodWasteModel;
             final publicUrl = _supabaseClient.storage
@@ -305,8 +305,11 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                           children: [
                             Padding(
                               padding: const EdgeInsets.fromLTRB(0, 24, 0, 12),
-                              child: SystemStatusProgress(),
+                              child: SystemStatusProgress(
+                                scheduleId: widget.compostSchedule.id,
+                              ),
                             ),
+                            /** HEADER CONTROLS: [✅] **/
                             Padding(
                               padding: const EdgeInsets.fromLTRB(0, 0, 0, 14),
                               child: SystemScheduleHeaderSection(
@@ -314,15 +317,19 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                                 compostSchedule: widget.compostSchedule,
                               ),
                             ),
+                            /** SYSTEM DETAILS: [✅] **/
                             SystemDetailsSection(
                               compostSchedule: widget.compostSchedule,
                               foodWasteList: state.foodWaste,
                             ),
+                            /** PARAMETER CHARTS: [✅] **/
                             SystemChartsSection(
                                 sensorReadings: widget.sensorReadings),
+                            /** KITCHEN WASTE RECORDS: [ ] **/
                             SystemFoodWasteRecords(
                                 foodWasteList: itemList,
                                 imageSelector: _handleImageSelector),
+                            /** DAILY RECORDS TABLE: [✅] **/
                             DailyRecordsDataTable(
                               tableFocusNode: _tableFocusNode,
                               sensorReadings: widget.sensorReadings,
@@ -337,7 +344,9 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                   Expanded(
                     flex: 1,
                     child: _isImageDetailsVisible
+                        /** IMAGE DETAILS: [✅] **/
                         ? Container(
+                            height: MediaQuery.of(context).size.height,
                             padding: const EdgeInsets.fromLTRB(24, 44, 24, 24),
                             decoration: BoxDecoration(
                               color: Theme.of(context).colorScheme.surface,
@@ -358,11 +367,11 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                             ),
                           )
                         : _isDetailsVisible
-                            ? Container(
-                                child: SystemRecordDetails(
-                                  currentRecord: selectedRecord,
-                                ),
+                            /** RECORD DETAILS: [☑️] **/
+                            ? SystemRecordDetails(
+                                currentRecord: selectedRecord,
                               )
+                            /** CURRENT DEVICE INFO: [✅] **/
                             : Container(
                                 padding:
                                     const EdgeInsets.fromLTRB(24, 44, 24, 24),

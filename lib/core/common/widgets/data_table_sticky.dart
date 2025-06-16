@@ -1,5 +1,7 @@
 import 'package:data_table_2/data_table_2.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/daily_records_cell.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/data_table_column.dart';
@@ -26,6 +28,11 @@ class DataTableSticky<T> extends StatelessWidget {
     );
 
     return DataTable2(
+      empty: EmptyDisplayWidget(
+        icon: FluentIcons.cloud_archive_24_regular,
+        title: "No results found",
+        description: "Try another search or adjust the filters",
+      ),
       headingTextStyle: mutedTextStyle,
       onSelectAll: (bool? item) {},
       columnSpacing: 12,

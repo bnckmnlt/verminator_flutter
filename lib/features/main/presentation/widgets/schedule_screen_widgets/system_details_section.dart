@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_instruction_screen.dart';
 
 class SystemDetailsSection extends StatefulWidget {
   final CompostSchedule compostSchedule;
@@ -45,12 +48,12 @@ class _SystemDetailsSectionState extends State<SystemDetailsSection> {
     detailList = [
       {
         "label": "Compost Produced",
-        "value": widget.compostSchedule.compostProduced,
+        "value": widget.compostSchedule.compostProduced ?? "0",
         "unit": "kg",
       },
       {
-        "label": "Vermitea Produced",
-        "value": widget.compostSchedule.juiceProduced,
+        "label": "Vermijuice Produced",
+        "value": widget.compostSchedule.juiceProduced ?? "0",
         "unit": "L",
       },
     ];
@@ -60,7 +63,8 @@ class _SystemDetailsSectionState extends State<SystemDetailsSection> {
         "label": "Fruits",
         "value": widget.foodWasteList
             .where((item) =>
-                "fruit" == item.classname.name && item.foodWasteScheduleId == 1)
+                "fruit" == item.classname.name &&
+                item.foodWasteScheduleId == widget.compostSchedule.id)
             .length
             .toString(),
       },
@@ -69,7 +73,7 @@ class _SystemDetailsSectionState extends State<SystemDetailsSection> {
         "value": widget.foodWasteList
             .where((item) =>
                 "vegetable" == item.classname.name &&
-                item.foodWasteScheduleId == 1)
+                item.foodWasteScheduleId == widget.compostSchedule.id)
             .length
             .toString(),
       },
@@ -78,7 +82,7 @@ class _SystemDetailsSectionState extends State<SystemDetailsSection> {
         "value": widget.foodWasteList
             .where((item) =>
                 "grains" == item.classname.name &&
-                item.foodWasteScheduleId == 1)
+                item.foodWasteScheduleId == widget.compostSchedule.id)
             .length
             .toString(),
       },
@@ -87,11 +91,15 @@ class _SystemDetailsSectionState extends State<SystemDetailsSection> {
         "value": widget.foodWasteList
             .where((item) =>
                 "invalid" == item.classname.name &&
-                item.foodWasteScheduleId == 1)
+                item.foodWasteScheduleId == widget.compostSchedule.id)
             .length
             .toString(),
       },
     ];
+
+    final hasFoodWaste = widget.foodWasteList.any(
+      (item) => item.foodWasteScheduleId == widget.compostSchedule.id,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,44 +162,98 @@ class _SystemDetailsSectionState extends State<SystemDetailsSection> {
               const SizedBox(height: 24),
               Align(
                 alignment: Alignment.bottomLeft,
-                child: Text(
-                  "Food Waste Processed",
-                  textAlign: TextAlign.start,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Food Waste Processed",
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (!hasFoodWaste)
+                      ElevatedButton(
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return GeneralDialog(
+                                  title: "Start Worm Feeding",
+                                  description:
+                                      "Are you ready to begin adding food waste to this composting batch? This will mark the start of the feeding process",
+                                  isDismissable: true,
+                                  confirmButtonLabel: "Continue",
+                                  approvedFunction: () {
+                                    Navigator.pop(context);
+
+                                    Navigator.push(
+                                        context,
+                                        InitializationInstructionScreen.route(
+                                            widget.compostSchedule.id));
+                                  },
+                                );
+                              });
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.greenAccent.withAlpha(32),
+                            foregroundColor: Colors.greenAccent,
+                            padding: const EdgeInsets.fromLTRB(18, 6, 18, 6),
+                            minimumSize: Size.zero,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24))),
+                        child: Text(
+                          'Start Feeding',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
-              ...foodWasteRows.asMap().entries.map((entry) {
-                final index = entry.key;
-                final item = entry.value;
-                return Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(item['label'],
-                            style: TextStyle(
-                              color: Constants().textMutedFgDark,
-                              fontWeight: FontWeight.w500,
-                            )),
-                        Text(
-                          "${item['value']} items",
-                          style: TextStyle(),
-                        ),
-                      ],
-                    ),
-                    if (index != foodWasteRows.length - 1)
-                      Divider(
-                        height: 16,
-                        color:
-                            Theme.of(context).colorScheme.surfaceContainerHigh,
+              hasFoodWaste
+                  ? Column(
+                      children: foodWasteRows.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final item = entry.value;
+                        return Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  item['label'],
+                                  style: TextStyle(
+                                    color: Constants().textMutedFgDark,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text("${item['value']} items"),
+                              ],
+                            ),
+                            if (index != foodWasteRows.length - 1)
+                              Divider(
+                                height: 16,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHigh,
+                              ),
+                          ],
+                        );
+                      }).toList(),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 12, 0, 32),
+                      child: const EmptyDisplayWidget(
+                        title: "No Food Waste Records",
+                        description:
+                            "There are currently no food waste entries associated with this compost schedule.",
                       ),
-                  ],
-                );
-              }).toList(),
+                    )
             ],
           ),
         ),

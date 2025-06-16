@@ -115,6 +115,7 @@ class _GeneralDialogState extends State<GeneralDialog> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Column(
+                          spacing: 8,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             widget.withTitle

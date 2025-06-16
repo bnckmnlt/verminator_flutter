@@ -49,7 +49,7 @@ class _MaterialsProcessedWidgetState extends State<MaterialsProcessedWidget> {
                 case FoodWasteClassname.vegetable:
                   vegetable++;
                   break;
-                case FoodWasteClassname.grain:
+                case FoodWasteClassname.grains:
                   grain++;
                   break;
                 default:

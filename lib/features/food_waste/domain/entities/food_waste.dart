@@ -23,6 +23,6 @@ enum MaterialStatus { valid, invalid }
 enum FoodWasteClassname {
   fruit,
   vegetable,
-  grain,
+  grains,
   invalid,
 }

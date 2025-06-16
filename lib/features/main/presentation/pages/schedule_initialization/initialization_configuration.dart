@@ -5,6 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 
 class InitializationConfiguration extends StatefulWidget {
+  static MaterialPageRoute route() =>
+      MaterialPageRoute(builder: (_) => InitializationConfiguration());
+
   const InitializationConfiguration({super.key});
 
   @override
