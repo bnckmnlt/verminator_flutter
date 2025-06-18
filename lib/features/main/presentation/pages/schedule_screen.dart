@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -208,9 +206,6 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
   late SupabaseClient _supabaseClient;
   late MqttService _mqttService;
 
-  late StreamSubscription<Map<String, String>> _deviceInfoStreamSubscription;
-  Map<String, String> _deviceInfo = {};
-
   late DailyRecordsCell selectedRecord;
 
   @override
@@ -219,19 +214,10 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
 
     _supabaseClient = GetIt.I<SupabaseClient>();
     _mqttService = GetIt.I<MqttService>();
-
-    _deviceInfoStreamSubscription =
-        _mqttService.deviceInfoStream.listen((info) {
-      setState(() {
-        _deviceInfo = info;
-      });
-    });
   }
 
   @override
   void dispose() {
-    _deviceInfoStreamSubscription.cancel();
-
     super.dispose();
   }
 
@@ -307,6 +293,7 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
+                            /** CYCLE PROGRESS: [✅] **/
                             Padding(
                               padding: const EdgeInsets.fromLTRB(0, 24, 0, 12),
                               child: BounceWithFadeAnimation(
@@ -393,7 +380,7 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                                   ),
                                 ),
                                 child: SystemDeviceInformation(
-                                  deviceInfo: _deviceInfo,
+                                  mqttService: _mqttService,
                                 ),
                               ),
                   )

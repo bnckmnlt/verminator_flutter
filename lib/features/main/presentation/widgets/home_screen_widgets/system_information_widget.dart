@@ -96,21 +96,21 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
         value: totalCompostProduced.toString(),
         unit: "kg",
         icon: Icons.eco_rounded,
-        color: Colors.greenAccent,
+        color: Colors.lightBlueAccent,
       ),
       SummaryCardItem(
         label: "Total Vermitea Collected",
         value: totalJuiceProduced.toString(),
         unit: "L",
         icon: FluentIcons.drink_bottle_20_regular,
-        color: Colors.amberAccent,
+        color: Colors.lightBlueAccent,
       ),
       SummaryCardItem(
         label: "Total Cycle/s Completed",
         value: widget.scheduleData.length.toString(),
         unit: " cycle",
         icon: FluentIcons.recycle_20_regular,
-        color: Colors.indigoAccent,
+        color: Colors.lightBlueAccent,
       ),
     ];
   }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/status_badge.dart';
@@ -21,6 +23,25 @@ class ConveyorControlWidget extends StatefulWidget {
 }
 
 class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
+  late StreamSubscription<String> _conveyorFeedbackSubscription;
+
+  late bool _conveyorState;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    _conveyorState = false;
+
+    _conveyorFeedbackSubscription =
+        widget.mqttService.controlCameraStream.listen((value) {
+      setState(() {
+        _conveyorState = value == 'active' ? true : false;
+      });
+    });
+  }
+
   void publishConveyorCommand(String command) {
     widget.mqttService
         .publish("control/conveyor", command, qos: MqttQos.atLeastOnce);
@@ -68,8 +89,9 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
               context: context,
               label: "Conveyor Belt",
               device: "NEMA17 Stepper",
-              optionalWidget:
-                  StatusBadge(color: Colors.greenAccent, state: "Active"),
+              optionalWidget: StatusBadge(
+                  color: _conveyorState ? Colors.greenAccent : Colors.redAccent,
+                  state: _conveyorState ? "Active" : "Inactive"),
             )
           ],
         ),

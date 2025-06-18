@@ -63,6 +63,11 @@ class _InitializationSuccessScreenState
     if (appState case AppScheduleActive(:final compostSchedule)) {
       setState(() => currentSchedule = compostSchedule);
     }
+
+    _mqttService.publish("system/status", "active",
+        qos: MqttQos.atLeastOnce, retain: true);
+    _mqttService.publish("system/current_cycle", currentSchedule.id.toString(),
+        qos: MqttQos.atLeastOnce, retain: true);
   }
 
   @override
@@ -160,11 +165,6 @@ class _InitializationSuccessScreenState
                   buttonLabel: "RETURN TO HOME",
                   buttonColor: Colors.blueAccent,
                   buttonBehavior: () {
-                    _mqttService.publish("system/status", "active",
-                        qos: MqttQos.atLeastOnce, retain: true);
-                    _mqttService.publish("system/current_cycle", "1",
-                        qos: MqttQos.atLeastOnce, retain: true);
-
                     Navigator.of(context)
                         .pushNamedAndRemoveUntil('/', (route) => false);
                   },

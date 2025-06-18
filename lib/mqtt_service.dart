@@ -40,6 +40,8 @@ class MqttService extends ChangeNotifier {
     'system/info',
     'schedule/sifter',
     'schedule/aeration',
+    'feedback/conveyor',
+    'feedback/rake',
     ...Constants.relayFeedbackTopics,
   ];
 
@@ -48,6 +50,10 @@ class MqttService extends ChangeNotifier {
   final StreamController<String> _controlMonitoringCamera =
       StreamController<String>.broadcast();
   final StreamController<String> _controlMonitoringThermal =
+      StreamController<String>.broadcast();
+  final StreamController<String> _conveyorFeedbackController =
+      StreamController<String>.broadcast();
+  final StreamController<String> _rakeFeedbackController =
       StreamController<String>.broadcast();
   final StreamController<Map<String, dynamic>> _systemHealthController =
       StreamController<Map<String, dynamic>>.broadcast();
@@ -71,6 +77,11 @@ class MqttService extends ChangeNotifier {
   Stream<String> get controlCameraStream => _controlMonitoringCamera.stream;
 
   Stream<String> get controlThermalStream => _controlMonitoringThermal.stream;
+
+  Stream<String> get conveyorFeedbackStream =>
+      _conveyorFeedbackController.stream;
+
+  Stream<String> get rakeFeedbackStream => _rakeFeedbackController.stream;
 
   Stream<Map<String, dynamic>> get systemHealthStream =>
       _systemHealthController.stream;
@@ -108,10 +119,7 @@ class MqttService extends ChangeNotifier {
         .withClientIdentifier(AppSecrets.clientIdentifier)
         .authenticateAs(AppSecrets.clusterUsername.toString(),
             AppSecrets.clusterPassword.toString())
-        .withWillTopic('willtopic')
-        .withWillMessage('My Will message')
-        .startClean()
-        .withWillQos(MqttQos.atLeastOnce);
+        .startClean();
     _client.connectionMessage = connMess;
   }
 
@@ -155,6 +163,14 @@ class MqttService extends ChangeNotifier {
 
             case 'control/monitoring/camera':
               _controlMonitoringCamera.add(message);
+              break;
+
+            case 'feedback/conveyor':
+              _conveyorFeedbackController.add(message);
+              break;
+
+            case 'feedback/rake':
+              _rakeFeedbackController.add(message);
               break;
 
             case 'system/health':

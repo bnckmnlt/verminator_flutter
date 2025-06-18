@@ -124,15 +124,6 @@ class _InitializationWaitingScreenState
           });
     }
 
-    if (MqttConnectionState == MqttConnectionState.connected) {
-      _mqttService.publish("system/status", "feeding",
-          qos: MqttQos.atLeastOnce, retain: true);
-      _mqttService.publish("system/feeding/id", "1",
-          qos: MqttQos.atLeastOnce, retain: true);
-      _mqttService.publish("control/monitoring/camera", "active",
-          qos: MqttQos.atLeastOnce, retain: true);
-    }
-
     _tipTimer = Timer.periodic(
       const Duration(seconds: 6),
       (_) {
@@ -250,6 +241,13 @@ class _InitializationWaitingScreenState
   }
 
   void startTimer() {
+    _mqttService.publish("system/feeding/id", widget.scheduleId.toString(),
+        qos: MqttQos.atLeastOnce, retain: true);
+    _mqttService.publish("system/status", "feeding",
+        qos: MqttQos.atLeastOnce, retain: true);
+    _mqttService.publish("control/monitoring/camera", "active",
+        qos: MqttQos.atLeastOnce, retain: true);
+
     final toastHelper = ToastHelper(context);
 
     const oneSec = Duration(seconds: 1);
@@ -317,11 +315,6 @@ class _InitializationWaitingScreenState
               return;
             }
 
-            _mqttService.publish("system/status", "idle",
-                qos: MqttQos.atLeastOnce, retain: true);
-            _mqttService.publish("control/monitoring/camera", "inactive",
-                qos: MqttQos.atLeastOnce, retain: true);
-
             Future<void> fail(String title, String message) async {
               if (!mounted) return;
               Navigator.pop(context);
@@ -357,6 +350,7 @@ class _InitializationWaitingScreenState
                   "statusScheduleId": widget.scheduleId,
                   "status": "active",
                   "remarks": null,
+                  "isCompleted": false,
                 }),
               );
 
@@ -385,6 +379,11 @@ class _InitializationWaitingScreenState
               }
 
               if (!mounted) return;
+
+              _mqttService.publish("system/status", "idle",
+                  qos: MqttQos.atLeastOnce, retain: true);
+              _mqttService.publish("control/monitoring/camera", "inactive",
+                  qos: MqttQos.atLeastOnce, retain: true);
 
               Navigator.pushReplacement(
                 context,

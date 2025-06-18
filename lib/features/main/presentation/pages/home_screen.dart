@@ -61,7 +61,6 @@ class _HomeScreenState extends State<HomeScreen> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
 
     _mqttService = GetIt.I<MqttService>();
-    _mqttService.connect();
 
     cameraState = false;
     thermalState = false;
@@ -149,9 +148,27 @@ class _HomeScreenState extends State<HomeScreen> {
                   context.read<StatusRecordBloc>().add(StatusRecordList());
                 });
 
+                _mqttService.connect();
+
                 // showing snackbar
                 ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: const Text('Page Refreshed')));
+                  SnackBar(
+                    content: Text(
+                      'Page Refreshed',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    backgroundColor:
+                        Theme.of(context).colorScheme.surfaceContainer,
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(
+                        color:
+                            Theme.of(context).colorScheme.surfaceContainerHigh,
+                      ),
+                    ),
+                  ),
+                );
               });
             },
             child: SafeArea(

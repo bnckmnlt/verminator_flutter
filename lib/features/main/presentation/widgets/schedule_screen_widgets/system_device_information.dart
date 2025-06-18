@@ -1,13 +1,45 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/device_information_widget.dart';
+import 'package:flutter_vermicomposting/main.dart';
+import 'package:flutter_vermicomposting/mqtt_service.dart';
 
-class SystemDeviceInformation extends StatelessWidget {
-  final Map<String, String> deviceInfo;
+class SystemDeviceInformation extends StatefulWidget {
+  final MqttService mqttService;
 
   const SystemDeviceInformation({
     super.key,
-    required this.deviceInfo,
+    required this.mqttService,
   });
+
+  @override
+  State<SystemDeviceInformation> createState() =>
+      _SystemDeviceInformationState();
+}
+
+class _SystemDeviceInformationState extends State<SystemDeviceInformation> {
+  late StreamSubscription<Map<String, String>> _deviceInfoStreamSubscription;
+  Map<String, String> _deviceInfo = {};
+
+  @override
+  void initState() {
+    super.initState();
+
+    _deviceInfoStreamSubscription =
+        widget.mqttService.deviceInfoStream.listen((info) {
+      setState(() {
+        _deviceInfo = info;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _deviceInfoStreamSubscription.cancel();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +72,7 @@ class SystemDeviceInformation extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   DeviceInformationWidget(
-                    deviceInfo: deviceInfo,
+                    deviceInfo: _deviceInfo,
                     deviceIsActive: true,
                   ),
                 ],

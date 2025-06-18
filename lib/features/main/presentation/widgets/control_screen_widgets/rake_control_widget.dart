@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/status_badge.dart';
@@ -20,7 +22,25 @@ class RakeControlWidget extends StatefulWidget {
 }
 
 class _RakeControlWidgetState extends State<RakeControlWidget> {
-  int _currerntCycle = 1;
+  late StreamSubscription<String> _rakeFeedbackSubscription;
+
+  late bool _rakeState;
+
+  int _currentCycle = 1;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _rakeState = false;
+
+    _rakeFeedbackSubscription =
+        widget.mqttService.rakeFeedbackStream.listen((value) {
+      setState(() {
+        _rakeState = value == 'active' ? true : false;
+      });
+    });
+  }
 
   void publishRakeCommand(String command) {
     widget.mqttService
@@ -69,8 +89,9 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
               context: context,
               label: "Bedding Rake",
               device: "NEMA17 Stepper",
-              optionalWidget:
-                  StatusBadge(color: Colors.greenAccent, state: "Active"),
+              optionalWidget: StatusBadge(
+                  color: _rakeState ? Colors.greenAccent : Colors.redAccent,
+                  state: _rakeState ? "Active" : "Inactive"),
             )
           ],
         ),
@@ -104,21 +125,21 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
                     child: GestureDetector(
                       onTap: () {
                         setState(() {
-                          _currerntCycle = item;
+                          _currentCycle = item;
                         });
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             vertical: 4, horizontal: 12),
                         decoration: BoxDecoration(
-                          color: item == _currerntCycle
+                          color: item == _currentCycle
                               ? Theme.of(context)
                                   .colorScheme
                                   .surfaceContainerHigh
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: item == _currerntCycle
+                            color: item == _currentCycle
                                 ? Color(0xFF27272a)
                                 : Theme.of(context)
                                     .colorScheme
@@ -147,7 +168,7 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
               ),
             ),
             ElevatedButton(
-              onPressed: () => publishRakeCommand("Process:${_currerntCycle}"),
+              onPressed: () => publishRakeCommand("Process:${_currentCycle}"),
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6)),

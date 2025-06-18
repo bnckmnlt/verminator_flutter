@@ -22,7 +22,7 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => MqttService());
   sl.registerFactory(() => InternetConnection());
 
-  await sl<MqttService>().connect();
+  sl<MqttService>().connect();
 
   sl.registerLazySingleton(
     () => AppScheduleCubit(),

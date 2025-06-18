@@ -47,7 +47,7 @@ class _SystemImageDetailsState extends State<SystemImageDetails> {
         'label': 'Loaded at',
         'widget': Text(
           DateFormat('MM/d/yyyy HH:mm:ss a')
-              .format(DateTime.parse('2025-05-20 05:31:52.481883'))
+              .format(DateTime.parse(widget.foodWaste.createdAt))
               .toString(),
         ),
       },

@@ -3,8 +3,6 @@ import 'package:flutter_vermicomposting/core/common/entities/device_info_model.d
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/core/utils/device_info_utils.dart';
-import 'package:flutter_vermicomposting/main.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class DeviceInformationWidget extends StatefulWidget {
   final Map<String, String> deviceInfo;
@@ -28,15 +26,24 @@ class _DeviceInformationWidgetState extends State<DeviceInformationWidget> {
   @override
   void initState() {
     super.initState();
-    updateDeviceDetails();
+    deviceIsActive = widget.deviceIsActive;
+    deviceInfo = DeviceInfoModel.fromJson(widget.deviceInfo);
   }
 
   void updateDeviceDetails() {
     setState(() {
       deviceIsActive = widget.deviceIsActive;
-      log.info(widget.deviceInfo);
       deviceInfo = DeviceInfoModel.fromJson(widget.deviceInfo);
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant DeviceInformationWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.deviceInfo != widget.deviceInfo ||
+        oldWidget.deviceIsActive != widget.deviceIsActive) {
+      updateDeviceDetails();
+    }
   }
 
   @override
