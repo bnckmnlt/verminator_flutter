@@ -1,6 +1,37 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/animation.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
+import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/configurations_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SettingsScreen extends StatefulWidget {
+  static const List<Map<String, dynamic>> _sidebarTabs = [
+    {
+      "label": "App Settings",
+      "icon": FluentIcons.settings_24_regular,
+    },
+    {
+      "label": "System Configurations",
+      "icon": FluentIcons.apps_settings_20_regular,
+    },
+    {
+      "label": "About",
+      "icon": FluentIcons.info_24_regular,
+    },
+    {
+      "label": "Quit",
+      "icon": FluentIcons.arrow_exit_20_regular,
+    },
+  ];
+
+  static const List<Widget> _pages = [
+    _AppSettings(),
+    _SystemSettings(),
+    _AboutSection(),
+  ];
+
   const SettingsScreen({super.key});
 
   @override
@@ -8,8 +39,12 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  int currentIndex = 0;
+
   @override
   Widget build(BuildContext context) {
+    final double deviceHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
@@ -18,6 +53,519 @@ class _SettingsScreenState extends State<SettingsScreen> {
             IconThemeData(color: Theme.of(context).colorScheme.onSurface),
         backgroundColor: Colors.transparent,
         elevation: 0.0,
+      ),
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 1,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(24, 64, 24, 24),
+              height: deviceHeight,
+              decoration: BoxDecoration(
+                border: Border(
+                  right: BorderSide(
+                    width: 1,
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  ),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(left: 16),
+                    child: Text(
+                      "Options",
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.025,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 44),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          children: [
+                            for (var i = 0;
+                                i <
+                                    SettingsScreen._sidebarTabs
+                                        .sublist(0, 3)
+                                        .length;
+                                i++)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 6),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: () {
+                                    setState(() {
+                                      currentIndex = i;
+                                    });
+                                  },
+                                  child: _SidebarItem(
+                                    icon: SettingsScreen._sidebarTabs[i]
+                                        ["icon"],
+                                    label: SettingsScreen._sidebarTabs[i]
+                                        ["label"],
+                                  ),
+                                ),
+                              ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: Divider(
+                                height: 1,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHigh,
+                              ),
+                            ),
+                          ],
+                        ),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () {
+                            showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return GeneralDialog(
+                                    title: "Confirm Application Exit",
+                                    description:
+                                        "Are you sure you want to exit the application? All unsaved changes will be lost.",
+                                    confirmButtonLabel: "Exit",
+                                    approvedFunction: () {},
+                                  );
+                                });
+                          },
+                          child: _SidebarItem(
+                            icon: SettingsScreen._sidebarTabs[3]["icon"],
+                            label: SettingsScreen._sidebarTabs[3]["label"],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: BounceWithFadeAnimation(
+                  key: ValueKey(currentIndex),
+                  delay: 2,
+                  child: SettingsScreen._pages[currentIndex]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SidebarItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _SidebarItem({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: 9,
+        horizontal: 14,
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AppSettings extends StatefulWidget {
+  const _AppSettings({super.key});
+
+  @override
+  State<_AppSettings> createState() => _AppSettingsState();
+}
+
+class _AppSettingsState extends State<_AppSettings> {
+  static const List<ReminderInterval> _feedingTimer = [
+    ReminderInterval(label: ' 5 ', days: 300),
+    ReminderInterval(label: ' 8 ', days: 480),
+    ReminderInterval(label: ' 10', days: 600),
+  ];
+
+  static final ReminderInterval _defaultFeedingTimer =
+      const ReminderInterval(label: 'Default', days: 120);
+
+  int _selectedFeedingTimer = 120;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(32, 64, 32, 44),
+      child: Column(
+        spacing: 64,
+        children: [
+          configurationHeader(
+            context: context,
+            title: "App Settings",
+            description: "Manage your application configurations",
+            buttonLabel: "Submit Changes",
+            buttonBehavior: () {},
+          ),
+          Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  sectionHeader(
+                    context: context,
+                    title: "Feed Timer Settings",
+                    description:
+                        "Configure the duration of feeding or loading object for the system",
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 18, 0),
+                      child: sectionContent(
+                        context: context,
+                        description:
+                            "Choose from 2 minutes (default), 5 minutes, 8 minutes,\nor 10 minutes",
+                        content: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [..._feedingTimer, _defaultFeedingTimer]
+                              .map(
+                                (item) => GestureDetector(
+                                  onTap: () {
+                                    _selectedFeedingTimer = item.days;
+                                    setState(() {});
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal:
+                                            item.label == "Default" ? 6 : 2),
+                                    child: Chip(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                          Radius.circular(
+                                              item.label == "Default"
+                                                  ? 16
+                                                  : 32),
+                                        ),
+                                      ),
+                                      backgroundColor:
+                                          _selectedFeedingTimer != item.days
+                                              ? null
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withAlpha(44),
+                                      labelPadding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                      ),
+                                      side: _selectedFeedingTimer != item.days
+                                          ? null
+                                          : BorderSide(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                            ),
+                                      label: Text(
+                                        item.label.toString(),
+                                        style: TextStyle(
+                                          color:
+                                              _selectedFeedingTimer != item.days
+                                                  ? null
+                                                  : Theme.of(context)
+                                                      .colorScheme
+                                                      .primary,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
+                child: Divider(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SystemSettings extends StatefulWidget {
+  const _SystemSettings({super.key});
+
+  @override
+  State<_SystemSettings> createState() => _SystemSettingsState();
+}
+
+class _SystemSettingsState extends State<_SystemSettings> {
+  static const List<ReminderInterval> _thermalReadingInterval = [
+    ReminderInterval(label: ' 30 ', days: 30),
+    ReminderInterval(label: ' 60 ', days: 60),
+    ReminderInterval(label: ' 5', days: 300),
+    ReminderInterval(label: ' 10', days: 600),
+  ];
+
+  static final ReminderInterval _defaultThermalReadingInterval =
+      const ReminderInterval(label: 'Default', days: 15);
+
+  int _selectedThermalReadingInterval = 15;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(32, 64, 32, 44),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        spacing: 64,
+        children: [
+          configurationHeader(
+            context: context,
+            title: "System Configuration",
+            description:
+                "Manage your system settings and hardware configurations",
+            buttonLabel: "Submit Changes",
+            buttonBehavior: () {},
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: sectionHeader(
+                      context: context,
+                      title: "Schedule ID",
+                      description:
+                          "Manually change the Schedule ID currently set in the system",
+                    ),
+                  ),
+                  sectionContent(
+                    context: context,
+                    header: "Schedule ID",
+                    content: Container(
+                      width: MediaQuery.of(context).size.width * 0.20,
+                      child: TextFormField(
+                        maxLength: 2,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
+                child: Divider(),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: sectionHeader(
+                      context: context,
+                      title: "Board Reading Interval",
+                      description:
+                          "Set how frequently sensor readings are taken and published\n by the Raspberry Pi",
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 18, 0),
+                      child: sectionContent(
+                        context: context,
+                        description:
+                            "Choose from 15 seconds (default), 30 seconds, 60 seconds,\n5 minutes,or 10 minutes",
+                        content: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ..._thermalReadingInterval,
+                            _defaultThermalReadingInterval
+                          ]
+                              .map(
+                                (item) => GestureDetector(
+                                  onTap: () {
+                                    _selectedThermalReadingInterval = item.days;
+                                    setState(() {});
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal:
+                                            item.label == "Default" ? 6 : 2),
+                                    child: Chip(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                          Radius.circular(
+                                              item.label == "Default"
+                                                  ? 16
+                                                  : 32),
+                                        ),
+                                      ),
+                                      backgroundColor:
+                                          _selectedThermalReadingInterval !=
+                                                  item.days
+                                              ? null
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withAlpha(44),
+                                      labelPadding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                      ),
+                                      side: _selectedThermalReadingInterval !=
+                                              item.days
+                                          ? null
+                                          : BorderSide(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                            ),
+                                      label: Text(
+                                        item.label.toString(),
+                                        style: TextStyle(
+                                          color:
+                                              _selectedThermalReadingInterval !=
+                                                      item.days
+                                                  ? null
+                                                  : Theme.of(context)
+                                                      .colorScheme
+                                                      .primary,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
+                child: Divider(),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: sectionHeader(
+                      context: context,
+                      title: "Thermal Sensor Refresh Rate",
+                      description:
+                          "Configure how fast the MLX90640 updates its temperature\nreadings",
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 18, 0),
+                      child: sectionContent(
+                        context: context,
+                        header: "MLX90640 Refresh Rate",
+                        content: DropdownMenu<int>(
+                          initialSelection: 1,
+                          dropdownMenuEntries: [
+                            DropdownMenuEntry(
+                                value: 1, label: '2Hz Refresh Rate'),
+                            DropdownMenuEntry(
+                                value: 2, label: '4Hz Refresh Rate'),
+                            DropdownMenuEntry(
+                                value: 3, label: '8Hz Refresh Rate (Warning)'),
+                            DropdownMenuEntry(
+                                value: 4, label: '16Hz Refresh Rate (Warning)'),
+                          ],
+                          onSelected: (value) {},
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
+                child: Divider(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AboutSection extends StatelessWidget {
+  const _AboutSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        spacing: 12,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            height: 168,
+            child: Image.asset(
+              "assets/images/thinkio_logo_full.png",
+              fit: BoxFit.cover,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          Column(
+            spacing: 1,
+            children: [
+              Text(
+                "made for 🇵🇭",
+                style: GoogleFonts.lacquer(),
+              ),
+              Text("All Rights Reserved"),
+              Text("© 2025 Think I/0"),
+            ],
+          )
+        ],
       ),
     );
   }

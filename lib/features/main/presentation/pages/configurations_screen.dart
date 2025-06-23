@@ -536,7 +536,7 @@ Widget sectionContent({
   String? description,
 }) {
   return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
+    crossAxisAlignment: CrossAxisAlignment.end,
     children: [
       if (header != null)
         Text(
@@ -548,7 +548,7 @@ Widget sectionContent({
         ),
       if (header != null) const SizedBox(height: 8),
       if (content != null) content!,
-      const SizedBox(height: 24),
+      if (description != null) const SizedBox(height: 24),
       Text(
         description ?? "",
         style: TextStyle(
