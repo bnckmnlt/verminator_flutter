@@ -39,7 +39,12 @@ class _MaterialsProcessedWidgetState extends State<MaterialsProcessedWidget> {
               isError: true,
             );
           } else if (state is FoodWasteListSuccess) {
-            int fruit = 0, vegetable = 0, grain = 0, invalid = 0;
+            int fruit = 0,
+                vegetable = 0,
+                grain = 0,
+                citrus = 0,
+                meat = 0,
+                foreign = 0;
 
             for (var item in state.foodWaste) {
               switch (item.classname) {
@@ -52,8 +57,14 @@ class _MaterialsProcessedWidgetState extends State<MaterialsProcessedWidget> {
                 case FoodWasteClassname.grains:
                   grain++;
                   break;
+                case FoodWasteClassname.citrus:
+                  citrus++;
+                  break;
+                case FoodWasteClassname.meat:
+                  meat++;
+                  break;
                 default:
-                  invalid++;
+                  foreign++;
               }
             }
 
@@ -61,7 +72,9 @@ class _MaterialsProcessedWidgetState extends State<MaterialsProcessedWidget> {
               ChartData('Fruit', fruit.toDouble(), Color(0xff2563EB)),
               ChartData('Vegetable', vegetable.toDouble(), Color(0xff3B86F7)),
               ChartData('Grain', grain.toDouble(), Color(0xff60A8FB)),
-              ChartData('Invalid', invalid.toDouble(), Color(0xff90C7FE)),
+              ChartData('Citrus', citrus.toDouble(), Colors.redAccent),
+              ChartData('Meat', meat.toDouble(), Colors.redAccent),
+              ChartData('Foreign', foreign.toDouble(), Colors.redAccent),
             ];
 
             return Column(

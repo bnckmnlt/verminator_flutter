@@ -18,27 +18,79 @@ class SystemFoodWasteRecords extends StatefulWidget {
 }
 
 const String _sectionTitle = "Kitchen Waste Records";
-const int _maxShowImages = 16;
-const int _minShowImages = 8;
 
 class _SystemFoodWasteRecordsState extends State<SystemFoodWasteRecords> {
   @override
   Widget build(BuildContext context) {
-    final int imageCount = widget.foodWasteList.length > _maxShowImages
-        ? _maxShowImages
-        : _minShowImages;
-
     return Column(
       spacing: 16,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildHeaderRow(context),
-        GalleryImage(
-          titleGallery: _sectionTitle,
-          crossAxisCount: 8,
-          crossAxisSpacing: 8,
-          numOfShowImages: imageCount,
-          imageUrls: widget.foodWasteList.map((e) => e.filePath).toList(),
+        GridView.builder(
+          scrollDirection: Axis.vertical,
+          padding: EdgeInsets.zero,
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 8,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            childAspectRatio: 1.0,
+          ),
+          itemCount: 8,
+          itemBuilder: (BuildContext context, int index) {
+            return GestureDetector(
+              onTap: () {
+                if (index == 7) {
+                } else {
+                  widget.imageSelector(index);
+                }
+              },
+              child: index >= 7
+                  ? Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          width: 1,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHigh,
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: GalleryImage(
+                          crossAxisCount: 1,
+                          titleGallery: _sectionTitle,
+                          numOfShowImages: 1,
+                          imageUrls: widget.foodWasteList
+                              .sublist(index, widget.foodWasteList.length)
+                              .map((e) => e.filePath)
+                              .toList(),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          width: 1,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHigh,
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: Image.network(
+                          widget.foodWasteList[index].filePath,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+            );
+          },
         ),
       ],
     );

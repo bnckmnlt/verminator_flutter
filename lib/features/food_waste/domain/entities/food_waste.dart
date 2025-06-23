@@ -24,5 +24,7 @@ enum FoodWasteClassname {
   fruit,
   vegetable,
   grains,
-  invalid,
+  citrus,
+  meat,
+  foreign,
 }

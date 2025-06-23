@@ -110,7 +110,7 @@ class _InitializationSuccessScreenState
                   final invalidData = state.foodWaste
                       .where((item) =>
                           item.foodWasteScheduleId == widget.scheduleId &&
-                          item.classname == FoodWasteClassname.invalid)
+                          item.materialStatus == MaterialStatus.invalid)
                       .map((item) {
                     return FoodWasteClass(
                       pathname: item.filePath,
@@ -123,14 +123,12 @@ class _InitializationSuccessScreenState
                   final validData = state.foodWaste
                       .where((item) =>
                           item.foodWasteScheduleId == widget.scheduleId &&
-                          item.classname != FoodWasteClassname.invalid)
+                          item.materialStatus == MaterialStatus.valid)
                       .map((item) {
                     return FoodWasteClass(
                       pathname: item.filePath,
                       icon: getClassnameIconData(item.classname),
-                      classname: item.classname != FoodWasteClassname.invalid
-                          ? item.classname
-                          : FoodWasteClassname.invalid,
+                      classname: item.classname,
                       color: Colors.greenAccent,
                     );
                   }).toList();
@@ -481,7 +479,11 @@ IconData getClassnameIconData(FoodWasteClassname classname) {
       iconData = FluentIcons.plant_grass_24_regular;
     case FoodWasteClassname.grains:
       iconData = FluentIcons.food_20_regular;
-    case FoodWasteClassname.invalid:
+    case FoodWasteClassname.citrus:
+      iconData = FluentIcons.prohibited_24_regular;
+    case FoodWasteClassname.meat:
+      iconData = FluentIcons.prohibited_24_regular;
+    case FoodWasteClassname.foreign:
       iconData = FluentIcons.prohibited_24_regular;
   }
 
