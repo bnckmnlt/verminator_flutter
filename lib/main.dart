@@ -76,6 +76,29 @@ class _MyAppState extends State<MyApp> {
     super.initState();
   }
 
+  final String _loadingDescription =
+      "The application is initializing. Please wait while we fetch the latest data. If this takes too long, kindly try again shortly";
+
+  Widget _buildHomeRoute(BuildContext context) {
+    return BlocSelector<AppScheduleCubit, AppScheduleState, bool>(
+      selector: (state) => state is AppScheduleActive,
+      builder: (context, scheduleActive) {
+        if (scheduleActive) {
+          return const SafeArea(child: HomeScreen());
+        }
+        return Scaffold(
+          body: Center(
+            child: EmptyDisplayWidget(
+              icon: FluentIcons.cloud_sync_24_regular,
+              title: "Loading application data",
+              description: _loadingDescription,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -84,30 +107,10 @@ class _MyAppState extends State<MyApp> {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       routes: {
-        '/': (context) =>
-            BlocSelector<AppScheduleCubit, AppScheduleState, bool>(
-              selector: (state) {
-                return state is AppScheduleActive;
-              },
-              builder: (context, isActive) {
-                if (isActive) {
-                  return SafeArea(child: HomeScreen());
-                }
-
-                return Scaffold(
-                  body: Center(
-                    child: EmptyDisplayWidget(
-                        icon: FluentIcons.cloud_sync_24_regular,
-                        title: "Loading application data",
-                        description:
-                            "The application is initializing. Please wait while we fetch the latest data. If this takes too long, kindly try again shortly"),
-                  ),
-                );
-              },
-            ),
-        '/schedule': (context) => SafeArea(child: const ScheduleListScreen()),
-        '/controls': (context) => SafeArea(child: const ControlScreen()),
-        '/logs': (context) => SafeArea(child: const LogsScreen()),
+        '/': _buildHomeRoute,
+        '/schedule': (context) => const SafeArea(child: ScheduleListScreen()),
+        '/controls': (context) => const SafeArea(child: ControlScreen()),
+        '/logs': (context) => const SafeArea(child: LogsScreen()),
         '/settings': (context) => SafeArea(child: SettingsScreen()),
       },
     );

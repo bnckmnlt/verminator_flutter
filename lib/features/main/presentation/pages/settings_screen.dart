@@ -1,4 +1,3 @@
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -15,10 +14,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       extendBody: true,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        leading: Icon(
-          FluentIcons.arrow_left_24_filled,
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
+        iconTheme:
+            IconThemeData(color: Theme.of(context).colorScheme.onSurface),
         backgroundColor: Colors.transparent,
         elevation: 0.0,
       ),

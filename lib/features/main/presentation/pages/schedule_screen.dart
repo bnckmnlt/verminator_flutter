@@ -319,7 +319,7 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                             /** PARAMETER CHARTS: [✅] **/
                             SystemChartsSection(
                                 sensorReadings: widget.sensorReadings),
-                            /** KITCHEN WASTE RECORDS: [ ] **/
+                            /** KITCHEN WASTE RECORDS: [✅] **/
                             SystemFoodWasteRecords(
                                 foodWasteList: itemList,
                                 imageSelector: _handleImageSelector),

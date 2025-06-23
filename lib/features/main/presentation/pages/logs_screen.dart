@@ -57,7 +57,10 @@ class _LogsScreenState extends State<LogsScreen> {
           extendBody: true,
           extendBodyBehindAppBar: true,
           appBar: AppBar(
+            iconTheme:
+                IconThemeData(color: Theme.of(context).colorScheme.onSurface),
             backgroundColor: Colors.transparent,
+            elevation: 0.0,
           ),
           body: BlocBuilder<LogBloc, LogState>(builder: (context, state) {
             if (state is LogsLoading) {
