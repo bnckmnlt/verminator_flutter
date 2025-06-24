@@ -1,10 +1,19 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_vermicomposting/core/common/cubits/app_settings/app_settings_cubit.dart';
+import 'package:flutter_vermicomposting/core/common/entities/app_settings_model.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/animation.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/configurations_screen.dart';
+import 'package:flutter_vermicomposting/mqtt_service.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 
 class SettingsScreen extends StatefulWidget {
   static const List<Map<String, dynamic>> _sidebarTabs = [
@@ -21,7 +30,7 @@ class SettingsScreen extends StatefulWidget {
       "icon": FluentIcons.info_24_regular,
     },
     {
-      "label": "Quit",
+      "label": "Exit",
       "icon": FluentIcons.arrow_exit_20_regular,
     },
   ];
@@ -209,19 +218,64 @@ class _AppSettings extends StatefulWidget {
 }
 
 class _AppSettingsState extends State<_AppSettings> {
-  static const List<ReminderInterval> _feedingTimer = [
-    ReminderInterval(label: ' 5 ', days: 300),
-    ReminderInterval(label: ' 8 ', days: 480),
-    ReminderInterval(label: ' 10', days: 600),
-  ];
-
-  static final ReminderInterval _defaultFeedingTimer =
-      const ReminderInterval(label: 'Default', days: 120);
+  final AppSettingsCubit _appSettingsCubit = GetIt.I<AppSettingsCubit>();
 
   int _selectedFeedingTimer = 120;
 
   @override
+  void initState() {
+    super.initState();
+
+    _selectedFeedingTimer = _appSettingsCubit.state.feedingTimer;
+  }
+
+  void restoreSettings() {
+    final toastHelper = ToastHelper(context);
+
+    showDialog(
+        context: context,
+        builder: (context) => GeneralDialog(
+              title: "Restore System Configuration",
+              description: "Do you want to restore to default values?",
+              confirmButtonLabel: "Continue",
+              approvedFunction: () {
+                Navigator.pop(context);
+
+                _appSettingsCubit.updateAppSettings(
+                  AppSettingsModel(feedingTimer: 120),
+                );
+
+                setState(() {
+                  _selectedFeedingTimer = _appSettingsCubit.state.feedingTimer;
+                });
+                toastHelper.show(
+                  title: "Settings Restored",
+                  description:
+                      "System settings have been successfully restored to default values",
+                  isError: false,
+                );
+              },
+            ));
+  }
+
+  void updateAppSettings() {
+    final toastHelper = ToastHelper(context);
+
+    _appSettingsCubit.updateAppSettings(
+      AppSettingsModel(feedingTimer: _selectedFeedingTimer),
+    );
+
+    toastHelper.show(
+      title: "Settings Updated",
+      description: "System settings have been successfully updated",
+      isError: false,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    didChangeDependencies();
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(32, 64, 32, 44),
       child: Column(
@@ -232,7 +286,8 @@ class _AppSettingsState extends State<_AppSettings> {
             title: "App Settings",
             description: "Manage your application configurations",
             buttonLabel: "Submit Changes",
-            buttonBehavior: () {},
+            buttonBehavior: updateAppSettings,
+            optionalButtonBehavior: restoreSettings,
           ),
           Column(
             children: [
@@ -253,56 +308,63 @@ class _AppSettingsState extends State<_AppSettings> {
                         description:
                             "Choose from 2 minutes (default), 5 minutes, 8 minutes,\nor 10 minutes",
                         content: Row(
+                          spacing: 8,
                           mainAxisAlignment: MainAxisAlignment.end,
-                          children: [..._feedingTimer, _defaultFeedingTimer]
+                          children: const [
+                            ReminderInterval(label: ' 5 ', days: 300),
+                            ReminderInterval(label: ' 8 ', days: 480),
+                            ReminderInterval(label: '10', days: 600),
+                            ReminderInterval(label: 'Default', days: 120),
+                          ]
                               .map(
                                 (item) => GestureDetector(
                                   onTap: () {
-                                    _selectedFeedingTimer = item.days;
-                                    setState(() {});
+                                    setState(() {
+                                      _selectedFeedingTimer = item.days;
+                                    });
                                   },
-                                  child: Padding(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                        color:
+                                            _selectedFeedingTimer != item.days
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .surfaceContainerHigh
+                                                    .withAlpha(124)
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                    .withAlpha(44),
+                                        shape: BoxShape.rectangle,
+                                        borderRadius: BorderRadius.circular(
+                                            item.label == "Default" ? 16 : 32),
+                                        border:
+                                            _selectedFeedingTimer != item.days
+                                                ? Border.all(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .surfaceContainerHigh,
+                                                  )
+                                                : Border.all(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .primary,
+                                                  )),
                                     padding: EdgeInsets.symmetric(
                                         horizontal:
-                                            item.label == "Default" ? 6 : 2),
-                                    child: Chip(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(
-                                              item.label == "Default"
-                                                  ? 16
-                                                  : 32),
-                                        ),
-                                      ),
-                                      backgroundColor:
-                                          _selectedFeedingTimer != item.days
-                                              ? null
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                                  .withAlpha(44),
-                                      labelPadding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0,
-                                      ),
-                                      side: _selectedFeedingTimer != item.days
-                                          ? null
-                                          : BorderSide(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                            ),
-                                      label: Text(
-                                        item.label.toString(),
-                                        style: TextStyle(
-                                          color:
-                                              _selectedFeedingTimer != item.days
-                                                  ? null
-                                                  : Theme.of(context)
-                                                      .colorScheme
-                                                      .primary,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                            item.label == "Default" ? 20 : 16,
+                                        vertical: 8.0),
+                                    child: Text(
+                                      item.label.toString(),
+                                      style: TextStyle(
+                                        color:
+                                            _selectedFeedingTimer != item.days
+                                                ? null
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ),
@@ -335,202 +397,341 @@ class _SystemSettings extends StatefulWidget {
 }
 
 class _SystemSettingsState extends State<_SystemSettings> {
-  static const List<ReminderInterval> _thermalReadingInterval = [
-    ReminderInterval(label: ' 30 ', days: 30),
-    ReminderInterval(label: ' 60 ', days: 60),
-    ReminderInterval(label: ' 5', days: 300),
-    ReminderInterval(label: ' 10', days: 600),
+  late MqttService _mqttService;
+  late StreamSubscription<Map<String, String>> _systemSettingsSubscription;
+
+  static const List<ReminderInterval> _thermalReadingIntervals = [
+    ReminderInterval(label: '30', days: 30),
+    ReminderInterval(label: '60', days: 60),
+    ReminderInterval(label: '5', days: 300),
+    ReminderInterval(label: '10', days: 600),
   ];
+  static const ReminderInterval _defaultThermalReadingInterval =
+      ReminderInterval(label: 'Default', days: 15);
 
-  static final ReminderInterval _defaultThermalReadingInterval =
-      const ReminderInterval(label: 'Default', days: 15);
+  int currentSystemStatus = 1;
+  final TextEditingController _scheduleIdController = TextEditingController();
+  int selectedThermalReadingInterval = 15;
+  int refreshRate = 2;
 
-  int _selectedThermalReadingInterval = 15;
+  @override
+  void initState() {
+    super.initState();
+    _mqttService = GetIt.I<MqttService>();
+    _mqttService.connect();
+
+    _systemSettingsSubscription =
+        _mqttService.systemSettingsStream.listen((settings) {
+      setState(() {
+        currentSystemStatus = parseStatusToInt(settings["status"] ?? '');
+        _scheduleIdController.text = (settings["id"] ?? "1").toString();
+        selectedThermalReadingInterval =
+            int.tryParse(settings["reading_interval"] ?? '') ?? 15;
+        refreshRate = int.tryParse(settings["refresh_rate"] ?? '') ?? 2;
+      });
+    });
+  }
+
+  void restoreSettings() {
+    showDialog(
+        context: context,
+        builder: (context) => GeneralDialog(
+              title: "Restore System Configuration",
+              description: "Do you want to restore to default values?",
+              confirmButtonLabel: "Continue",
+              approvedFunction: () {
+                Navigator.pop(context);
+
+                final toastHelper = ToastHelper(context);
+
+                final Map<String, String> payload = {
+                  'status': "idle",
+                  'id': 1.toString(),
+                  'reading_interval': 15.toString(),
+                  'refresh_rate': 2.toString(),
+                };
+
+                _mqttService.publish("system/settings", jsonEncode(payload),
+                    retain: true, qos: MqttQos.atLeastOnce);
+
+                toastHelper.show(
+                  title: "Settings Restored",
+                  description:
+                      "System settings have been successfully restored to default values",
+                  isError: false,
+                );
+              },
+            ));
+  }
+
+  void publishSettings() {
+    final toastHelper = ToastHelper(context);
+
+    final Map<String, String> payload = {
+      'status': parseIntToStatus(currentSystemStatus),
+      'id': _scheduleIdController.text,
+      'reading_interval': selectedThermalReadingInterval.toString(),
+      'refresh_rate': refreshRate.toString(),
+    };
+
+    _mqttService.publish("system/settings", jsonEncode(payload),
+        retain: true, qos: MqttQos.atLeastOnce);
+
+    toastHelper.show(
+      title: "Settings Updated",
+      description: "System settings have been successfully updated",
+      isError: false,
+    );
+  }
+
+  @override
+  void dispose() {
+    _systemSettingsSubscription.cancel();
+    _scheduleIdController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(32, 64, 32, 44),
       child: Column(
+        spacing: 64,
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
-        spacing: 64,
         children: [
-          configurationHeader(
-            context: context,
-            title: "System Configuration",
-            description:
-                "Manage your system settings and hardware configurations",
-            buttonLabel: "Submit Changes",
-            buttonBehavior: () {},
-          ),
+          _buildConfigurationHeader(context),
           Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: sectionHeader(
-                      context: context,
-                      title: "Schedule ID",
-                      description:
-                          "Manually change the Schedule ID currently set in the system",
-                    ),
-                  ),
-                  sectionContent(
-                    context: context,
-                    header: "Schedule ID",
-                    content: Container(
-                      width: MediaQuery.of(context).size.width * 0.20,
-                      child: TextFormField(
-                        maxLength: 2,
-                        maxLines: 1,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              _buildSystemStatusSection(context),
               const Padding(
                 padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
                 child: Divider(),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: sectionHeader(
-                      context: context,
-                      title: "Board Reading Interval",
-                      description:
-                          "Set how frequently sensor readings are taken and published\n by the Raspberry Pi",
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 18, 0),
-                      child: sectionContent(
-                        context: context,
-                        description:
-                            "Choose from 15 seconds (default), 30 seconds, 60 seconds,\n5 minutes,or 10 minutes",
-                        content: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            ..._thermalReadingInterval,
-                            _defaultThermalReadingInterval
-                          ]
-                              .map(
-                                (item) => GestureDetector(
-                                  onTap: () {
-                                    _selectedThermalReadingInterval = item.days;
-                                    setState(() {});
-                                  },
-                                  child: Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal:
-                                            item.label == "Default" ? 6 : 2),
-                                    child: Chip(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.all(
-                                          Radius.circular(
-                                              item.label == "Default"
-                                                  ? 16
-                                                  : 32),
-                                        ),
-                                      ),
-                                      backgroundColor:
-                                          _selectedThermalReadingInterval !=
-                                                  item.days
-                                              ? null
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                                  .withAlpha(44),
-                                      labelPadding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0,
-                                      ),
-                                      side: _selectedThermalReadingInterval !=
-                                              item.days
-                                          ? null
-                                          : BorderSide(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                            ),
-                                      label: Text(
-                                        item.label.toString(),
-                                        style: TextStyle(
-                                          color:
-                                              _selectedThermalReadingInterval !=
-                                                      item.days
-                                                  ? null
-                                                  : Theme.of(context)
-                                                      .colorScheme
-                                                      .primary,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                    ),
-                  )
-                ],
-              ),
+              _buildScheduleIdSection(context),
               const Padding(
                 padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
                 child: Divider(),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: sectionHeader(
-                      context: context,
-                      title: "Thermal Sensor Refresh Rate",
-                      description:
-                          "Configure how fast the MLX90640 updates its temperature\nreadings",
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 18, 0),
-                      child: sectionContent(
-                        context: context,
-                        header: "MLX90640 Refresh Rate",
-                        content: DropdownMenu<int>(
-                          initialSelection: 1,
-                          dropdownMenuEntries: [
-                            DropdownMenuEntry(
-                                value: 1, label: '2Hz Refresh Rate'),
-                            DropdownMenuEntry(
-                                value: 2, label: '4Hz Refresh Rate'),
-                            DropdownMenuEntry(
-                                value: 3, label: '8Hz Refresh Rate (Warning)'),
-                            DropdownMenuEntry(
-                                value: 4, label: '16Hz Refresh Rate (Warning)'),
-                          ],
-                          onSelected: (value) {},
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              _buildThermalReadingIntervalSection(context),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
+                child: Divider(),
               ),
+              _buildRefreshRateSection(context),
               const Padding(
                 padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
                 child: Divider(),
               ),
             ],
-          ),
+          )
         ],
       ),
+    );
+  }
+
+  Widget _buildConfigurationHeader(BuildContext context) {
+    return configurationHeader(
+      context: context,
+      title: "System Configuration",
+      description: "Manage your system settings and hardware configurations",
+      buttonLabel: "Submit Changes",
+      buttonBehavior: publishSettings,
+      optionalButtonBehavior: restoreSettings,
+    );
+  }
+
+  Widget _buildSystemStatusSection(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: sectionHeader(
+            context: context,
+            title: "System Status",
+            description:
+                "View or change the current operational status of the system.",
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 18, 0),
+            child: sectionContent(
+              context: context,
+              header: "Status",
+              description:
+                  "Choose from Active, Feeding, or Idle.It is advisable\nto use this when debugging",
+              content: DropdownMenu<int>(
+                initialSelection: currentSystemStatus,
+                dropdownMenuEntries: [
+                  DropdownMenuEntry(value: 1, label: 'Active'),
+                  DropdownMenuEntry(value: 2, label: 'Feeding'),
+                  DropdownMenuEntry(value: 3, label: 'Idle'),
+                ],
+                onSelected: (value) => setState(() {
+                  currentSystemStatus = value!;
+                }),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScheduleIdSection(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: sectionHeader(
+            context: context,
+            title: "Schedule ID",
+            description:
+                "Manually change the Schedule ID currently assigned in the system",
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 18, 0),
+            child: sectionContent(
+              context: context,
+              header: "Schedule ID",
+              content: Container(
+                width: MediaQuery.of(context).size.width * 0.10,
+                child: TextFormField(
+                  controller: _scheduleIdController,
+                  maxLength: 2,
+                  maxLines: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildThermalReadingIntervalSection(BuildContext context) {
+    final intervals = [
+      ..._thermalReadingIntervals,
+      _defaultThermalReadingInterval
+    ];
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: sectionHeader(
+            context: context,
+            title: "Board Reading Interval",
+            description:
+                "Set how frequently sensor readings are taken and published\n by the Raspberry Pi",
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 18, 0),
+            child: sectionContent(
+              context: context,
+              description:
+                  "Choose from 15 seconds (default), 30 seconds, 60 seconds,\n5 minutes,or 10 minutes",
+              content: Row(
+                spacing: 8,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: intervals
+                    .map(
+                      (item) => InkWell(
+                        onTap: () => setState(() {
+                          selectedThermalReadingInterval = item.days;
+                        }),
+                        child: Container(
+                          decoration: BoxDecoration(
+                              color: selectedThermalReadingInterval != item.days
+                                  ? Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHigh
+                                      .withAlpha(124)
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withAlpha(44),
+                              shape: BoxShape.rectangle,
+                              borderRadius: BorderRadius.circular(
+                                  item.label == "Default" ? 16 : 32),
+                              border: selectedThermalReadingInterval !=
+                                      item.days
+                                  ? Border.all(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .surfaceContainerHigh,
+                                    )
+                                  : Border.all(
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                    )),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: item.label == "Default" ? 20 : 16,
+                              vertical: 8.0),
+                          child: Text(
+                            item.label.toString(),
+                            style: TextStyle(
+                              color: selectedThermalReadingInterval != item.days
+                                  ? null
+                                  : Theme.of(context).colorScheme.primary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildRefreshRateSection(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: sectionHeader(
+            context: context,
+            title: "Thermal Sensor Refresh Rate",
+            description:
+                "Configure how fast the MLX90640 updates its temperature\nreadings",
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 18, 0),
+            child: sectionContent(
+              context: context,
+              header: "MLX90640 Refresh Rate",
+              content: DropdownMenu<int>(
+                initialSelection: refreshRate,
+                dropdownMenuEntries: [
+                  DropdownMenuEntry(value: 2, label: '2Hz Refresh Rate'),
+                  DropdownMenuEntry(value: 4, label: '4Hz Refresh Rate'),
+                  DropdownMenuEntry(
+                      value: 8, label: '8Hz Refresh Rate (Warning)'),
+                  DropdownMenuEntry(
+                      value: 16, label: '16Hz Refresh Rate (Warning)'),
+                ],
+                onSelected: (value) => setState(() {
+                  refreshRate = value!;
+                }),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -555,18 +756,49 @@ class _AboutSection extends StatelessWidget {
             ),
           ),
           Column(
-            spacing: 1,
             children: [
               Text(
-                "made for 🇵🇭",
+                "made in rtu 🇵🇭",
                 style: GoogleFonts.lacquer(),
               ),
-              Text("All Rights Reserved"),
-              Text("© 2025 Think I/0"),
+              Text(
+                "All Rights Reserved",
+                style: TextStyle(
+                  letterSpacing: 0.025,
+                ),
+              ),
+              Text(
+                "© Think I/0 2025",
+                style: TextStyle(
+                  letterSpacing: 0.025,
+                ),
+              ),
             ],
           )
         ],
       ),
     );
+  }
+}
+
+int parseStatusToInt(String status) {
+  switch (status) {
+    case "active":
+      return 1;
+    case "feeding":
+      return 2;
+    default:
+      return 3;
+  }
+}
+
+String parseIntToStatus(int status) {
+  switch (status) {
+    case 1:
+      return "active";
+    case 2:
+      return "feeding";
+    default:
+      return "idle";
   }
 }

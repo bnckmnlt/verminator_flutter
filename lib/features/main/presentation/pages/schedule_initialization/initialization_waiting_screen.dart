@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:flutter_vermicomposting/core/common/cubits/app_schedule/app_schedule_cubit.dart';
+import 'package:flutter_vermicomposting/core/common/cubits/app_settings/app_settings_cubit.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/app_background.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
@@ -52,6 +53,7 @@ class InitializationWaitingScreen extends StatefulWidget {
 
 class _InitializationWaitingScreenState
     extends State<InitializationWaitingScreen> {
+  final AppSettingsCubit _appSettingsCubit = GetIt.I<AppSettingsCubit>();
   late final FlutterTts flutterTts;
 
   bool _hasInitialized = false;
@@ -70,7 +72,7 @@ class _InitializationWaitingScreenState
   int _currentTipIndex = 0;
 
   late Timer _timer;
-  int _start = 30;
+  int _start = 120;
   Timer? _tipTimer;
 
   @override
@@ -81,6 +83,8 @@ class _InitializationWaitingScreenState
     _initializeFlutterTTS();
 
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
+
+    _start = _appSettingsCubit.state.feedingTimer;
 
     _mqttService = GetIt.I<MqttService>();
     _supabaseClient = GetIt.I<SupabaseClient>();

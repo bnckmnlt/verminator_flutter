@@ -429,6 +429,7 @@ Widget configurationHeader({
   required String title,
   required String description,
   required String buttonLabel,
+  VoidCallback? optionalButtonBehavior,
   required VoidCallback buttonBehavior,
 }) {
   return Row(
@@ -456,7 +457,7 @@ Widget configurationHeader({
       Row(
         children: [
           OutlinedButton(
-            onPressed: () {},
+            onPressed: optionalButtonBehavior,
             style: OutlinedButton.styleFrom(
               backgroundColor: Colors.transparent,
               shape: RoundedRectangleBorder(

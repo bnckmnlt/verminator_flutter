@@ -1,7 +1,9 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/common/cubits/app_schedule/app_schedule_cubit.dart';
+import 'package:flutter_vermicomposting/core/common/cubits/app_settings/app_settings_cubit.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/theme/theme.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
@@ -16,7 +18,9 @@ import 'package:flutter_vermicomposting/features/sensor_reading/presentation/blo
 import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
 import 'package:flutter_vermicomposting/init_dependencies.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:logging/logging.dart';
+import 'package:path_provider/path_provider.dart';
 
 final log = Logger('System Logs');
 
@@ -31,6 +35,12 @@ void main() async {
 
   await initDependencies();
 
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: kIsWeb
+        ? HydratedStorageDirectory.web
+        : HydratedStorageDirectory((await getTemporaryDirectory()).path),
+  );
+
   runApp(
     MultiBlocProvider(
       providers: [
@@ -39,6 +49,9 @@ void main() async {
         ),
         BlocProvider(
           create: (_) => sl<CompostScheduleBloc>(),
+        ),
+        BlocProvider(
+          create: (_) => sl<AppSettingsCubit>(),
         ),
         BlocProvider(
           create: (_) => sl<FoodWasteBloc>(),

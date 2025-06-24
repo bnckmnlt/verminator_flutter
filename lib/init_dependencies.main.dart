@@ -27,6 +27,9 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(
     () => AppScheduleCubit(),
   );
+  sl.registerLazySingleton(
+    () => AppSettingsCubit(),
+  );
   sl.registerFactory<ConnectionChecker>(
     () => ConnectionCheckerImpl(
       sl(),

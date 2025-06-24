@@ -38,6 +38,7 @@ class MqttService extends ChangeNotifier {
     'system/status',
     'system/health',
     'system/info',
+    'system/settings',
     'schedule/sifter',
     'schedule/aeration',
     'feedback/conveyor',
@@ -71,6 +72,8 @@ class MqttService extends ChangeNotifier {
       StreamController<String>.broadcast();
   final StreamController<Map<String, dynamic>> _relayFeedbackController =
       StreamController<Map<String, dynamic>>.broadcast();
+  final StreamController<Map<String, String>> _systemSettingsController =
+      StreamController<Map<String, String>>.broadcast();
 
   Stream<String> get systemStatusStream => _systemStatusController.stream;
 
@@ -101,6 +104,9 @@ class MqttService extends ChangeNotifier {
 
   Stream<Map<String, dynamic>> get relayFeedbackStream =>
       _relayFeedbackController.stream;
+
+  Stream<Map<String, String>> get systemSettingsStream =>
+      _systemSettingsController.stream;
 
   void initializeMQTTClient() {
     _client.useWebSocket = true;
@@ -180,7 +186,11 @@ class MqttService extends ChangeNotifier {
               break;
 
             case 'system/info':
-              _handleDeviceInfo(message, _deviceInfoController);
+              _handleJsonDecoding(message, _deviceInfoController);
+              break;
+
+            case 'system/settings':
+              _handleJsonDecoding(message, _systemSettingsController);
               break;
 
             case 'layer/bedding':
@@ -272,14 +282,14 @@ class MqttService extends ChangeNotifier {
     log.info('Message published: $message, Retained: $retain, QoS: $qos');
   }
 
-  void _handleDeviceInfo(
+  void _handleJsonDecoding(
       String message, StreamController<Map<String, String>> controller) {
     try {
       final Map<String, dynamic> parsedMessage = json.decode(message);
-      final Map<String, String> deviceInfo = parsedMessage.map(
+      final Map<String, String> jsonPayload = parsedMessage.map(
         (key, value) => MapEntry(key, value.toString()),
       );
-      controller.add(deviceInfo);
+      controller.add(jsonPayload);
     } catch (e) {
       log.shout('Error parsing device info message: $e');
     }
