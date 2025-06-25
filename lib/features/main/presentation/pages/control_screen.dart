@@ -164,6 +164,7 @@ Widget sensorCardHeader({
           Text(
             label,
             style: const TextStyle(
+              fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -171,7 +172,7 @@ Widget sensorCardHeader({
             device,
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurface.withAlpha(164),
-              fontSize: 12,
+              fontSize: 10,
             ),
           ),
         ],

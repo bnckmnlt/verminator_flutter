@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/features/food_waste/data/models/food_waste_model.dart';
 import 'package:galleryimage/galleryimage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -22,76 +23,95 @@ const String _sectionTitle = "Kitchen Waste Records";
 class _SystemFoodWasteRecordsState extends State<SystemFoodWasteRecords> {
   @override
   Widget build(BuildContext context) {
+    final int totalImages = widget.foodWasteList.length;
+    final bool showGallery = totalImages > 7;
+    final int safeItemCount = showGallery ? 8 : totalImages;
+
     return Column(
       spacing: 16,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildHeaderRow(context),
-        GridView.builder(
-          scrollDirection: Axis.vertical,
-          padding: EdgeInsets.zero,
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 8,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-            childAspectRatio: 1.0,
-          ),
-          itemCount: 8,
-          itemBuilder: (BuildContext context, int index) {
-            return GestureDetector(
-              onTap: () {
-                if (index == 7) {
-                } else {
-                  widget.imageSelector(index);
-                }
-              },
-              child: index >= 7
-                  ? Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          width: 1,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHigh,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: GalleryImage(
-                          crossAxisCount: 1,
-                          titleGallery: _sectionTitle,
-                          numOfShowImages: 1,
-                          imageUrls: widget.foodWasteList
-                              .sublist(index, widget.foodWasteList.length)
-                              .map((e) => e.filePath)
-                              .toList(),
-                        ),
-                      ),
-                    )
-                  : Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          width: 1,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHigh,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: Image.network(
-                          widget.foodWasteList[index].filePath,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                    ),
-            );
-          },
-        ),
+        widget.foodWasteList.isNotEmpty
+            ? GridView.builder(
+                scrollDirection: Axis.vertical,
+                padding: EdgeInsets.zero,
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 8,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                  childAspectRatio: 1.0,
+                ),
+                itemCount: safeItemCount,
+                itemBuilder: (BuildContext context, int index) {
+                  return GestureDetector(
+                    onTap: () {
+                      if (showGallery && index == 7) {
+                        // Handle gallery click here
+                      } else {
+                        widget.imageSelector(index);
+                      }
+                    },
+                    child: showGallery && index == 7
+                        ? Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                width: 1,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHigh,
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: GalleryImage(
+                                crossAxisCount: 1,
+                                textStyleOfNumberWidget: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.025,
+                                ),
+                                titleGallery: _sectionTitle,
+                                numOfShowImages: 1,
+                                imageUrls: widget.foodWasteList
+                                    .sublist(7, totalImages)
+                                    .map((e) => e.filePath)
+                                    .toList(),
+                              ),
+                            ),
+                          )
+                        : Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                width: 1,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHigh,
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: Image.network(
+                                widget.foodWasteList[index].filePath,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                  );
+                },
+              )
+            : Center(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 24, 0, 24),
+                  child: EmptyDisplayWidget(
+                      title: "No results found",
+                      description: "Try again later or refresh the page"),
+                ),
+              ),
       ],
     );
   }

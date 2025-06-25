@@ -135,27 +135,24 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: List.generate(_summaryItems.length, (index) {
-          final item = _summaryItems[index];
-          final isLast = index == _summaryItems.length - 1;
-          return Column(
-            children: [
-              if (index == 0) _systemHealthCard(isLast),
-              Padding(
-                padding: EdgeInsets.fromLTRB(0, 0, 0, isLast ? 0.0 : 16.0),
-                child: _systemInformationCard(
+    return SizedBox(
+      height: MediaQuery.of(context).size.height,
+      child: SingleChildScrollView(
+        child: Column(
+          spacing: 12,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_summaryItems.isNotEmpty)
+              _systemHealthCard(_summaryItems.length == 1),
+            ..._summaryItems.map((item) => _systemInformationCard(
                   label: item.label,
                   value: item.value,
                   unit: item.unit,
                   icon: item.icon,
                   color: item.color,
-                ),
-              ),
-            ],
-          );
-        }),
+                )),
+          ],
+        ),
       ),
     );
   }
@@ -169,7 +166,7 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        vertical: 14,
+        vertical: 18,
         horizontal: 20,
       ),
       decoration: BoxDecoration(
@@ -181,6 +178,7 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -189,7 +187,7 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
               Text(
                 value,
                 style: GoogleFonts.spaceMono(
-                  fontSize: 38,
+                  fontSize: 28,
                   fontWeight: FontWeight.w600,
                   height: 1.2,
                 ),
@@ -198,7 +196,7 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
                 unit,
                 style: GoogleFonts.spaceMono(
                   color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
-                  fontSize: 28,
+                  fontSize: 20,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.025,
                 ),
@@ -212,13 +210,13 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
               Icon(
                 icon,
                 color: color,
-                size: 16,
+                size: 12,
               ),
               const SizedBox(width: 4),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 10,
                   color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
                   fontWeight: FontWeight.w500,
                 ),
@@ -240,109 +238,105 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
       potassium: safeParseDouble(sensorValues.potassium),
     );
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(0, 0, 0, isLast ? 0.0 : 16.0),
-      child: ClipRRect(
-        clipBehavior: Clip.antiAlias,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              width: 1,
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
-            ),
+    return ClipRRect(
+      clipBehavior: Clip.antiAlias,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            width: 1,
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      result['color'].withOpacity(0.05),
-                      result['color'].withOpacity(0.1),
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.transparent,
+                    result['color'].withOpacity(0.05),
+                    result['color'].withOpacity(0.1),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "System Health",
-                          style: TextStyle(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withAlpha(124),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Icon(
-                          FluentIcons.heart_pulse_24_regular,
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "System Health",
+                        style: TextStyle(
                           color: Theme.of(context)
                               .colorScheme
                               .onSurface
                               .withAlpha(124),
-                          size: 16,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      result["status"].toString().toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w500,
-                        height: 1.2,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          ScheduleScreen(scheduleId: currentSchedule.id),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-                  color: Colors.white.withAlpha(32),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "View Schedule Record",
-                        style: TextStyle(
-                          fontSize: 12.5,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                       Icon(
-                        FluentIcons.chevron_right_24_filled,
+                        FluentIcons.heart_pulse_24_regular,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withAlpha(124),
                         size: 16,
                       ),
                     ],
                   ),
+                  const SizedBox(height: 10),
+                  Text(
+                    result["status"].toString().toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
+                      height: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        ScheduleScreen(scheduleId: currentSchedule.id),
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                color: Colors.white.withAlpha(32),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "View Schedule Record",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Icon(
+                      FluentIcons.chevron_right_24_filled,
+                      size: 12,
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

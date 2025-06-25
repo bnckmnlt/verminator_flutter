@@ -1,3 +1,4 @@
+import 'package:flutter_vermicomposting/core/utils/format-to-local-time.dart';
 import 'package:flutter_vermicomposting/features/logs/domain/entity/log_entity.dart';
 
 class LogModel extends LogEntity {
@@ -22,7 +23,7 @@ class LogModel extends LogEntity {
       id: json["id"] as int,
       logSeverity: LogSeverity.values.byName(json["eventSeverity"] as String),
       message: json["eventMessage"],
-      createdAt: json["createdAt"],
+      createdAt: formatToLocalTime(json['createdAt']),
     );
   }
 }

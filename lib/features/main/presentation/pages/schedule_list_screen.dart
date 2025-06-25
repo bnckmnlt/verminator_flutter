@@ -403,23 +403,6 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
             final CompostSchedule inserted =
                 CompostScheduleModel.fromJson(jsonDecode(scheduleResp.body));
 
-            final statusResp = await http.post(
-              Uri.parse("https://verminator.thinkio.me/status"),
-              headers: {'Content-Type': 'application/json; charset=UTF-8'},
-              body: jsonEncode({
-                "statusScheduleId": inserted.id,
-                "status": CompostingStatus.initial.name,
-                "remarks": null,
-                "isCompleted": false,
-              }),
-            );
-
-            if (statusResp.statusCode != 200) {
-              await fail(
-                  "Status update failed", statusResp.body.parseErrorMessage());
-              return;
-            }
-
             Navigator.pop(context);
 
             toastHelper.show(

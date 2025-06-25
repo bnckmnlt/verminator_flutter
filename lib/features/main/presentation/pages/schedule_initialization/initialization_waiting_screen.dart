@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +12,6 @@ import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
-import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/food_waste/data/models/food_waste_model.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
@@ -21,7 +19,6 @@ import 'package:flutter_vermicomposting/features/main/presentation/pages/schedul
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
 import 'package:lottie/lottie.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -327,62 +324,36 @@ class _InitializationWaitingScreenState
             }
 
             try {
-              final patched = await _supabaseClient
+              await _supabaseClient
                   .from("status_records")
                   .update({
                     'is_completed': true,
                     'remarks': "none",
                   })
                   .eq('status_schedule_id', widget.scheduleId)
-                  .eq("status", "initial")
-                  .select();
+                  .eq("status", "initial");
 
               if (!mounted) return;
 
-              if (!patched.first['is_completed']) {
+              final result = await _supabaseClient
+                  .from("status_records")
+                  .select("is_completed")
+                  .eq('status_schedule_id', widget.scheduleId)
+                  .eq("status", "initial")
+                  .maybeSingle();
+
+              if (!mounted) return;
+
+              final isCompleted =
+                  result != null && result['is_completed'] == true;
+
+              if (!isCompleted) {
                 await fail(
                   "Updating schedule status failed",
                   "An error has occurred while processing the records",
                 );
                 return;
               }
-
-              final statusResp = await http.post(
-                Uri.parse("https://verminator.thinkio.me/status"),
-                headers: {'Content-Type': 'application/json; charset=UTF-8'},
-                body: jsonEncode({
-                  "statusScheduleId": widget.scheduleId,
-                  "status": "active",
-                  "remarks": null,
-                  "isCompleted": false,
-                }),
-              );
-
-              if (!mounted) return;
-
-              if (statusResp.statusCode != 200) {
-                final body = jsonDecode(statusResp.body);
-                final msg = (body['message'] ?? '').toString().toLowerCase();
-
-                if (msg.contains('duplicate') ||
-                    msg.contains('already active')) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => InitializationSuccessScreen(
-                        scheduleId: widget.scheduleId,
-                      ),
-                    ),
-                  );
-                  return;
-                }
-
-                await fail("Status update failed",
-                    statusResp.body.parseErrorMessage());
-                return;
-              }
-
-              if (!mounted) return;
 
               _mqttService.publish("system/status", "idle",
                   qos: MqttQos.atLeastOnce, retain: true);
@@ -397,7 +368,6 @@ class _InitializationWaitingScreenState
                   ),
                 ),
               );
-
               return;
             } catch (e) {
               await fail("Unexpected Error", e.toString());

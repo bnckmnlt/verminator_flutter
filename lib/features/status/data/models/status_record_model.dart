@@ -1,4 +1,5 @@
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/core/utils/format-to-local-time.dart';
 import 'package:flutter_vermicomposting/features/status/domain/entity/status_record.dart';
 
 class StatusRecordModel extends StatusRecord {
@@ -19,8 +20,8 @@ class StatusRecordModel extends StatusRecord {
       status: CompostingStatus.values.byName(json["status"] as String),
       remarks: json["remarks"] as String?,
       isCompleted: json["isCompleted"] as bool,
-      createdAt: json["createdAt"],
-      updatedAt: json["updatedAt"],
+      createdAt: formatToLocalTime(json['createdAt']),
+      updatedAt: formatToLocalTime(json['updatedAt']),
     );
   }
 
@@ -43,8 +44,8 @@ class StatusRecordModel extends StatusRecord {
       status: CompostingStatus.values.byName(json["status"] as String),
       remarks: json["remarks"] as String?,
       isCompleted: json["is_completed"] as bool,
-      createdAt: json["created_at"],
-      updatedAt: json["updated_at"],
+      createdAt: formatToLocalTime(json['created_at']),
+      updatedAt: formatToLocalTime(json['updated_at']),
     );
   }
 }

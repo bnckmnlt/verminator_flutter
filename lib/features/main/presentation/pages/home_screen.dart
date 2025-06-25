@@ -186,16 +186,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 44),
                     Expanded(
                       child: Row(
+                        spacing: 16,
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          // TODO: 1ST ROW: []
                           Expanded(
                             child: Column(
+                              spacing: 16,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
-                                // TODO:
+                                // TODO: SYSTEM CHARTS SECTION: []
                                 Expanded(
-                                  flex: 3,
+                                  flex: 2,
                                   child: Container(
                                     width: double.infinity,
                                     padding: const EdgeInsets.symmetric(
@@ -279,9 +282,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 16),
+                                // TODO: SENSOR PRESENT READINGS SECTION: []
                                 Expanded(
-                                  flex: 2,
+                                  flex: 1,
                                   child: SensorReadingsWidget(
                                     mqttService: _mqttService,
                                   ),
@@ -289,11 +292,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          // TODO: 2ND ROW: []
                           Expanded(
                             child: Row(
+                              spacing: 16,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // TODO: CAMERA AND COMPOST/RESERVOIR SECTION: []
                                 SingleChildScrollView(
                                   child: Column(
                                     spacing: 16,
@@ -577,7 +582,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ],
                                   ),
                                 ),
-                                const SizedBox(width: 16),
+                                // TODO:SYSTEM HEALTH SECTION: []
                                 Expanded(
                                   child: BlocConsumer<CompostScheduleBloc,
                                       CompostScheduleState>(

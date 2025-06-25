@@ -560,7 +560,7 @@ class _SystemSettingsState extends State<_SystemSettings> {
               context: context,
               header: "Status",
               description:
-                  "Choose from Active, Feeding, or Idle.It is advisable\nto use this when debugging",
+                  "Choose from Active, Feeding, or Idle. It is advisable\nto only use this when debugging",
               content: DropdownMenu<int>(
                 initialSelection: currentSystemStatus,
                 dropdownMenuEntries: [
@@ -758,7 +758,7 @@ class _AboutSection extends StatelessWidget {
           Column(
             children: [
               Text(
-                "made in rtu 🇵🇭",
+                "🇵🇭 represent",
                 style: GoogleFonts.lacquer(),
               ),
               Text(

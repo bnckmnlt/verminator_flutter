@@ -1,3 +1,4 @@
+import 'package:flutter_vermicomposting/core/utils/format-to-local-time.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
 
 class FoodWasteModel extends FoodWaste {
@@ -20,7 +21,7 @@ class FoodWasteModel extends FoodWaste {
           MaterialStatus.values.byName(json['materialStatus'] as String),
       confidence: json['confidence'].toDouble() ?? 0.0,
       classname: FoodWasteClassname.values.byName(json['classname'] as String),
-      createdAt: json['createdAt'] as String,
+      createdAt: formatToLocalTime(json['createdAt']),
     );
   }
 
@@ -33,7 +34,7 @@ class FoodWasteModel extends FoodWaste {
           MaterialStatus.values.byName(json['material_status'] as String),
       confidence: json['confidence'].toDouble() ?? 0.0,
       classname: FoodWasteClassname.values.byName(json['classname'] as String),
-      createdAt: json['created_at'] as String,
+      createdAt: formatToLocalTime(json['created_at']),
     );
   }
 

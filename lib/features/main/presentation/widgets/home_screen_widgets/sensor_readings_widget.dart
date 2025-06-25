@@ -125,94 +125,96 @@ class _SensorReadingsWidgetState extends State<SensorReadingsWidget> {
       ),
     ];
 
-    return GridView.builder(
-      padding: EdgeInsets.zero,
-      shrinkWrap: true,
-      itemCount: sensorDisplayList.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemBuilder: (BuildContext context, int index) {
-        final info = sensorDisplayList[index];
-        final status = sensorDisplayList[index].status;
+    return SafeArea(
+      child: GridView.builder(
+        padding: EdgeInsets.zero,
+        shrinkWrap: true,
+        itemCount: sensorDisplayList.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+        ),
+        itemBuilder: (BuildContext context, int index) {
+          final info = sensorDisplayList[index];
+          final status = sensorDisplayList[index].status;
 
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              width: 1,
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                width: 1,
+                color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              ),
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(info.icon, size: 20),
-                  const SizedBox(height: 8),
-                  Text(info.label,
-                      style: const TextStyle(letterSpacing: 0.025)),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        info.value,
-                        style: GoogleFonts.spaceMono(
-                          fontSize: 44,
-                          fontWeight: FontWeight.w500,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(info.icon, size: 20),
+                    const SizedBox(height: 8),
+                    Text(info.label,
+                        style: const TextStyle(letterSpacing: 0.025)),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          info.value,
+                          style: GoogleFonts.spaceMono(
+                            fontSize: 44,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.025,
+                          ),
+                        ),
+                        const SizedBox(width: 2.5),
+                        Text(
+                          info.unit,
+                          style: GoogleFonts.spaceMono(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withAlpha(124),
+                            fontSize: 38,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.025,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: getSensorStatusColor(context, status).first,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 1,
+                        horizontal: 8,
+                      ),
+                      child: Text(
+                        status.name.firstLetterUpperCase(),
+                        style: TextStyle(
+                          color: getSensorStatusColor(context, status).last,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                           letterSpacing: 0.025,
                         ),
                       ),
-                      const SizedBox(width: 2.5),
-                      Text(
-                        info.unit,
-                        style: GoogleFonts.spaceMono(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withAlpha(124),
-                          fontSize: 38,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.025,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: getSensorStatusColor(context, status).first,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 1,
-                      horizontal: 8,
-                    ),
-                    child: Text(
-                      status.name.firstLetterUpperCase(),
-                      style: TextStyle(
-                        color: getSensorStatusColor(context, status).last,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.025,
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            ],
-          ),
-        );
-      },
+                    )
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

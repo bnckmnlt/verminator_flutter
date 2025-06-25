@@ -1,3 +1,4 @@
+import 'package:flutter_vermicomposting/core/utils/format-to-local-time.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 
 class CompostScheduleModel extends CompostSchedule {
@@ -33,8 +34,8 @@ class CompostScheduleModel extends CompostSchedule {
       juiceProduced: json['juiceProduced'] as String?,
       isCompleted: json['isCompleted'] as bool,
       dateReleased: json['dateReleased'] as String?,
-      createdAt: json['createdAt'] as String,
-      updatedAt: json['updatedAt'] as String,
+      createdAt: formatToLocalTime(json['createdAt']),
+      updatedAt: formatToLocalTime(json['updatedAt']),
     );
   }
 }

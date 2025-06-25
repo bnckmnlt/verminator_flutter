@@ -1,3 +1,4 @@
+import 'package:flutter_vermicomposting/core/utils/format-to-local-time.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/domain/entity/worm_activity.dart';
 
 class WormActivityModel extends WormActivity {
@@ -26,7 +27,7 @@ class WormActivityModel extends WormActivity {
           ActivityLevel.values.byName(json['activityLevel'] as String),
       hotspot: json['hotspot'] != null ? Point.fromJson(json['hotspot']) : null,
       zones: json['zones'] as Map<String, dynamic>,
-      createdAt: json['createdAt'] as String,
+      createdAt: formatToLocalTime(json['createdAt']),
     );
   }
 

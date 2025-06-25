@@ -5,9 +5,9 @@ FoodWasteClassname parseFoodWasteClassname(String value) {
     'fruit': FoodWasteClassname.fruit,
     'vegetable': FoodWasteClassname.vegetable,
     'grains': FoodWasteClassname.grains,
-    'invalid_citrus': FoodWasteClassname.invalidCitrus,
-    'invalid_meat': FoodWasteClassname.invalidMeat,
-    'invalid_foreign': FoodWasteClassname.invalidForeign,
+    'citrus': FoodWasteClassname.citrus,
+    'meat': FoodWasteClassname.meat,
+    'foreign': FoodWasteClassname.foreign,
   };
 
   if (!mapping.containsKey(value)) {

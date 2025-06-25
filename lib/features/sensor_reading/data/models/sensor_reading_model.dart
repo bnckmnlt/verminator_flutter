@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter_vermicomposting/core/utils/format-to-local-time.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 
 class SensorReadingModel extends SensorReading {
@@ -21,7 +22,7 @@ class SensorReadingModel extends SensorReading {
       readings: json["readings"] is String
           ? Map<String, dynamic>.from(jsonDecode(json["readings"]))
           : Map<String, dynamic>.from(json["readings"]),
-      createdAt: json["createdAt"],
+      createdAt: formatToLocalTime(json['createdAt']),
     );
   }
 
