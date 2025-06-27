@@ -16,6 +16,7 @@ import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/bedding_condition_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/liquid_and_compost_level_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/materials_processed_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/notification_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/nutrient_summary_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/sensor_readings_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/system_information_widget.dart';
@@ -736,11 +737,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         Row(
-          children: buttonList.asMap().entries.map((entry) {
-            final item = entry.value;
-            return Padding(
-              padding: EdgeInsets.fromLTRB(entry.key == 0 ? 0 : 4, 0, 0, 0),
-              child: OutlinedButton(
+          spacing: 4,
+          children: [
+            NotificationWidget(),
+            ...buttonList.asMap().entries.map((entry) {
+              final item = entry.value;
+              return OutlinedButton(
                 onPressed: item.onPressedFunction,
                 style: OutlinedButton.styleFrom(
                   padding:
@@ -759,9 +761,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   size: 20,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
-              ),
-            );
-          }).toList(),
+              );
+            })
+          ],
         )
       ],
     );

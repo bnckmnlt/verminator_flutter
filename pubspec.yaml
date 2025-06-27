@@ -62,6 +62,7 @@ dependencies:
   galleryimage: ^2.0.1
   hydrated_bloc: ^10.0.0
   path_provider: ^2.1.5
+  timeago: ^3.7.1
 
 dev_dependencies:
   flutter_test:
