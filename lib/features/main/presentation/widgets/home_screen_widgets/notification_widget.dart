@@ -44,6 +44,18 @@ class _NotificationWidgetState extends State<NotificationWidget> {
         });
   }
 
+  Future<void> _refreshNotificationList() async {
+    final data =
+        await _supabaseClient.from("notification").select().order('created_at');
+
+    setState(() {
+      notificationList = data
+          .map<NotificationEntity>(
+              (item) => NotificationModel.fromJsonSupabase(item))
+          .toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
@@ -101,21 +113,47 @@ class _NotificationWidgetState extends State<NotificationWidget> {
             _buildTabSelector(context),
             Expanded(
               child: currentTab == 0
-                  ? ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: notificationList.length,
-                      itemBuilder: (context, index) => NotificationTile(
-                        notification: notificationList[index],
-                      ),
-                    )
-                  : Center(
-                      child: EmptyDisplayWidget(
-                        icon: FluentIcons.alert_on_24_regular,
-                        title: "No notifications yet",
-                        description:
-                            "Return here for updates on activities or schedules",
-                      ),
-                    ),
+                  ? notificationList.isEmpty
+                      ? Center(
+                          child: EmptyDisplayWidget(
+                            icon: FluentIcons.alert_on_24_regular,
+                            title: "No notifications yet",
+                            description:
+                                "Return here for updates on activities or schedules",
+                          ),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: notificationList.length,
+                          itemBuilder: (context, index) => NotificationTile(
+                            notification: notificationList[index],
+                            supabaseClient: _supabaseClient,
+                            onRefresh: _refreshNotificationList,
+                          ),
+                        )
+                  : notificationList.where((n) => !n.read).toList().isEmpty
+                      ? Center(
+                          child: EmptyDisplayWidget(
+                            icon: FluentIcons.alert_on_24_regular,
+                            title: "No unread notifications",
+                            description:
+                                "Return here for updates on activities or schedules",
+                          ),
+                        )
+                      : Builder(builder: (context) {
+                          final unreadNotifications =
+                              notificationList.where((n) => !n.read).toList();
+
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: unreadNotifications.length,
+                            itemBuilder: (context, index) => NotificationTile(
+                              notification: unreadNotifications[index],
+                              supabaseClient: _supabaseClient,
+                              onRefresh: _refreshNotificationList,
+                            ),
+                          );
+                        }),
             ),
           ],
         ),
@@ -178,7 +216,11 @@ class _NotificationWidgetState extends State<NotificationWidget> {
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
-        children: tabList.asMap().entries.map((entry) {
+        children: tabList
+            .asMap()
+            .entries
+            .where((entry) => !(notificationList.isEmpty && entry.key == 1))
+            .map((entry) {
           final index = entry.key;
           final item = entry.value;
 
@@ -295,5 +337,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   void _removePopover() {
     _popoverEntry?.remove();
     _popoverEntry = null;
+
+    _refreshNotificationList();
   }
 }

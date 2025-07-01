@@ -20,6 +20,30 @@ class NotificationEntity {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  NotificationEntity copyWith({
+    int? id,
+    NotificationType? notificationType,
+    String? subject,
+    String? description,
+    String? path,
+    bool? read,
+    bool? removed,
+    String? createdAt,
+    String? updatedAt,
+  }) {
+    return NotificationEntity(
+      id: id ?? this.id,
+      notificationType: notificationType ?? this.notificationType,
+      subject: subject ?? this.subject,
+      description: description ?? this.description,
+      path: path ?? this.path,
+      read: read ?? this.read,
+      removed: removed ?? this.removed,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
 
 enum NotificationType {

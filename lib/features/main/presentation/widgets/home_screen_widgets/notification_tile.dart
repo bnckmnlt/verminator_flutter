@@ -1,14 +1,23 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/features/notification/domain/entities/notification.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class NotificationTile extends StatefulWidget {
   final NotificationEntity notification;
+  final SupabaseClient supabaseClient;
+  final void Function() onRefresh;
 
-  const NotificationTile({super.key, required this.notification});
+  const NotificationTile({
+    super.key,
+    required this.notification,
+    required this.supabaseClient,
+    required this.onRefresh,
+  });
 
   @override
   State<NotificationTile> createState() => _NotificationTileState();
@@ -16,6 +25,7 @@ class NotificationTile extends StatefulWidget {
 
 class _NotificationTileState extends State<NotificationTile> {
   late NotificationEntity notification;
+  late SupabaseClient supabaseClient;
 
   bool _isExpanded = false;
 
@@ -24,6 +34,7 @@ class _NotificationTileState extends State<NotificationTile> {
     super.initState();
 
     notification = widget.notification;
+    supabaseClient = widget.supabaseClient;
   }
 
   @override
@@ -40,14 +51,24 @@ class _NotificationTileState extends State<NotificationTile> {
     return Padding(
       padding: const EdgeInsets.only(top: 1),
       child: GestureDetector(
-        onTap: () {
+        onTap: () async {
+          if (!notification.read) {
+            final id = notification.id;
+            await supabaseClient
+                .from("notification")
+                .update({'read': true}).eq('id', id);
+          }
           setState(() {
+            notification = notification.copyWith(read: true);
             _isExpanded = !_isExpanded;
           });
+          widget.onRefresh;
         },
         child: Container(
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHigh,
+            color: notification.read
+                ? theme.colorScheme.surfaceContainerHighest
+                : theme.colorScheme.surfaceContainerHigh,
           ),
           padding: const EdgeInsets.fromLTRB(14, 18, 14, 18),
           child: Row(
@@ -56,13 +77,14 @@ class _NotificationTileState extends State<NotificationTile> {
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.lightBlueAccent.withAlpha(28),
+                  color: parseActivityToColor(notification.notificationType)
+                      .withAlpha(28),
                 ),
                 padding: const EdgeInsets.all(12),
-                child: const Icon(
-                  CupertinoIcons.alarm_fill,
+                child: Icon(
+                  parseActivityToIcon(notification.notificationType),
                   size: 18,
-                  color: Colors.lightBlueAccent,
+                  color: parseActivityToColor(notification.notificationType),
                 ),
               ),
               const SizedBox(width: 16),
@@ -154,5 +176,35 @@ class _NotificationTileState extends State<NotificationTile> {
         ),
       ],
     );
+  }
+}
+
+IconData parseActivityToIcon(NotificationType type) {
+  switch (type) {
+    case NotificationType.completion:
+      return CupertinoIcons.checkmark_alt_circle_fill;
+    case NotificationType.added:
+      return FluentIcons.apps_add_in_24_filled;
+    case NotificationType.error:
+      return FluentIcons.prohibited_24_filled;
+    case NotificationType.feeding:
+      return FluentIcons.food_16_filled;
+    default:
+      return FluentIcons.dual_screen_vibrate_24_filled;
+  }
+}
+
+MaterialAccentColor parseActivityToColor(NotificationType type) {
+  switch (type) {
+    case NotificationType.completion:
+      return Colors.greenAccent;
+    case NotificationType.added:
+      return Colors.lightBlueAccent;
+    case NotificationType.error:
+      return Colors.redAccent;
+    case NotificationType.feeding:
+      return Colors.indigoAccent;
+    default:
+      return Colors.amberAccent;
   }
 }

@@ -758,7 +758,7 @@ class _AboutSection extends StatelessWidget {
           Column(
             children: [
               Text(
-                "🇵🇭 represent",
+                "🇵🇭",
                 style: GoogleFonts.lacquer(),
               ),
               Text(
