@@ -175,23 +175,43 @@ class _NotificationWidgetState extends State<NotificationWidget> {
               letterSpacing: 0.025,
             ),
           ),
-          Row(
-            children: [
-              Icon(
-                Icons.done_all_rounded,
-                size: 14,
-                color: Colors.lightBlueAccent,
-              ),
-              const SizedBox(width: 4),
-              const Text(
-                "Mark all as read",
-                style: TextStyle(
+          InkWell(
+            onTap: () async {
+              final data = await _supabaseClient
+                  .from("notification")
+                  .update({'read': true})
+                  .eq('read', false)
+                  .select()
+                  .order('created_at');
+
+              setState(() {
+                notificationList = data
+                    .map<NotificationEntity>(
+                      (item) => NotificationModel.fromJsonSupabase(item),
+                    )
+                    .toList();
+              });
+
+              await _refreshNotificationList();
+            },
+            child: Row(
+              children: [
+                Icon(
+                  Icons.done_all_rounded,
+                  size: 14,
                   color: Colors.lightBlueAccent,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
                 ),
-              ),
-            ],
+                const SizedBox(width: 4),
+                const Text(
+                  "Mark all as read",
+                  style: TextStyle(
+                    color: Colors.lightBlueAccent,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
