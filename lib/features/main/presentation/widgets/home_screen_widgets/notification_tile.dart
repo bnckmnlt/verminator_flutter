@@ -48,74 +48,71 @@ class _NotificationTileState extends State<NotificationTile> {
     final String formattedTime =
         DateFormat("EEEE, hh:mm a").format(timeCreated);
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 1),
-      child: GestureDetector(
-        onTap: () async {
-          if (!notification.read) {
-            final id = notification.id;
-            await supabaseClient
-                .from("notification")
-                .update({'read': true}).eq('id', id);
-          }
-          setState(() {
-            notification = notification.copyWith(read: true);
-            _isExpanded = !_isExpanded;
-          });
-          widget.onRefresh;
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            color: notification.read
-                ? theme.colorScheme.surfaceContainerHighest
-                : theme.colorScheme.surfaceContainerHigh,
-          ),
-          padding: const EdgeInsets.fromLTRB(14, 18, 14, 18),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: parseActivityToColor(notification.notificationType)
-                      .withAlpha(28),
-                ),
-                padding: const EdgeInsets.all(12),
-                child: Icon(
-                  parseActivityToIcon(notification.notificationType),
-                  size: 18,
-                  color: parseActivityToColor(notification.notificationType),
-                ),
+    return GestureDetector(
+      onTap: () async {
+        if (!notification.read) {
+          final id = notification.id;
+          await supabaseClient
+              .from("notification")
+              .update({'read': true}).eq('id', id);
+        }
+        setState(() {
+          notification = notification.copyWith(read: true);
+          _isExpanded = !_isExpanded;
+        });
+        widget.onRefresh;
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: notification.read
+              ? theme.colorScheme.surfaceContainerHighest
+              : theme.colorScheme.surfaceContainerHigh,
+        ),
+        padding: const EdgeInsets.fromLTRB(14, 18, 14, 18),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: parseActivityToColor(notification.notificationType)
+                    .withAlpha(28),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          notification.subject,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.025,
-                          ),
+              padding: const EdgeInsets.all(12),
+              child: Icon(
+                parseActivityToIcon(notification.notificationType),
+                size: 18,
+                color: parseActivityToColor(notification.notificationType),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        notification.subject,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.025,
                         ),
-                        if (_isExpanded) const SizedBox(width: 16),
-                        if (_isExpanded)
-                          _buildNotificationTime(
-                              formattedTime, formattedDay, ago),
-                      ],
-                    ),
-                    if (!_isExpanded)
-                      _buildNotificationTime(formattedTime, formattedDay, ago),
-                    if (_isExpanded) _buildExpandedSection(theme),
-                  ],
-                ),
+                      ),
+                      if (_isExpanded) const SizedBox(width: 16),
+                      if (_isExpanded)
+                        _buildNotificationTime(
+                            formattedTime, formattedDay, ago),
+                    ],
+                  ),
+                  if (!_isExpanded)
+                    _buildNotificationTime(formattedTime, formattedDay, ago),
+                  if (_isExpanded) _buildExpandedSection(theme),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

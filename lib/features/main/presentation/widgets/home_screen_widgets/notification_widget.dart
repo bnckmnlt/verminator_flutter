@@ -87,11 +87,19 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   }
 
   Widget _buildPopover(BuildContext context, double popoverWidth) {
-    final double maxPopoverHeight = 468;
+    const double maxPopoverHeight = 640;
+
+    final bool showAll = currentTab == 0;
+    final List<NotificationEntity> unreadList =
+        notificationList.where((n) => !n.read).toList();
+
+    final List<NotificationEntity> dataToDisplay =
+        showAll ? notificationList : unreadList;
+
+    final bool isEmpty = dataToDisplay.isEmpty;
 
     return Material(
       elevation: 8,
-      borderRadius: BorderRadius.circular(4),
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -102,58 +110,37 @@ class _NotificationWidgetState extends State<NotificationWidget> {
           ),
         ),
         width: popoverWidth,
-        constraints: BoxConstraints(
-          maxHeight: maxPopoverHeight,
-        ),
+        constraints: const BoxConstraints(maxHeight: maxPopoverHeight),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(),
             _buildTabSelector(context),
             Expanded(
-              child: currentTab == 0
-                  ? notificationList.isEmpty
-                      ? Center(
-                          child: EmptyDisplayWidget(
-                            icon: FluentIcons.alert_on_24_regular,
-                            title: "No notifications yet",
-                            description:
-                                "Return here for updates on activities or schedules",
-                          ),
-                        )
-                      : ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: notificationList.length,
-                          itemBuilder: (context, index) => NotificationTile(
-                            notification: notificationList[index],
+              child: isEmpty
+                  ? Center(
+                      child: EmptyDisplayWidget(
+                        icon: FluentIcons.alert_on_24_regular,
+                        title: showAll
+                            ? "No notifications yet"
+                            : "No unread notifications",
+                        description:
+                            "Return here for updates on activities or schedules",
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.zero,
+                      itemCount: dataToDisplay.length,
+                      itemBuilder: (context, index) {
+                        return Container(
+                          color: Colors.red.withOpacity(0.1),
+                          child: NotificationTile(
+                            notification: dataToDisplay[index],
                             supabaseClient: _supabaseClient,
                             onRefresh: _refreshNotificationList,
                           ),
-                        )
-                  : notificationList.where((n) => !n.read).toList().isEmpty
-                      ? Center(
-                          child: EmptyDisplayWidget(
-                            icon: FluentIcons.alert_on_24_regular,
-                            title: "No unread notifications",
-                            description:
-                                "Return here for updates on activities or schedules",
-                          ),
-                        )
-                      : Builder(builder: (context) {
-                          final unreadNotifications =
-                              notificationList.where((n) => !n.read).toList();
-
-                          return ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: unreadNotifications.length,
-                            itemBuilder: (context, index) => NotificationTile(
-                              notification: unreadNotifications[index],
-                              supabaseClient: _supabaseClient,
-                              onRefresh: _refreshNotificationList,
-                            ),
-                          );
-                        }),
+                        );
+                      },
+                    ),
             ),
           ],
         ),

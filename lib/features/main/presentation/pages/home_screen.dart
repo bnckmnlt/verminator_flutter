@@ -199,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 // TODO: SYSTEM CHARTS SECTION: []
                                 Expanded(
-                                  flex: 2,
+                                  flex: 1,
                                   child: Container(
                                     width: double.infinity,
                                     padding: const EdgeInsets.symmetric(
@@ -339,11 +339,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         cameraChannel:
                                                             serverSrc['src'],
                                                       )
-                                                    : EmptyDisplayWidget(
-                                                        title:
-                                                            "Inactive Device",
-                                                        description:
-                                                            "The device is currently not operational or has no active session.",
+                                                    : Center(
+                                                        child:
+                                                            EmptyDisplayWidget(
+                                                          title:
+                                                              "Inactive Device",
+                                                          description:
+                                                              "The device is currently not operational or has no active session.",
+                                                        ),
                                                       ),
                                                 Positioned(
                                                   top: 18,

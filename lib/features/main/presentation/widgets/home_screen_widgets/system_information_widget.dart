@@ -187,7 +187,7 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
               Text(
                 value,
                 style: GoogleFonts.spaceMono(
-                  fontSize: 28,
+                  fontSize: 44,
                   fontWeight: FontWeight.w600,
                   height: 1.2,
                 ),
@@ -196,7 +196,7 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
                 unit,
                 style: GoogleFonts.spaceMono(
                   color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
-                  fontSize: 20,
+                  fontSize: 32,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.025,
                 ),
@@ -216,7 +216,7 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 16,
                   color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
                   fontWeight: FontWeight.w500,
                 ),
@@ -276,6 +276,7 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
                       Text(
                         "System Health",
                         style: TextStyle(
+                          fontSize: 20,
                           color: Theme.of(context)
                               .colorScheme
                               .onSurface
@@ -297,7 +298,7 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
                   Text(
                     result["status"].toString().toUpperCase(),
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 44,
                       fontWeight: FontWeight.w500,
                       height: 1.2,
                     ),
@@ -324,13 +325,13 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
                     Text(
                       "View Schedule Record",
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     Icon(
                       FluentIcons.chevron_right_24_filled,
-                      size: 12,
+                      size: 18,
                     ),
                   ],
                 ),

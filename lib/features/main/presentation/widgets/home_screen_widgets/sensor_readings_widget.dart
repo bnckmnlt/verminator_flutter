@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
-import 'package:flutter_vermicomposting/core/utils/string_extensions.dart';
 import 'package:flutter_vermicomposting/features/main/data/models/sensor_values_model.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/sensor_values.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
@@ -158,7 +157,8 @@ class _SensorReadingsWidgetState extends State<SensorReadingsWidget> {
                     Icon(info.icon, size: 20),
                     const SizedBox(height: 8),
                     Text(info.label,
-                        style: const TextStyle(letterSpacing: 0.025)),
+                        style: const TextStyle(
+                            fontSize: 18, letterSpacing: 0.025)),
                   ],
                 ),
                 Column(
@@ -199,7 +199,7 @@ class _SensorReadingsWidgetState extends State<SensorReadingsWidget> {
                         horizontal: 8,
                       ),
                       child: Text(
-                        status.name.firstLetterUpperCase(),
+                        status.name.toUpperCase(),
                         style: TextStyle(
                           color: getSensorStatusColor(context, status).last,
                           fontSize: 12,
