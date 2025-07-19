@@ -101,6 +101,7 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
 
   Widget _conveyorModesSection() {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
@@ -112,50 +113,53 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
           ),
         ),
         const SizedBox(height: 6),
-        ToggleSwitch(
-          minHeight: 28,
-          minWidth: 112,
-          cornerRadius: 6,
-          borderWidth: 1,
-          borderColor: [Theme.of(context).colorScheme.surfaceContainerHigh],
-          activeBgColors: [
-            [Color(0xFF27272a).withAlpha(64)],
-            [Color(0xFF27272a).withAlpha(64)],
-            [Color(0xFF27272a).withAlpha(64)],
-          ],
-          activeFgColor: Colors.white,
-          inactiveBgColor: Theme.of(context).colorScheme.surface,
-          inactiveFgColor:
-              Theme.of(context).colorScheme.onSurface.withAlpha(124),
-          totalSwitches: 3,
-          labels: const ['Continuous', 'Valid', 'Invalid'],
-          icons: const [null, null, null],
-          onToggle: (index) {
-            if (index == 0) {
-              publishConveyorCommand("Continuous");
-            } else if (index == 1) {
-              publishConveyorCommand("Valid");
-            } else if (index == 2) {
-              publishConveyorCommand("Invalid");
-            }
-          },
-          customTextStyles: const [
-            TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0.025,
-            ),
-            TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0.025,
-            ),
-            TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0.025,
-            ),
-          ],
+        Align(
+          alignment: Alignment.centerLeft,
+          child: ToggleSwitch(
+            minHeight: 28,
+            minWidth: 124,
+            cornerRadius: 6,
+            borderWidth: 1,
+            borderColor: [Theme.of(context).colorScheme.surfaceContainerHigh],
+            activeBgColors: [
+              [Color(0xFF27272a).withAlpha(64)],
+              [Color(0xFF27272a).withAlpha(64)],
+              [Color(0xFF27272a).withAlpha(64)],
+            ],
+            activeFgColor: Colors.white,
+            inactiveBgColor: Theme.of(context).colorScheme.surface,
+            inactiveFgColor:
+                Theme.of(context).colorScheme.onSurface.withAlpha(124),
+            totalSwitches: 3,
+            labels: const ['Continuous', 'Valid', 'Invalid'],
+            icons: const [null, null, null],
+            onToggle: (index) {
+              if (index == 0) {
+                publishConveyorCommand("Continuous");
+              } else if (index == 1) {
+                publishConveyorCommand("Valid");
+              } else if (index == 2) {
+                publishConveyorCommand("Invalid");
+              }
+            },
+            customTextStyles: const [
+              TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.025,
+              ),
+              TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.025,
+              ),
+              TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.025,
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -165,6 +169,7 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
     required List<ConveyorCommand> conveyorCommands,
   }) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,53 +183,43 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
               ),
             ),
             const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 0, 0, 0),
-              child: Row(
-                children: conveyorCommands.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final item = entry.value;
-                  return Padding(
-                    padding: EdgeInsets.fromLTRB(index == 0 ? 0 : 8, 0, 0, 0),
-                    child: OutlinedButton(
-                      onPressed:
-                          (item.isEnabled ?? true) ? item.onPressed : null,
-                      style: OutlinedButton.styleFrom(
-                        disabledBackgroundColor:
-                            Color(0xFF27272a).withAlpha(124),
-                        disabledForegroundColor: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withAlpha(0),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 6,
-                          horizontal: 24,
-                        ),
-                        side: BorderSide(
-                          color: item.color ??
-                              Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHigh,
-                        ),
-                        foregroundColor:
-                            Theme.of(context).colorScheme.onSurface,
-                        minimumSize: Size(0, 0),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            Row(
+              children: conveyorCommands.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                return Padding(
+                  padding: EdgeInsets.fromLTRB(index == 0 ? 0 : 8, 0, 0, 0),
+                  child: OutlinedButton(
+                    onPressed: (item.isEnabled ?? true) ? item.onPressed : null,
+                    style: OutlinedButton.styleFrom(
+                      disabledBackgroundColor: Color(0xFF27272a).withAlpha(124),
+                      disabledForegroundColor:
+                          Theme.of(context).colorScheme.onSurface.withAlpha(0),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 6,
+                        horizontal: 24,
                       ),
-                      child: Text(
-                        item.label,
-                        style: TextStyle(
-                          color: item.color ??
-                              Theme.of(context).colorScheme.onSurface,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.025,
-                        ),
+                      side: BorderSide(
+                        color: item.color ??
+                            Theme.of(context).colorScheme.surfaceContainerHigh,
+                      ),
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
+                      minimumSize: Size(0, 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      item.label,
+                      style: TextStyle(
+                        color: item.color ??
+                            Theme.of(context).colorScheme.onSurface,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.025,
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ),

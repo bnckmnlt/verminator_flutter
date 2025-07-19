@@ -5,6 +5,7 @@ import 'package:flutter_vermicomposting/features/main/presentation/widgets/contr
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/control_screen_widgets/pump_control_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/control_screen_widgets/rake_control_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/control_screen_widgets/sensor_with_duration_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/control_screen_widgets/sifter_control_widget.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
 
@@ -29,25 +30,18 @@ class _ControlScreenState extends State<ControlScreen> {
 
     _sensorsList = [
       SensorControl(
-        device: "150x150mm Fan",
+        device: "Dual 150x150mm Fan",
         label: "Soil Aeration Control",
-        icon: CupertinoIcons.wind_snow,
-        state: false,
-        topic: "control/aeration",
-      ),
-      SensorControl(
-        device: "150x150mm Fan",
-        label: "Ambient Temp/Humidity Control",
-        icon: CupertinoIcons.wind_snow,
+        icon: CupertinoIcons.wind,
         state: false,
         topic: "control/fan",
       ),
       SensorControl(
-        device: "Stepper Motor",
-        label: "Sifter Control",
+        device: " 12V Pump",
+        label: "Conveyor Misting Control",
         icon: CupertinoIcons.wind_snow,
         state: false,
-        topic: "control/sifter",
+        topic: "control/aeration",
       ),
     ];
   }
@@ -100,21 +94,6 @@ class _ControlScreenState extends State<ControlScreen> {
                   ),
                   const SizedBox(height: 44),
                   Row(
-                    children: _sensorsList.map((item) {
-                      return Expanded(
-                        child: SensorWithDurationWidget(
-                          sensorData: item,
-                          label: item.label,
-                          device: item.device,
-                          mqttService: _mqttService,
-                          topic: item.topic,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Expanded(
                         flex: 1,
@@ -122,12 +101,33 @@ class _ControlScreenState extends State<ControlScreen> {
                           mqttService: _mqttService,
                         ),
                       ),
+                      ..._sensorsList.map((item) {
+                        return Expanded(
+                          child: SensorWithDurationWidget(
+                            sensorData: item,
+                            label: item.label,
+                            device: item.device,
+                            mqttService: _mqttService,
+                            topic: item.topic,
+                          ),
+                        );
+                      })
+                    ],
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
                       Expanded(
                         flex: 2,
                         child: Row(
                           children: [
                             Expanded(
                                 child: RakeControlWidget(
+                              mqttService: _mqttService,
+                            )),
+                            Expanded(
+                                child: SifterControlWidget(
                               mqttService: _mqttService,
                             )),
                             Expanded(

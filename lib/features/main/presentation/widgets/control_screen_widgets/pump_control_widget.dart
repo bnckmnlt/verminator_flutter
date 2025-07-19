@@ -68,14 +68,14 @@ class _PumpControlWidgetState extends State<PumpControlWidget> {
   Widget build(BuildContext context) {
     final pumpControlList = [
       SensorControl(
-        device: "Pump",
+        device: "12V Pump",
         label: "Bedding Hydration",
         icon: Icons.water_drop_outlined,
         state: pumpControlState,
         topic: "control/pump",
       ),
       SensorControl(
-        device: "Pump",
+        device: "12V Pump",
         label: "Vermijuice Dispenser",
         icon: FluentIcons.drink_bottle_20_regular,
         state: vermijuiceControlState,

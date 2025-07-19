@@ -69,7 +69,21 @@ class SystemChartCardState<T> extends State<SystemChartCard<T>> {
         _selectedDateRange!.start.month == _selectedDateRange!.end.month &&
         _selectedDateRange!.start.day == _selectedDateRange!.end.day;
 
-    final List<ChartData> chartData = sortedEntries.map((entry) {
+    /* WILL BE USED FOR SORTING RECORDS (WEEK, MONTH, ALL TIME) */
+
+    // final List<ChartData> chartData = sortedEntries.map((entry) {
+    //   final date = dateFormat.parse(entry.key);
+    //   final label = isSingleDayRange
+    //       ? DateFormat('ha').format(date)
+    //       : DateFormat('MMM d').format(date);
+    //   return ChartData(label, entry.value);
+    // }).toList();
+
+    final weeklyRecords = sortedEntries.length > 7
+        ? sortedEntries.sublist(sortedEntries.length - 7)
+        : sortedEntries;
+
+    final List<ChartData> chartData = weeklyRecords.map((entry) {
       final date = dateFormat.parse(entry.key);
       final label = isSingleDayRange
           ? DateFormat('ha').format(date)

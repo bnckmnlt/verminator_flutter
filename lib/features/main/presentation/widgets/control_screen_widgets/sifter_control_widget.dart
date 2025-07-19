@@ -9,56 +9,56 @@ import 'package:mqtt_client/mqtt_client.dart';
 
 // TODO: [✅] DONEEEEE
 
-class RakeControlWidget extends StatefulWidget {
+class SifterControlWidget extends StatefulWidget {
   final MqttService mqttService;
 
-  const RakeControlWidget({
+  const SifterControlWidget({
     super.key,
     required this.mqttService,
   });
 
   @override
-  State<RakeControlWidget> createState() => _RakeControlWidgetState();
+  State<SifterControlWidget> createState() => _SifterControlWidgetState();
 }
 
-class _RakeControlWidgetState extends State<RakeControlWidget> {
-  late StreamSubscription<String> _rakeFeedbackSubscription;
+class _SifterControlWidgetState extends State<SifterControlWidget> {
+  late StreamSubscription<String> _sifterFeedbackSubscription;
 
-  late bool _rakeState;
+  late bool _sifterState;
 
-  int _currentCycle = 1;
+  int _currentCycle = 5;
 
   @override
   void initState() {
     super.initState();
 
-    _rakeState = false;
+    _sifterState = false;
 
-    _rakeFeedbackSubscription =
-        widget.mqttService.rakeFeedbackStream.listen((value) {
+    _sifterFeedbackSubscription =
+        widget.mqttService.sifterFeedbackStream.listen((value) {
       setState(() {
-        _rakeState = value == 'active' ? true : false;
+        _sifterState = value == 'active' ? true : false;
       });
     });
   }
 
-  void publishRakeCommand(String command) {
+  void publishsifterCommand(String command) {
     widget.mqttService
         .publish("control/rake", command, qos: MqttQos.atLeastOnce);
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<RakeCommand> rakeCommands = [
-      RakeCommand(
+    final List<sifterCommand> sifterCommands = [
+      sifterCommand(
           label: "Return to Origin",
           iconData: FluentIcons.arrow_down_left_24_filled,
-          onPressed: () => publishRakeCommand("Return")),
-      RakeCommand(
+          onPressed: () => publishsifterCommand("Return")),
+      sifterCommand(
           label: "Stop",
           iconData: FluentIcons.dismiss_24_filled,
           color: Colors.redAccent,
-          onPressed: () => publishRakeCommand("Stop")),
+          onPressed: () => publishsifterCommand("Stop")),
     ];
 
     return Padding(
@@ -78,20 +78,21 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Column(
+              mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _rakeCycleSection(),
+                _sifterCycleSection(),
                 const SizedBox(height: 12),
-                _rakeCommandSection(rakeCommands: rakeCommands),
+                _sifterCommandSection(sifterCommands: sifterCommands),
               ],
             ),
             sensorCardHeader(
               context: context,
-              label: "Bedding Rake",
+              label: "Bedding Sifter",
               device: "NEMA17 Stepper",
               optionalWidget: StatusBadge(
-                  color: _rakeState ? Colors.greenAccent : Colors.redAccent,
-                  state: _rakeState ? "Active" : "Inactive"),
+                  color: _sifterState ? Colors.greenAccent : Colors.redAccent,
+                  state: _sifterState ? "Active" : "Inactive"),
             )
           ],
         ),
@@ -99,8 +100,9 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
     );
   }
 
-  Widget _rakeCycleSection() {
+  Widget _sifterCycleSection() {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
@@ -113,13 +115,12 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
         ),
         const SizedBox(height: 6),
         Row(
+          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: List.generate(4, (int index) => index * 3 + 1,
-                        growable: false)
-                    .map((item) {
+                children: [5, 8, 10, 15, 20].map((item) {
                   return Padding(
                     padding: EdgeInsets.fromLTRB(item == 0 ? 0 : 6, 0, 0, 0),
                     child: GestureDetector(
@@ -168,7 +169,7 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
               ),
             ),
             ElevatedButton(
-              onPressed: () => publishRakeCommand("Process:${_currentCycle}"),
+              onPressed: () => publishsifterCommand("Process:${_currentCycle}"),
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6)),
@@ -186,10 +187,10 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
                 foregroundColor: Theme.of(context).colorScheme.onSurface,
                 minimumSize: const Size(0, 0),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                overlayColor: Colors.black87, // <-- splash color
+                overlayColor: Colors.black87,
               ),
               child: Text(
-                "Start Rake",
+                "Start Sifter",
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.surface,
                   fontSize: 12,
@@ -204,12 +205,13 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
     );
   }
 
-  Widget _rakeCommandSection({
-    required List<RakeCommand> rakeCommands,
+  Widget _sifterCommandSection({
+    required List<sifterCommand> sifterCommands,
   }) {
     return Row(
       children: [
         Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
@@ -221,53 +223,43 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
               ),
             ),
             const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 0, 0, 0),
-              child: Row(
-                children: rakeCommands.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final item = entry.value;
-                  return Padding(
-                    padding: EdgeInsets.fromLTRB(index == 0 ? 0 : 8, 0, 0, 0),
-                    child: OutlinedButton(
-                      onPressed:
-                          (item.isEnabled ?? true) ? item.onPressed : null,
-                      style: OutlinedButton.styleFrom(
-                        disabledBackgroundColor:
-                            Color(0xFF27272a).withAlpha(124),
-                        disabledForegroundColor: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withAlpha(0),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 6,
-                          horizontal: 24,
-                        ),
-                        side: BorderSide(
-                          color: item.color ??
-                              Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHigh,
-                        ),
-                        foregroundColor:
-                            Theme.of(context).colorScheme.onSurface,
-                        minimumSize: Size(0, 0),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            Row(
+              children: sifterCommands.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                return Padding(
+                  padding: EdgeInsets.fromLTRB(index == 0 ? 0 : 8, 0, 0, 0),
+                  child: OutlinedButton(
+                    onPressed: (item.isEnabled ?? true) ? item.onPressed : null,
+                    style: OutlinedButton.styleFrom(
+                      disabledBackgroundColor: Color(0xFF27272a).withAlpha(124),
+                      disabledForegroundColor:
+                          Theme.of(context).colorScheme.onSurface.withAlpha(0),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 6,
+                        horizontal: 24,
                       ),
-                      child: Text(
-                        item.label,
-                        style: TextStyle(
-                          color: item.color ??
-                              Theme.of(context).colorScheme.onSurface,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.025,
-                        ),
+                      side: BorderSide(
+                        color: item.color ??
+                            Theme.of(context).colorScheme.surfaceContainerHigh,
+                      ),
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
+                      minimumSize: Size(0, 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      item.label,
+                      style: TextStyle(
+                        color: item.color ??
+                            Theme.of(context).colorScheme.onSurface,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.025,
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ),
@@ -276,14 +268,14 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
   }
 }
 
-class RakeCommand {
+class sifterCommand {
   final String label;
   final Color? color;
   final IconData? iconData;
   final bool? isEnabled;
   final VoidCallback onPressed;
 
-  RakeCommand({
+  sifterCommand({
     required this.label,
     this.isEnabled,
     this.color,

@@ -44,30 +44,16 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (_) => sl<AppScheduleCubit>()..initializeApp(),
-        ),
-        BlocProvider(
-          create: (_) => sl<CompostScheduleBloc>(),
-        ),
-        BlocProvider(
-          create: (_) => sl<AppSettingsCubit>(),
-        ),
-        BlocProvider(
-          create: (_) => sl<FoodWasteBloc>(),
-        ),
-        BlocProvider(
-          create: (_) => sl<SensorReadingBloc>(),
-        ),
+        BlocProvider(create: (_) => sl<AppScheduleCubit>()..initializeApp()),
+        BlocProvider(create: (_) => sl<CompostScheduleBloc>()),
+        BlocProvider(create: (_) => sl<AppSettingsCubit>()),
+        BlocProvider(create: (_) => sl<FoodWasteBloc>()),
+        BlocProvider(create: (_) => sl<SensorReadingBloc>()),
         BlocProvider(
           create: (_) => sl<LogBloc>(),
         ),
-        BlocProvider(
-          create: (_) => sl<WormActivityBloc>(),
-        ),
-        BlocProvider(
-          create: (_) => sl<StatusRecordBloc>(),
-        ),
+        BlocProvider(create: (_) => sl<WormActivityBloc>()),
+        BlocProvider(create: (_) => sl<StatusRecordBloc>()),
       ],
       child: const MyApp(),
     ),

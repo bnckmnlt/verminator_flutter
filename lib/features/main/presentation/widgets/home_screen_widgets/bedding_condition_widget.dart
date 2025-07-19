@@ -9,6 +9,7 @@ import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/core/utils/extract_by_day.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 // TODO: [✅] DONEEEEEE
@@ -47,18 +48,33 @@ class _BeddingConditionWidgetState extends State<BeddingConditionWidget> {
 
             for (var reading in state.list) {
               if (reading.layer == SystemLayer.bedding) {
-                final dateLabel = extractDay(reading.createdAt);
+                final dateLabel =
+                    extractDay(reading.createdAt); // e.g. '2025-07-19'
                 final bedding = reading.asBeddingReading;
                 if (bedding == null) continue;
                 readingsByDay.putIfAbsent(dateLabel, () => []).add(bedding);
               }
             }
 
+            final now = DateTime.now();
+            final cutoffDate = now.subtract(const Duration(days: 30));
+            final dateFormat = DateFormat('MMM d');
+
+            final filteredSortedEntries = readingsByDay.entries
+                .where(
+                    (entry) => dateFormat.parse(entry.key).isAfter(cutoffDate))
+                .toList()
+              ..sort((a, b) =>
+                  dateFormat.parse(a.key).compareTo(dateFormat.parse(b.key)));
+
             List<ChartData> tempChartData = [];
             List<ChartData> humidityChartData = [];
             List<ChartData> soilMoistureChartData = [];
 
-            readingsByDay.forEach((day, dayReadings) {
+            for (var entry in filteredSortedEntries) {
+              final day = entry.key;
+              final dayReadings = entry.value;
+
               double avgTemp = dayReadings
                       .map((b) => b.temperature.value.toDouble())
                       .fold(0.0, (sum, v) => sum + v) /
@@ -77,21 +93,24 @@ class _BeddingConditionWidgetState extends State<BeddingConditionWidget> {
               tempChartData.add(ChartData(day, avgTemp));
               humidityChartData.add(ChartData(day, avgHumidity));
               soilMoistureChartData.add(ChartData(day, avgSoilMoisture));
-            });
+            }
 
             final List<SelectedChart> beddingConditionCharts = [
               SelectedChart(
-                  label: 'Temperature',
-                  color: Color(0xff2563EB),
-                  data: tempChartData),
+                label: 'Temperature',
+                color: const Color(0xff2563EB),
+                data: tempChartData,
+              ),
               SelectedChart(
-                  label: 'Humidity',
-                  color: Color(0xff3B86F7),
-                  data: humidityChartData),
+                label: 'Humidity',
+                color: const Color(0xff3B86F7),
+                data: humidityChartData,
+              ),
               SelectedChart(
-                  label: 'Soil Moisture',
-                  color: Color(0xff90C7FE),
-                  data: soilMoistureChartData),
+                label: 'Soil Moisture',
+                color: const Color(0xff90C7FE),
+                data: soilMoistureChartData,
+              ),
             ];
 
             return Column(

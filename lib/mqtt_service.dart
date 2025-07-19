@@ -56,6 +56,8 @@ class MqttService extends ChangeNotifier {
       StreamController<String>.broadcast();
   final StreamController<String> _rakeFeedbackController =
       StreamController<String>.broadcast();
+  final StreamController<String> _sifterFeedbackController =
+      StreamController<String>.broadcast();
   final StreamController<Map<String, dynamic>> _systemHealthController =
       StreamController<Map<String, dynamic>>.broadcast();
   final StreamController<int> _currentCycleController =
@@ -83,6 +85,8 @@ class MqttService extends ChangeNotifier {
 
   Stream<String> get conveyorFeedbackStream =>
       _conveyorFeedbackController.stream;
+
+  Stream<String> get sifterFeedbackStream => _sifterFeedbackController.stream;
 
   Stream<String> get rakeFeedbackStream => _rakeFeedbackController.stream;
 
@@ -177,6 +181,10 @@ class MqttService extends ChangeNotifier {
 
             case 'feedback/rake':
               _rakeFeedbackController.add(message);
+              break;
+
+            case 'feedback/sifter':
+              _sifterFeedbackController.add(message);
               break;
 
             case 'system/health':
