@@ -64,7 +64,7 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
-        height: 214,
+        height: 248,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -77,14 +77,16 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _sifterCycleSection(),
-                const SizedBox(height: 12),
-                _sifterCommandSection(sifterCommands: sifterCommands),
-              ],
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _sifterCycleSection(),
+                  const SizedBox(height: 12),
+                  _sifterCommandSection(sifterCommands: sifterCommands),
+                ],
+              ),
             ),
             sensorCardHeader(
               context: context,
@@ -102,8 +104,8 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
 
   Widget _sifterCycleSection() {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const Text(
           "Number of Cycles",
@@ -115,7 +117,7 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
         ),
         const SizedBox(height: 6),
         Row(
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Row(
@@ -209,10 +211,11 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
     required List<sifterCommand> sifterCommands,
   }) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
               "Commands",
@@ -224,6 +227,8 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
             ),
             const SizedBox(height: 6),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: sifterCommands.asMap().entries.map((entry) {
                 final index = entry.key;
                 final item = entry.value;

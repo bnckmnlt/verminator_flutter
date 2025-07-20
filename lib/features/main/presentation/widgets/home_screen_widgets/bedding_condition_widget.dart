@@ -48,8 +48,7 @@ class _BeddingConditionWidgetState extends State<BeddingConditionWidget> {
 
             for (var reading in state.list) {
               if (reading.layer == SystemLayer.bedding) {
-                final dateLabel =
-                    extractDay(reading.createdAt); // e.g. '2025-07-19'
+                final dateLabel = extractDay(reading.createdAt);
                 final bedding = reading.asBeddingReading;
                 if (bedding == null) continue;
                 readingsByDay.putIfAbsent(dateLabel, () => []).add(bedding);

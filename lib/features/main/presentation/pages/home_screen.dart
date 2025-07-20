@@ -180,6 +180,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                     _homeScreenHeaderSection(
                       formattedDate: formattedDate,
                       formattedTime: formattedTime,

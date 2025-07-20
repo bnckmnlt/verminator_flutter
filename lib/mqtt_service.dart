@@ -20,14 +20,15 @@ class MqttService extends ChangeNotifier {
     '${AppSecrets.clientIdentifier ?? "defaultCluster"}-${Random().nextInt(1000000).toString().padLeft(6, '0')}',
   );
   final List<String> _topics = [
-    'control/aeration',
-    'control/pump',
-    'control/fan',
-    'control/vermijuice',
-    'control/sifter',
     'control/relay',
+    'control/fan',
+    'control/pump',
+    'control/vermijuice',
+    'control/aeration',
+    'control/misting',
     'control/conveyor',
     'control/rake',
+    'control/sifter',
     'control/monitoring/camera',
     'control/monitoring/thermal',
     'layer/bedding',
@@ -58,6 +59,8 @@ class MqttService extends ChangeNotifier {
       StreamController<String>.broadcast();
   final StreamController<String> _sifterFeedbackController =
       StreamController<String>.broadcast();
+  final StreamController<String> _mistingFeedbackController =
+      StreamController<String>.broadcast();
   final StreamController<Map<String, dynamic>> _systemHealthController =
       StreamController<Map<String, dynamic>>.broadcast();
   final StreamController<int> _currentCycleController =
@@ -87,6 +90,8 @@ class MqttService extends ChangeNotifier {
       _conveyorFeedbackController.stream;
 
   Stream<String> get sifterFeedbackStream => _sifterFeedbackController.stream;
+
+  Stream<String> get mistingFeedbackStream => _mistingFeedbackController.stream;
 
   Stream<String> get rakeFeedbackStream => _rakeFeedbackController.stream;
 

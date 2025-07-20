@@ -65,7 +65,7 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
-        height: 214,
+        height: 248,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -78,12 +78,16 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              children: [
-                _conveyorModesSection(),
-                const SizedBox(height: 12),
-                _conveyorCommandsSection(conveyorCommands: conveyorCommands),
-              ],
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _conveyorModesSection(),
+                  const SizedBox(height: 12),
+                  _conveyorCommandsSection(conveyorCommands: conveyorCommands),
+                ],
+              ),
             ),
             sensorCardHeader(
               context: context,
@@ -101,20 +105,24 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
 
   Widget _conveyorModesSection() {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "Modes",
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.025,
+        Align(
+          alignment: Alignment.center,
+          child: const Text(
+            "Modes",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.025,
+            ),
           ),
         ),
         const SizedBox(height: 6),
         Align(
-          alignment: Alignment.centerLeft,
+          alignment: Alignment.center,
           child: ToggleSwitch(
             minHeight: 28,
             minWidth: 124,
@@ -169,13 +177,15 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
     required List<ConveyorCommand> conveyorCommands,
   }) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
               "Commands",
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,

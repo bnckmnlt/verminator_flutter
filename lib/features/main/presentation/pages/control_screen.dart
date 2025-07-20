@@ -31,17 +31,24 @@ class _ControlScreenState extends State<ControlScreen> {
     _sensorsList = [
       SensorControl(
         device: "Dual 150x150mm Fan",
-        label: "Soil Aeration Control",
+        label: "Ambient Aeration Control",
         icon: CupertinoIcons.wind,
         state: false,
         topic: "control/fan",
+      ),
+      SensorControl(
+        device: "Dual 150x150mm Fan",
+        label: "Soil Aeration Control",
+        icon: CupertinoIcons.wind_snow,
+        state: false,
+        topic: "control/aeration",
       ),
       SensorControl(
         device: " 12V Pump",
         label: "Conveyor Misting Control",
         icon: CupertinoIcons.wind_snow,
         state: false,
-        topic: "control/aeration",
+        topic: "control/misting",
       ),
     ];
   }

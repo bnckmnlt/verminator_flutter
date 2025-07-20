@@ -187,7 +187,7 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
               Text(
                 value,
                 style: GoogleFonts.spaceMono(
-                  fontSize: 44,
+                  fontSize: 38,
                   fontWeight: FontWeight.w600,
                   height: 1.2,
                 ),
@@ -196,7 +196,7 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
                 unit,
                 style: GoogleFonts.spaceMono(
                   color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
-                  fontSize: 32,
+                  fontSize: 28,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.025,
                 ),
@@ -298,7 +298,7 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
                   Text(
                     result["status"].toString().toUpperCase(),
                     style: TextStyle(
-                      fontSize: 44,
+                      fontSize: 38,
                       fontWeight: FontWeight.w500,
                       height: 1.2,
                     ),
@@ -325,7 +325,6 @@ class _SystemInformationWidgetState extends State<SystemInformationWidget> {
                     Text(
                       "View Schedule Record",
                       style: TextStyle(
-                        fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
                     ),

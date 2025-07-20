@@ -64,7 +64,7 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
-        height: 214,
+        height: 248,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -77,13 +77,16 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _rakeCycleSection(),
-                const SizedBox(height: 12),
-                _rakeCommandSection(rakeCommands: rakeCommands),
-              ],
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _rakeCycleSection(),
+                  const SizedBox(height: 12),
+                  _rakeCommandSection(rakeCommands: rakeCommands),
+                ],
+              ),
             ),
             sensorCardHeader(
               context: context,
@@ -101,7 +104,8 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
 
   Widget _rakeCycleSection() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Text(
           "Number of Cycles",
@@ -113,6 +117,7 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
         ),
         const SizedBox(height: 6),
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Row(
@@ -208,9 +213,11 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
     required List<RakeCommand> rakeCommands,
   }) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
               "Commands",
