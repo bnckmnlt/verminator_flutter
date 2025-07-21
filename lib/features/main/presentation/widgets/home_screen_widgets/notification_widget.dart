@@ -17,7 +17,7 @@ class NotificationWidget extends StatefulWidget {
 
 class _NotificationWidgetState extends State<NotificationWidget> {
   late SupabaseClient _supabaseClient;
-  late List<NotificationEntity> notificationList;
+  List<NotificationEntity> notificationList = [];
 
   static const double _popoverWidthRatio = 0.35;
   final GlobalKey _buttonKey = GlobalKey();
@@ -58,7 +58,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
+    return IconButton(
       key: _buttonKey,
       onPressed: () {
         if (_popoverEntry == null) {
@@ -78,10 +78,24 @@ class _NotificationWidgetState extends State<NotificationWidget> {
           width: 1,
         ),
       ),
-      child: Icon(
-        FluentIcons.alert_24_regular,
-        size: 20,
-        color: Theme.of(context).colorScheme.onSurface,
+      icon: Badge(
+        isLabelVisible:
+            (notificationList?.where((n) => n.read == false).isNotEmpty) ??
+                false,
+        label: Text(
+            (notificationList?.where((n) => n.read == false).length ?? 0)
+                .toString()),
+        backgroundColor: Colors.blueAccent,
+        textStyle: GoogleFonts.spaceMono(
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+        textColor: Colors.white,
+        child: Icon(
+          FluentIcons.alert_24_regular,
+          size: 24,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
       ),
     );
   }

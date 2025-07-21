@@ -9,6 +9,7 @@ import 'package:flutter_vermicomposting/core/common/widgets/error_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/core/utils/format-to-local-time.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
@@ -107,7 +108,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final formattedDate = DateFormat('d MMMM y').format(now);
-    final formattedTime = DateFormat('HH:mm').format(now);
+    final formattedTime = DateFormat('h:mm a')
+        .format(DateTime.parse(formatToLocalTime(DateTime.now().toString())));
 
     final toastHelper = ToastHelper(context);
 
@@ -750,7 +752,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         Row(
-          spacing: 4,
+          spacing: 8,
           children: [
             NotificationWidget(),
             ...buttonList.asMap().entries.map((entry) {
@@ -771,7 +773,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: Icon(
                   item.icon,
-                  size: 20,
+                  size: 24,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
               );

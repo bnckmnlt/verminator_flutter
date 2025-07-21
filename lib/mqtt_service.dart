@@ -81,39 +81,24 @@ class MqttService extends ChangeNotifier {
       StreamController<Map<String, String>>.broadcast();
 
   Stream<String> get systemStatusStream => _systemStatusController.stream;
-
   Stream<String> get controlCameraStream => _controlMonitoringCamera.stream;
-
   Stream<String> get controlThermalStream => _controlMonitoringThermal.stream;
-
   Stream<String> get conveyorFeedbackStream =>
       _conveyorFeedbackController.stream;
-
   Stream<String> get sifterFeedbackStream => _sifterFeedbackController.stream;
-
   Stream<String> get mistingFeedbackStream => _mistingFeedbackController.stream;
-
   Stream<String> get rakeFeedbackStream => _rakeFeedbackController.stream;
-
   Stream<Map<String, dynamic>> get systemHealthStream =>
       _systemHealthController.stream;
-
   Stream<int> get currentCycleStream => _currentCycleController.stream;
-
   Stream<String> get currentScheduleStream => _currentScheduleController.stream;
-
   Stream<Map<String, String>> get deviceInfoStream =>
       _deviceInfoController.stream;
-
   Stream<String> get beddingLayerStream => _beddingLayerController.stream;
-
   Stream<String> get compostLayerStream => _compostLayerController.stream;
-
   Stream<String> get fluidLayerStream => _fluidLayerController.stream;
-
   Stream<Map<String, dynamic>> get relayFeedbackStream =>
       _relayFeedbackController.stream;
-
   Stream<Map<String, String>> get systemSettingsStream =>
       _systemSettingsController.stream;
 
