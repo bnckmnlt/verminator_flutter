@@ -44,6 +44,7 @@ class MqttService extends ChangeNotifier {
     'schedule/aeration',
     'feedback/conveyor',
     'feedback/rake',
+    'feedback/sifter',
     ...Constants.relayFeedbackTopics,
   ];
 

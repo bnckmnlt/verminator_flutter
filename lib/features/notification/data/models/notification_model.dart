@@ -4,6 +4,7 @@ import 'package:flutter_vermicomposting/features/notification/domain/entities/no
 class NotificationModel extends NotificationEntity {
   NotificationModel({
     required super.id,
+    required super.scheduleId,
     required super.notificationType,
     required super.subject,
     required super.description,
@@ -17,6 +18,7 @@ class NotificationModel extends NotificationEntity {
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
       id: json["id"] as int,
+      scheduleId: json["scheduleId"] as int,
       notificationType:
           NotificationType.values.byName(json["notificationType"] as String),
       subject: json["subject"] as String,
@@ -32,6 +34,7 @@ class NotificationModel extends NotificationEntity {
   factory NotificationModel.fromJsonSupabase(Map<String, dynamic> json) {
     return NotificationModel(
       id: json["id"] as int,
+      scheduleId: json["schedule_id"] as int,
       notificationType:
           NotificationType.values.byName(json["notification_type"] as String),
       subject: json["subject"] as String,
@@ -47,6 +50,7 @@ class NotificationModel extends NotificationEntity {
   Map<String, dynamic> toJson() {
     return {
       "id": id,
+      "scheduleId": scheduleId,
       "notificationType": notificationType,
       "subject": subject,
       "description": description,

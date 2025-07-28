@@ -1,5 +1,6 @@
 class NotificationEntity {
   final int id;
+  final int scheduleId;
   final NotificationType notificationType;
   final String subject;
   final String description;
@@ -11,6 +12,7 @@ class NotificationEntity {
 
   NotificationEntity({
     required this.id,
+    required this.scheduleId,
     required this.notificationType,
     required this.subject,
     required this.description,
@@ -23,6 +25,7 @@ class NotificationEntity {
 
   NotificationEntity copyWith({
     int? id,
+    int? scheduleId,
     NotificationType? notificationType,
     String? subject,
     String? description,
@@ -34,6 +37,7 @@ class NotificationEntity {
   }) {
     return NotificationEntity(
       id: id ?? this.id,
+      scheduleId: scheduleId ?? this.scheduleId,
       notificationType: notificationType ?? this.notificationType,
       subject: subject ?? this.subject,
       description: description ?? this.description,

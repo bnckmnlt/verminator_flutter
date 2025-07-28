@@ -12,9 +12,11 @@ import 'package:flutter_vermicomposting/features/compost_schedule/domain/entitie
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
+import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:mqtt_client/mqtt_client.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SystemScheduleHeaderSection extends StatefulWidget {
   final MqttService mqttService;
@@ -148,8 +150,8 @@ class _SystemScheduleHeaderSectionState
 
                   setState(() {
                     _isReadyToComplete =
-                        firstStatus.status == CompostingStatus.ready &&
-                            isCompleted;
+                        firstStatus.status == CompostingStatus.released &&
+                            !isCompleted;
                   });
                 }
               },
@@ -277,6 +279,7 @@ class _SystemScheduleHeaderSectionState
   void _handleEndSchedule(ToastHelper toastHelper) async {
     final rootContext = context; // Capture safe root context
     final MqttService mqttService = widget.mqttService;
+    final SupabaseClient supabase = GetIt.instance<SupabaseClient>();
     final now = DateTime.now().toIso8601String();
 
     showDialog(
@@ -336,24 +339,13 @@ class _SystemScheduleHeaderSectionState
                 return;
               }
 
-              final statusPayload = {
-                'statusScheduleId': widget.compostSchedule.id,
-                'status': CompostingStatus.released.name,
-                'remarks': null,
-                'isCompleted': true,
-              };
-
-              final statusResponse = await http.post(
-                statusUri,
-                headers: {'Content-Type': 'application/json; charset=UTF-8'},
-                body: jsonEncode(statusPayload),
-              );
-
-              if (statusResponse.statusCode != 200) {
-                await fail("Status update failed",
-                    statusResponse.body.parseErrorMessage());
-                return;
-              }
+              await supabase
+                  .from("status_records")
+                  .update({
+                    "is_completed": true,
+                  })
+                  .eq('status_schedule_id', widget.compostSchedule.id)
+                  .eq('status', 'released');
 
               mqttService.publish(
                 "system/status",

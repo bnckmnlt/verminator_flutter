@@ -44,7 +44,7 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
 
   void publishsifterCommand(String command) {
     widget.mqttService
-        .publish("control/rake", command, qos: MqttQos.atLeastOnce);
+        .publish("control/sifter", command, qos: MqttQos.atLeastOnce);
   }
 
   @override

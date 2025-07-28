@@ -131,7 +131,7 @@ class _SensorWithDurationWidgetState extends State<SensorWithDurationWidget> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  "Select Duration (in mins)",
+                  "Select Duration",
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
