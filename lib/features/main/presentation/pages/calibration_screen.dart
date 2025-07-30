@@ -1,7 +1,9 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/animation.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
+import 'package:lottie/lottie.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
 class CalibrationScreen extends StatefulWidget {
@@ -69,6 +71,7 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
               ),
               Expanded(
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       flex: 5,
@@ -110,12 +113,110 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
                       ),
                     ),
                     Expanded(
-                      flex: 3,
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 44),
-                        // Reserved for future content
-                      ),
-                    ),
+                        flex: 3,
+                        child: currentStepWidget == 4
+                            ? Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(12, 0, 44, 0),
+                                child: BounceWithFadeAnimation(
+                                  key: animationKey,
+                                  delay: 1.5,
+                                  child: AnimatedContainer(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.785,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .surfaceContainerHighest,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.fromLTRB(
+                                        24, 12, 24, 12),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Lottie.asset(
+                                          'assets/animations/success-animate.json',
+                                          repeat: false,
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.2,
+                                        ),
+                                        Text(
+                                          "Successfully calibrated!",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 0.025,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          "Your container is now calibrated and ready. All calibration\nsteps were completed without issues.",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withAlpha(124),
+                                            letterSpacing: 0.025,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 36),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.blueAccent,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            padding: const EdgeInsets.fromLTRB(
+                                                14, 8, 10, 8),
+                                            minimumSize: Size.zero,
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
+                                          ),
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                "Return to settings",
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 12,
+                                                  letterSpacing: 0.025,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Icon(
+                                                FluentIcons
+                                                    .chevron_right_24_filled,
+                                                color: Colors.white,
+                                                size: 14,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : SizedBox.shrink()),
                   ],
                 ),
               ),
