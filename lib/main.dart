@@ -9,6 +9,7 @@ import 'package:flutter_vermicomposting/core/theme/theme.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/calibration_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/control_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/home_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/logs_screen.dart';
@@ -111,6 +112,7 @@ class _MyAppState extends State<MyApp> {
         '/controls': (context) => const SafeArea(child: ControlScreen()),
         '/logs': (context) => const SafeArea(child: LogsScreen()),
         '/settings': (context) => SafeArea(child: SettingsScreen()),
+        '/calibration': (context) => SafeArea(child: CalibrationScreen()),
       },
     );
   }

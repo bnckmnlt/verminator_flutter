@@ -523,6 +523,11 @@ class _SystemSettingsState extends State<_SystemSettings> {
                 padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
                 child: Divider(),
               ),
+              _buildCalibrateContainers(context),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
+                child: Divider(),
+              ),
             ],
           )
         ],
@@ -727,6 +732,48 @@ class _SystemSettingsState extends State<_SystemSettings> {
                 onSelected: (value) => setState(() {
                   refreshRate = value!;
                 }),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCalibrateContainers(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: sectionHeader(
+            context: context,
+            title: "Calibrate Container Weight",
+            description:
+                "Calibrate the tare and capacity of containers used in compost, vermitea, or reservoir measurement",
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 18, 0),
+            child: sectionContent(
+              context: context,
+              header: "",
+              content: ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/calibration');
+                },
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadiusGeometry.circular(8),
+                  ),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  backgroundColor:
+                      Theme.of(context).colorScheme.primary.withAlpha(44),
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                ),
+                child: Text("Configure Weights"),
               ),
             ),
           ),
