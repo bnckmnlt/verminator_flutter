@@ -22,6 +22,7 @@ import 'package:flutter_vermicomposting/init_dependencies.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 final log = Logger('System Logs');
 
@@ -74,6 +75,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    WakelockPlus.enable();
   }
 
   final String _loadingDescription =
