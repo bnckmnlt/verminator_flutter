@@ -22,7 +22,7 @@ class WormActivityModel extends WormActivity {
       avgTemp: (json['avgTemp'] as num).toDouble(),
       minTemp: (json['minTemp'] as num).toDouble(),
       maxTemp: (json['maxTemp'] as num).toDouble(),
-      thermalSpread: json['thermalSpread'] as double,
+      thermalSpread: (json['thermalSpread'] as num).toDouble(),
       activityLevel:
           ActivityLevel.values.byName(json['activityLevel'] as String),
       hotspot: json['hotspot'] != null ? Point.fromJson(json['hotspot']) : null,

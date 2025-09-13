@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -15,9 +16,10 @@ class MqttService extends ChangeNotifier {
   late bool isConnected = false;
 
   final MQTTConnStateEntity _connState = MQTTConnStateEntity();
-  final MqttServerClient _client = MqttServerClient(
+  final MqttServerClient _client = MqttServerClient.withPort(
     AppSecrets.clusterUrl,
     '${AppSecrets.clientIdentifier ?? "defaultCluster"}-${Random().nextInt(1000000).toString().padLeft(6, '0')}',
+    int.parse(AppSecrets.clusterPort),
   );
   final List<String> _topics = [
     'control/relay',
@@ -105,7 +107,8 @@ class MqttService extends ChangeNotifier {
 
   void initializeMQTTClient() {
     _client.useWebSocket = true;
-    _client.port = int.parse(AppSecrets.clusterPort);
+    _client.secure = true;
+    _client.securityContext = SecurityContext.defaultContext;
     _client.websocketProtocols = MqttClientConstants.protocolsSingleDefault;
     _client.logging(on: true);
     _client.setProtocolV311();

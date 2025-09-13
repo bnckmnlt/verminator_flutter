@@ -64,7 +64,7 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
-        height: 248,
+        height: 300,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -81,9 +81,10 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
+                spacing: 14,
                 children: [
                   _sifterCycleSection(),
-                  const SizedBox(height: 12),
+                  _sifterSpeedControlSection(widget.mqttService),
                   _sifterCommandSection(sifterCommands: sifterCommands),
                 ],
               ),
@@ -202,6 +203,37 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
               ),
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  Widget _sifterSpeedControlSection(MqttService mqttClient) {
+    return Column(
+      spacing: 6,
+      children: [
+        const Text(
+          "Speed Control",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.025,
+          ),
+        ),
+        SizedBox(
+          height: 32,
+          child: Slider(
+              activeColor: Theme.of(context).colorScheme.tertiary,
+              inactiveColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+              value: 1000,
+              min: 1000,
+              max: 5000,
+              divisions: 10,
+              onChanged: (double newValue) {
+                mqttClient.publish(
+                    'control/conveyor', "Acceleration:$newValue");
+              }),
         ),
       ],
     );

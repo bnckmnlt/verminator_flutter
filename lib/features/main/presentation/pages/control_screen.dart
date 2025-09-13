@@ -39,7 +39,7 @@ class _ControlScreenState extends State<ControlScreen> {
       SensorControl(
         device: "Dual 150x150mm Fan",
         label: "Soil Aeration Control",
-        icon: CupertinoIcons.wind_snow,
+        icon: CupertinoIcons.thermometer,
         state: false,
         topic: "control/aeration",
       ),
@@ -130,15 +130,15 @@ class _ControlScreenState extends State<ControlScreen> {
                         child: Row(
                           children: [
                             Expanded(
+                                child: ConveyorControlWidget(
+                              mqttService: _mqttService,
+                            )),
+                            Expanded(
                                 child: RakeControlWidget(
                               mqttService: _mqttService,
                             )),
                             Expanded(
                                 child: SifterControlWidget(
-                              mqttService: _mqttService,
-                            )),
-                            Expanded(
-                                child: ConveyorControlWidget(
                               mqttService: _mqttService,
                             )),
                           ],

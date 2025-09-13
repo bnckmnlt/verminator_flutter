@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/error_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
+import 'package:flutter_vermicomposting/features/logs/domain/entity/log_entity.dart';
 import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/data_table_column.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/logs_widgets/logs_data_table.dart';
@@ -72,7 +73,7 @@ class _LogsScreenState extends State<LogsScreen> {
                 isError: true,
               );
             } else if (state is LogsListSuccess) {
-              final filteredLogs = state.logs.where((item) {
+              final List<LogEntity> filteredLogs = state.logs.where((item) {
                 final matchesSeverity = _selectedSeverity == 'all'
                     ? true
                     : item.logSeverity.name == _selectedSeverity;
@@ -97,6 +98,8 @@ class _LogsScreenState extends State<LogsScreen> {
                   createdAt: formattedDate,
                 );
               }).toList();
+
+              data.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
               int infoRecords = state.logs
                   .where((item) => item.logSeverity.name == 'info')

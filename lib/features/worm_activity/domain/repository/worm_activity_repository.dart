@@ -7,5 +7,5 @@ abstract interface class WormActivityRepository {
 
   Future<Either<Failure, WormActivity>> selectOneWormActivity({
     required int id,
-});
+  });
 }

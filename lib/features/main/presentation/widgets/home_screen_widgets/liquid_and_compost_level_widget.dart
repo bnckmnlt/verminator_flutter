@@ -101,7 +101,9 @@ class _LiquidAndCompostLevelWidgetState
                 color: Theme.of(context).colorScheme.surfaceContainerHigh,
               )),
           child: LiquidLinearProgressIndicator(
-            value: ((safeParseDouble(containerItems.first.value) ?? 0).clamp(0, 48)) / 48,
+            value: ((safeParseDouble(containerItems.first.value) ?? 0)
+                    .clamp(0, 48)) /
+                48,
             valueColor: AlwaysStoppedAnimation(containerItems.first.color),
             backgroundColor: Colors.transparent,
             borderColor: Colors.transparent,
@@ -109,8 +111,7 @@ class _LiquidAndCompostLevelWidgetState
             borderRadius: 12.0,
             direction: Axis.vertical,
             center: Padding(
-              padding: const EdgeInsets.symmetric(
-                  vertical: 18, horizontal: 14),
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -182,7 +183,8 @@ class _LiquidAndCompostLevelWidgetState
                             Theme.of(context).colorScheme.surfaceContainerHigh,
                       )),
                   child: LiquidLinearProgressIndicator(
-                    value: ((safeParseDouble(item.value) ?? 0).clamp(0, 28)) / 28,
+                    value:
+                        ((safeParseDouble(item.value) ?? 0).clamp(0, 28)) / 28,
                     valueColor: AlwaysStoppedAnimation(item.color),
                     backgroundColor: Colors.transparent,
                     borderColor: Colors.transparent,

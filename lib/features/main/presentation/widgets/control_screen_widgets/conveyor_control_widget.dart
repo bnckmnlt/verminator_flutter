@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/status_badge.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/control_screen.dart';
@@ -29,13 +30,12 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
     _conveyorState = false;
 
     _conveyorFeedbackSubscription =
-        widget.mqttService.controlCameraStream.listen((value) {
+        widget.mqttService.conveyorFeedbackStream.listen((value) {
       setState(() {
         _conveyorState = value == 'active' ? true : false;
       });
@@ -51,7 +51,15 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
   Widget build(BuildContext context) {
     final List<ConveyorCommand> conveyorCommands = [
       ConveyorCommand(
+        label: "Reverse",
+        onPressed: () => publishConveyorCommand("Flip"),
+      ),
+      ConveyorCommand(
         label: "Eject",
+        onPressed: () => publishConveyorCommand("Eject"),
+      ),
+      ConveyorCommand(
+        label: "Return Eject",
         onPressed: () => publishConveyorCommand("Eject"),
       ),
       ConveyorCommand(
@@ -65,7 +73,7 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
-        height: 248,
+        height: 300,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -82,9 +90,10 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
+                spacing: 14,
                 children: [
                   _conveyorModesSection(),
-                  const SizedBox(height: 12),
+                  _conveyorSpeedControlSection(widget.mqttService),
                   _conveyorCommandsSection(conveyorCommands: conveyorCommands),
                 ],
               ),
@@ -103,10 +112,42 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
     );
   }
 
+  Widget _conveyorSpeedControlSection(MqttService mqttClient) {
+    return Column(
+      spacing: 6,
+      children: [
+        const Text(
+          "Speed Control",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.025,
+          ),
+        ),
+        SizedBox(
+          height: 32,
+          child: Slider(
+              activeColor: Theme.of(context).colorScheme.tertiary,
+              inactiveColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+              value: 1000,
+              min: 1000,
+              max: 5000,
+              divisions: 10,
+              onChanged: (double newValue) {
+                mqttClient.publish(
+                    'control/conveyor', "Acceleration:$newValue");
+              }),
+        ),
+      ],
+    );
+  }
+
   Widget _conveyorModesSection() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 6,
       children: [
         Align(
           alignment: Alignment.center,
@@ -120,54 +161,52 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
             ),
           ),
         ),
-        const SizedBox(height: 6),
-        Align(
-          alignment: Alignment.center,
-          child: ToggleSwitch(
-            minHeight: 28,
-            minWidth: 124,
-            cornerRadius: 6,
-            borderWidth: 1,
-            borderColor: [Theme.of(context).colorScheme.surfaceContainerHigh],
-            activeBgColors: [
-              [Color(0xFF27272a).withAlpha(64)],
-              [Color(0xFF27272a).withAlpha(64)],
-              [Color(0xFF27272a).withAlpha(64)],
-            ],
-            activeFgColor: Colors.white,
-            inactiveBgColor: Theme.of(context).colorScheme.surface,
-            inactiveFgColor:
-                Theme.of(context).colorScheme.onSurface.withAlpha(124),
-            totalSwitches: 3,
-            labels: const ['Continuous', 'Valid', 'Invalid'],
-            icons: const [null, null, null],
-            onToggle: (index) {
-              if (index == 0) {
-                publishConveyorCommand("Continuous");
-              } else if (index == 1) {
-                publishConveyorCommand("Valid");
-              } else if (index == 2) {
-                publishConveyorCommand("Invalid");
-              }
-            },
-            customTextStyles: const [
-              TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.025,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Align(
+              alignment: Alignment.center,
+              child: ToggleSwitch(
+                minHeight: 28,
+                minWidth: 124,
+                cornerRadius: 6,
+                borderWidth: 1,
+                borderColor: [
+                  Theme.of(context).colorScheme.surfaceContainerHigh
+                ],
+                activeBgColors: [
+                  [Color(0xFF27272a).withAlpha(64)],
+                  [Color(0xFF27272a).withAlpha(64)],
+                ],
+                activeFgColor: Colors.white,
+                inactiveBgColor: Theme.of(context).colorScheme.surface,
+                inactiveFgColor:
+                    Theme.of(context).colorScheme.onSurface.withAlpha(124),
+                totalSwitches: 2,
+                labels: const ['Continuous', 'Valid'],
+                icons: const [null, null],
+                onToggle: (index) {
+                  if (index == 0) {
+                    publishConveyorCommand("Continuous");
+                  } else if (index == 1) {
+                    publishConveyorCommand("Valid");
+                  }
+                },
+                customTextStyles: const [
+                  TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.025,
+                  ),
+                  TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.025,
+                  ),
+                ],
               ),
-              TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.025,
-              ),
-              TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.025,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );
@@ -182,6 +221,7 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.center,
+          spacing: 6,
           children: [
             const Text(
               "Commands",
@@ -192,7 +232,6 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
                 letterSpacing: 0.025,
               ),
             ),
-            const SizedBox(height: 6),
             Row(
               children: conveyorCommands.asMap().entries.map((entry) {
                 final index = entry.key;

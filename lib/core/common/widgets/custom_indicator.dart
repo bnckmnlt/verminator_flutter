@@ -1,5 +1,5 @@
-import 'package:onboarding/onboarding.dart';
 import 'package:flutter/material.dart';
+import 'package:onboarding/onboarding.dart';
 
 class CustomIndicator extends ShapePainter {
   final double lineWidth;
@@ -31,9 +31,7 @@ class CustomIndicator extends ShapePainter {
   beforeIndicatorsRender(Canvas canvas, Size size) {
     if (translate) {
       final xTranslation = netDragPercent * pagesLength * (-lineWidth);
-      canvas.transform(Matrix4
-          .translationValues(xTranslation, 0, 0)
-          .storage);
+      canvas.transform(Matrix4.translationValues(xTranslation, 0, 0).storage);
     }
   }
 
