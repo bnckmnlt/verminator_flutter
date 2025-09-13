@@ -64,7 +64,7 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
-        height: 300,
+        height: 264,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),

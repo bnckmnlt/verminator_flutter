@@ -71,7 +71,7 @@ class _SensorWithDurationWidgetState extends State<SensorWithDurationWidget> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
-        height: 248,
+        height: 284,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),

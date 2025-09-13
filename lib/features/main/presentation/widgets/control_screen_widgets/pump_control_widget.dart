@@ -91,7 +91,7 @@ class _PumpControlWidgetState extends State<PumpControlWidget> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(
-              height: 248,
+              height: 264,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),

@@ -31,12 +31,12 @@ Map<String, dynamic> evaluateSoilHealth({
       value >= min && value <= max;
 
   final conditions = [
-    inRange(temperature!, 18, 28),
-    inRange(humidity!, 60, 80),
-    inRange(soilMoisture!, 60, 70),
-    inRange(nitrogen!, 20, 50),
-    inRange(phosphorus!, 5, 15),
-    inRange(potassium!, 30, 60),
+    inRange(temperature!, 20, 28),
+    inRange(humidity!, 50, 70),
+    inRange(soilMoisture!, 60, 80),
+    inRange(nitrogen!, 75, 100),
+    inRange(phosphorus!, 75, 100),
+    inRange(potassium!, 75, 100),
   ];
 
   final score = conditions.where((c) => c).length;

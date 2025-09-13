@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/status_badge.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/control_screen.dart';
@@ -73,7 +72,7 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
-        height: 300,
+        height: 264,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
