@@ -11,7 +11,6 @@ import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/fo
 import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/calibration_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/control_screen.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/home_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/logs_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_list_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/settings_screen.dart';
@@ -23,6 +22,8 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+
+import 'features/main/presentation/pages/test_screen.dart';
 
 final log = Logger('System Logs');
 
@@ -86,7 +87,7 @@ class _MyAppState extends State<MyApp> {
       selector: (state) => state is AppScheduleActive,
       builder: (context, scheduleActive) {
         if (scheduleActive) {
-          return const SafeArea(child: HomeScreen());
+          return const SafeArea(child: TestScreen());
         }
         return Scaffold(
           body: Center(
