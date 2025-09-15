@@ -42,9 +42,8 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
     int currentValue = widget.readingValueList.first.y.toInt();
 
     return Container(
-      height: 324,
-      width: 324,
-      padding: EdgeInsets.symmetric(vertical: 34, horizontal: 24),
+      height: 640,
+      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       decoration: BoxDecoration(
         color:
             Theme.of(context).colorScheme.surfaceContainerHigh.withOpacity(0.3),
@@ -63,13 +62,13 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
               Text(
                 widget.item['reading_key'].toUpperCase(),
                 style: GoogleFonts.inter(
-                  fontSize: 18,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Icon(
                 widget.item["icon"],
-                size: 24,
+                size: 18,
               )
             ],
           ),
@@ -82,14 +81,15 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
                 Icon(
                   FluentIcons.arrow_trending_24_filled,
                   grade: 100,
-                  size: 38,
+                  size: 28,
                   color: Colors.greenAccent.shade700,
                 ),
                 Text(
-                  "$currentValue ${widget.item["unit"]}",
+                  "$currentValue${widget.item["unit"]}",
                   style: GoogleFonts.inter(
-                    fontSize: 58,
+                    fontSize: 38,
                     fontWeight: FontWeight.w700,
+                    letterSpacing: 0.025,
                   ),
                 ),
               ],
@@ -98,7 +98,7 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
           Align(
             alignment: Alignment.bottomCenter,
             child: SizedBox(
-              height: 124,
+              height: 64,
               child: SfCartesianChart(
                 trackballBehavior: trackballBehavior,
                 margin: EdgeInsets.zero,

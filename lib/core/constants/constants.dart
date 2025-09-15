@@ -1,4 +1,6 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 
 enum LogSeverityFilter { all, info, warn, error, fatal }
 
@@ -52,12 +54,53 @@ class Constants {
 
   static const List<Map<String, dynamic>> serverList = [
     {
+      "label": "YOLO Inference",
       "src": 'https://camera.thinkio.me/video_feed',
       "topic": 'control/monitoring/camera',
     },
     {
+      "label": "Thermal Camera",
       "src": 'https://thermal.thinkio.me/',
       "topic": 'control/monitoring/thermal',
+    },
+  ];
+
+  static const List<Map<String, dynamic>> parametersToMonitorList = [
+    {
+      "reading_key": "temperature",
+      "layer": SystemLayer.bedding,
+      "icon": FluentIcons.temperature_24_filled,
+      "unit": "°C",
+    },
+    {
+      "reading_key": "humidity",
+      "layer": SystemLayer.bedding,
+      "icon": FluentIcons.drop_24_filled,
+      "unit": "%",
+    },
+    {
+      "reading_key": "soil moisture",
+      "layer": SystemLayer.bedding,
+      "icon": FluentIcons.plant_grass_24_filled,
+      "unit": "%",
+    },
+    {
+      "reading_key": "nitrogen",
+      "layer": SystemLayer.compost,
+      "icon": FluentIcons.weather_blowing_snow_24_filled,
+      "unit": "%",
+    },
+    {
+      "reading_key": "phosphorus",
+      "layer": SystemLayer.compost,
+      "icon": FluentIcons.hexagon_sparkle_24_filled,
+      "unit": "%",
+    },
+    {
+      "reading_key": "potassium",
+      "layer": SystemLayer.compost,
+      "icon": FluentIcons.flash_24_filled,
+      "unit": "%",
     },
   ];
 
