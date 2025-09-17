@@ -25,7 +25,8 @@ class SensorReadingRemoteDatasourceImpl
         return (jsonDecode(response.body) as List)
             .map((compostSchedule) =>
                 SensorReadingModel.fromJson(compostSchedule))
-            .toList();
+            .toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
       } else {
         throw ServerException(response.body.parseErrorMessage());
       }

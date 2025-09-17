@@ -68,7 +68,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
         }
       },
       style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6),
         ),
@@ -93,7 +93,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
         textColor: Colors.white,
         child: Icon(
           FluentIcons.alert_24_regular,
-          size: 24,
+          size: 28,
           color: Theme.of(context).colorScheme.onSurface,
         ),
       ),

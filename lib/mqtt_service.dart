@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/entities/mqtt_client.dart';
@@ -18,8 +17,8 @@ class MqttService extends ChangeNotifier {
   final MQTTConnStateEntity _connState = MQTTConnStateEntity();
   final MqttServerClient _client = MqttServerClient.withPort(
     AppSecrets.clusterUrl,
-    '${AppSecrets.clientIdentifier ?? "defaultCluster"}-${Random().nextInt(1000000).toString().padLeft(6, '0')}',
-    int.parse(AppSecrets.clusterPort),
+    AppSecrets.clientIdentifier.toString(),
+    AppSecrets.clusterPort,
   );
   final List<String> _topics = [
     'control/relay',
@@ -84,34 +83,49 @@ class MqttService extends ChangeNotifier {
       StreamController<Map<String, String>>.broadcast();
 
   Stream<String> get systemStatusStream => _systemStatusController.stream;
+
   Stream<String> get controlCameraStream => _controlMonitoringCamera.stream;
+
   Stream<String> get controlThermalStream => _controlMonitoringThermal.stream;
+
   Stream<String> get conveyorFeedbackStream =>
       _conveyorFeedbackController.stream;
+
   Stream<String> get sifterFeedbackStream => _sifterFeedbackController.stream;
+
   Stream<String> get mistingFeedbackStream => _mistingFeedbackController.stream;
+
   Stream<String> get rakeFeedbackStream => _rakeFeedbackController.stream;
+
   Stream<Map<String, dynamic>> get systemHealthStream =>
       _systemHealthController.stream;
+
   Stream<int> get currentCycleStream => _currentCycleController.stream;
+
   Stream<String> get currentScheduleStream => _currentScheduleController.stream;
+
   Stream<Map<String, String>> get deviceInfoStream =>
       _deviceInfoController.stream;
+
   Stream<String> get beddingLayerStream => _beddingLayerController.stream;
+
   Stream<String> get compostLayerStream => _compostLayerController.stream;
+
   Stream<String> get fluidLayerStream => _fluidLayerController.stream;
+
   Stream<Map<String, dynamic>> get relayFeedbackStream =>
       _relayFeedbackController.stream;
+
   Stream<Map<String, String>> get systemSettingsStream =>
       _systemSettingsController.stream;
 
   void initializeMQTTClient() {
-    _client.useWebSocket = true;
+    // _client.useWebSocket = true;
     _client.secure = true;
     _client.securityContext = SecurityContext.defaultContext;
-    _client.websocketProtocols = MqttClientConstants.protocolsSingleDefault;
+    // _client.websocketProtocols = MqttClientConstants.protocolsSingleDefault;
     _client.logging(on: true);
-    _client.setProtocolV311();
+    // _client.setProtocolV311();
     _client.keepAlivePeriod = 20;
 
     _client.onDisconnected = onDisconnected;
@@ -121,8 +135,10 @@ class MqttService extends ChangeNotifier {
 
     final connMess = MqttConnectMessage()
         .withClientIdentifier(AppSecrets.clientIdentifier)
-        .authenticateAs(AppSecrets.clusterUsername.toString(),
-            AppSecrets.clusterPassword.toString())
+        .authenticateAs(
+          AppSecrets.clusterUsername.toString(),
+          AppSecrets.clusterPassword.toString(),
+        )
         .startClean();
     _client.connectionMessage = connMess;
   }
