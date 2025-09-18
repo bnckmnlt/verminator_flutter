@@ -120,12 +120,11 @@ class MqttService extends ChangeNotifier {
       _systemSettingsController.stream;
 
   void initializeMQTTClient() {
-    // _client.useWebSocket = true;
-    _client.secure = true;
+    _client.useWebSocket = true;
     _client.securityContext = SecurityContext.defaultContext;
-    // _client.websocketProtocols = MqttClientConstants.protocolsSingleDefault;
+    _client.websocketProtocols = MqttClientConstants.protocolsSingleDefault;
     _client.logging(on: true);
-    // _client.setProtocolV311();
+    _client.setProtocolV311();
     _client.keepAlivePeriod = 20;
 
     _client.onDisconnected = onDisconnected;

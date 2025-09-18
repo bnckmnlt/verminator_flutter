@@ -153,6 +153,60 @@ class Constants {
       [1, 1],
     ],
   };
+
+  static final Map<String, Threshold> _thresholds = {
+    'temperature': Threshold(
+      goodMin: 20,
+      goodMax: 28,
+      fairLowMin: 10,
+      fairLowMax: 15,
+      fairHighMin: 30,
+      fairHighMax: 35,
+    ),
+    'humidity': Threshold(
+      goodMin: 70,
+      goodMax: 80,
+      fairLowMin: 60,
+      fairLowMax: 70,
+      fairHighMin: 80,
+      fairHighMax: 85,
+    ),
+    'soilMoisture': Threshold(
+      goodMin: 65,
+      goodMax: 80,
+      fairLowMin: 60,
+      fairLowMax: 65,
+      fairHighMin: 80,
+      fairHighMax: 90,
+    ),
+    'nitrogen': Threshold(
+      goodMin: 20,
+      goodMax: 40,
+      fairLowMin: 15,
+      fairLowMax: 20,
+      fairHighMin: 40,
+      fairHighMax: 50,
+    ),
+    'phosphorus': Threshold(
+      goodMin: 10,
+      goodMax: 30,
+      fairLowMin: 5,
+      fairLowMax: 10,
+      fairHighMin: 30,
+      fairHighMax: 40,
+    ),
+    'potassium': Threshold(
+      goodMin: 15,
+      goodMax: 30,
+      fairLowMin: 10,
+      fairLowMax: 15,
+      fairHighMin: 30,
+      fairHighMax: 35,
+    ),
+    'compost': Threshold(goodMin: 1, goodMax: 10),
+    'vermijuice': Threshold(goodMin: 1, goodMax: 10),
+    'reservoir': Threshold(goodMin: 1, goodMax: double.infinity),
+  };
 }
 
 class ReminderInterval {
@@ -257,4 +311,36 @@ class SelectedChart {
     required this.color,
     required this.data,
   });
+}
+
+class Threshold {
+  final double goodMin;
+  final double goodMax;
+  final double? fairLowMin;
+  final double? fairLowMax;
+  final double? fairHighMin;
+  final double? fairHighMax;
+
+  const Threshold({
+    required this.goodMin,
+    required this.goodMax,
+    this.fairLowMin,
+    this.fairLowMax,
+    this.fairHighMin,
+    this.fairHighMax,
+  });
+
+  SensorStatus classify(double v) {
+    if (v >= goodMin && v <= goodMax) return SensorStatus.good;
+    final low = fairLowMin != null &&
+        fairLowMax != null &&
+        v >= fairLowMin! &&
+        v <= fairLowMax!;
+    final high = fairHighMin != null &&
+        fairHighMax != null &&
+        v >= fairHighMin! &&
+        v <= fairHighMax!;
+    if (low || high) return SensorStatus.fair;
+    return SensorStatus.bad;
+  }
 }

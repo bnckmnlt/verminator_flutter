@@ -1,18 +1,20 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Threshold;
+import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/sensor_readings_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-
-import '../../../../../core/constants/constants.dart';
 
 class SensorReadingCard extends StatefulWidget {
   final Map<String, dynamic> item;
   final List<ChartData> readingValueList;
+  final int realtimeValue;
 
   const SensorReadingCard({
     super.key,
     required this.item,
     required this.readingValueList,
+    required this.realtimeValue,
   });
 
   @override
@@ -20,14 +22,31 @@ class SensorReadingCard extends StatefulWidget {
 }
 
 class _SensorReadingCardState extends State<SensorReadingCard> {
+  late int currentValue;
+  bool _initialized = false;
+
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      currentValue = widget.readingValueList.first.y.toInt();
+      _initialized = true;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant SensorReadingCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_initialized && oldWidget.realtimeValue != widget.realtimeValue) {
+      setState(() {
+        currentValue = widget.realtimeValue;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    TrackballBehavior trackballBehavior = TrackballBehavior(
+    final trackballBehavior = TrackballBehavior(
       enable: true,
       tooltipSettings: InteractiveTooltip(
         enable: true,
@@ -39,11 +58,9 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
       ),
     );
 
-    int currentValue = widget.readingValueList.first.y.toInt();
-
     return Container(
       height: 640,
-      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       decoration: BoxDecoration(
         color:
             Theme.of(context).colorScheme.surfaceContainerHigh.withOpacity(0.3),
@@ -57,7 +74,6 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 widget.item['reading_key'].toUpperCase(),
@@ -66,24 +82,18 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Icon(
-                widget.item["icon"],
-                size: 18,
-              )
+              Icon(widget.item["icon"], size: 18),
             ],
           ),
           Align(
-            alignment: Alignment(0, -0.3),
+            alignment: const Alignment(0, -0.3),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Icon(
-                  FluentIcons.arrow_trending_24_filled,
-                  grade: 100,
-                  size: 28,
-                  color: Colors.greenAccent.shade700,
-                ),
+                getSensorValueIcon(getSensorStatus(
+                  type: widget.item['reading_key'],
+                  value: currentValue.toString(),
+                )),
                 Text(
                   "$currentValue${widget.item["unit"]}",
                   style: GoogleFonts.inter(
@@ -103,12 +113,8 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
                 trackballBehavior: trackballBehavior,
                 margin: EdgeInsets.zero,
                 plotAreaBorderWidth: 0,
-                primaryXAxis: CategoryAxis(
-                  isVisible: false,
-                ),
-                primaryYAxis: NumericAxis(
-                  isVisible: false,
-                ),
+                primaryXAxis: CategoryAxis(isVisible: false),
+                primaryYAxis: NumericAxis(isVisible: false),
                 series: <CartesianSeries>[
                   AreaSeries<ChartData, String>(
                     sortingOrder: SortingOrder.ascending,
@@ -128,7 +134,7 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -136,5 +142,25 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
         ],
       ),
     );
+  }
+}
+
+Icon getSensorValueIcon(SensorStatus status) {
+  switch (status) {
+    case SensorStatus.bad:
+      return const Icon(
+        FluentIcons.arrow_trending_down_24_filled,
+        color: Colors.redAccent,
+      );
+    case SensorStatus.good:
+      return const Icon(
+        FluentIcons.arrow_trending_24_filled,
+        color: Colors.greenAccent,
+      );
+    default:
+      return const Icon(
+        FluentIcons.line_horizontal_1_24_filled,
+        color: Colors.white,
+      );
   }
 }

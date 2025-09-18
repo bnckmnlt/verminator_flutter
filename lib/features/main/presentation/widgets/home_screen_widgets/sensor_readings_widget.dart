@@ -230,7 +230,7 @@ SensorStatus getSensorStatus({
 
   switch (type) {
     case 'temperature':
-      if (numValue >= 15 && numValue <= 30) return SensorStatus.good;
+      if (numValue >= 20 && numValue <= 28) return SensorStatus.good;
       if (numValue >= 10 && numValue < 15 || numValue > 30 && numValue <= 35) {
         return SensorStatus.fair;
       }
