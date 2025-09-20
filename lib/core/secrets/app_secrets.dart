@@ -8,4 +8,5 @@ class AppSecrets {
   static final clusterPassword = dotenv.get('HIVEMQ_CLUSTER_PASSWORD');
   static final supabaseUrl = dotenv.get('SUPABASE_URL');
   static final supabaseAnonKey = dotenv.get('SUPABASE_ANONKEY');
+  static final domainURL = dotenv.get('DOMAIN_URL');
 }

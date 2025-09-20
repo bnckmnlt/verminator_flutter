@@ -9,7 +9,7 @@ import 'package:flutter_vermicomposting/core/common/widgets/error_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
-import 'package:flutter_vermicomposting/core/utils/format-to-local-time.dart';
+import 'package:flutter_vermicomposting/core/utils/format_to_local_time.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';

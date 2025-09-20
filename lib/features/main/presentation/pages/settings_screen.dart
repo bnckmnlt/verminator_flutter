@@ -602,7 +602,7 @@ class _SystemSettingsState extends State<_SystemSettings> {
             child: sectionContent(
               context: context,
               header: "Schedule ID",
-              content: Container(
+              content: SizedBox(
                 width: MediaQuery.of(context).size.width * 0.10,
                 child: TextFormField(
                   controller: _scheduleIdController,
@@ -794,12 +794,33 @@ class _AboutSection extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            height: 168,
-            child: Image.asset(
-              "assets/images/thinkio_logo_full.png",
-              fit: BoxFit.cover,
-              color: Theme.of(context).colorScheme.onSurface,
+          IntrinsicHeight(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 168,
+                  child: Image.asset(
+                    "assets/icons/verminator_logo.png",
+                    fit: BoxFit.cover,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const VerticalDivider(
+                  thickness: 1.5,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 18.0),
+                  child: SizedBox(
+                    height: 168,
+                    child: Image.asset(
+                      "assets/images/thinkio_logo_full.png",
+                      fit: BoxFit.cover,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           Column(

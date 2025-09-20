@@ -4,9 +4,10 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
-import 'package:flutter_vermicomposting/core/utils/format-to-local-time.dart';
+import 'package:flutter_vermicomposting/core/utils/format_to_local_time.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
@@ -16,6 +17,7 @@ import 'package:flutter_vermicomposting/features/main/domain/entities/sensor_val
 import 'package:flutter_vermicomposting/features/main/presentation/pages/home_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/camera_and_thermal_monitoring_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/composting_performance_overview_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/daily_report_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/environmental_metrics_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/notification_widget.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
@@ -51,8 +53,6 @@ class _TestScreenState extends State<TestScreen> {
   bool _hasFailed = false;
 
   List<String> _errorList = [];
-
-  Map<String, dynamic> _collectedData = {};
 
   SensorValues sensorValues = SensorValues(
     temperature: "0",
@@ -199,7 +199,7 @@ class _TestScreenState extends State<TestScreen> {
                   child: Container(
                     height: deviceHeight,
                     width: deviceWidth,
-                    padding: const EdgeInsets.fromLTRB(44, 28, 44, 28),
+                    padding: const EdgeInsets.fromLTRB(44, 54, 44, 28),
                     child: SingleChildScrollView(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -215,12 +215,14 @@ class _TestScreenState extends State<TestScreen> {
                             spacing: 20,
                             children: [
                               Expanded(
-                                child: _dailyReportSection(),
+                                child: DailyReportWidget(
+                                    sensorValues: sensorValues),
                               ),
                               Expanded(
                                 flex: 2,
                                 child: CompostingPerformanceOverviewWidget(
                                   sensorReadingList: sensorReadingList,
+                                  foodWasteList: foodWasteList,
                                 ),
                               ),
                               Expanded(
@@ -300,9 +302,70 @@ class _TestScreenState extends State<TestScreen> {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        spacing: 18,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Glassmorphism(
+                blur: 64,
+                opacity: 0.3,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    height: 54,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(64),
+                          offset: const Offset(0, 4),
+                          blurRadius: 6,
+                          spreadRadius: -1,
+                        ),
+                      ],
+                    ),
+                    child: Image.asset("assets/icons/verminator_logo.png"),
+                  ),
+                ),
+              ),
+              Row(
+                spacing: 8,
+                children: [
+                  NotificationWidget(),
+                  ...buttonList.asMap().entries.map((entry) {
+                    final item = entry.value;
+                    return OutlinedButton(
+                      onPressed: item.onPressedFunction,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        minimumSize: Size.zero,
+                        side: BorderSide(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHigh,
+                          width: 1,
+                        ),
+                      ),
+                      child: Icon(
+                        item.icon,
+                        size: 28,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    );
+                  })
+                ],
+              ),
+            ],
+          ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 6,
@@ -323,71 +386,8 @@ class _TestScreenState extends State<TestScreen> {
               ),
             ],
           ),
-          Row(
-            spacing: 8,
-            children: [
-              NotificationWidget(),
-              ...buttonList.asMap().entries.map((entry) {
-                final item = entry.value;
-                return OutlinedButton(
-                  onPressed: item.onPressedFunction,
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    minimumSize: Size.zero,
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                      width: 1,
-                    ),
-                  ),
-                  child: Icon(
-                    item.icon,
-                    size: 28,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                );
-              })
-            ],
-          )
         ],
       ),
-    );
-  }
-
-  Widget _dailyReportSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 18,
-      children: [
-        Text(
-          "Today's Report",
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
-          decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHigh
-                .withOpacity(0.3),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              width: 1.5,
-            ),
-          ),
-          child: Column(
-            children: [Text("Hello World")],
-          ),
-        ),
-      ],
     );
   }
 
@@ -441,58 +441,65 @@ class _TestScreenState extends State<TestScreen> {
           spacing: 12,
           children: [
             ..._summaryItems.map((item) {
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 24,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withAlpha(32),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Column(
-                      spacing: 2.5,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          textHeightBehavior: TextHeightBehavior(
-                            applyHeightToLastDescent: false,
-                            applyHeightToFirstAscent: true,
+              return Glassmorphism(
+                blur: 32,
+                opacity: 0.2,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 24,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHigh
+                        .withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Column(
+                        spacing: 2.5,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            textHeightBehavior: TextHeightBehavior(
+                              applyHeightToLastDescent: false,
+                              applyHeightToFirstAscent: true,
+                            ),
+                            "${item.value}${item.unit}",
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                          "${item.value}${item.unit}",
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w700,
+                          Text(
+                            item.label,
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withAlpha(164),
+                            ),
                           ),
-                        ),
-                        Text(
-                          item.label,
-                          style: TextStyle(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withAlpha(164),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
+                        ],
                       ),
-                      child: Icon(
-                        item.icon,
-                        size: 28,
-                        color: Colors.black87,
-                      ),
-                    )
-                  ],
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          item.icon,
+                          size: 28,
+                          color: Colors.black87,
+                        ),
+                      )
+                    ],
+                  ),
                 ),
               );
             })

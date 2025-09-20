@@ -149,17 +149,17 @@ Icon getSensorValueIcon(SensorStatus status) {
   switch (status) {
     case SensorStatus.bad:
       return const Icon(
-        FluentIcons.arrow_trending_down_24_filled,
-        color: Colors.redAccent,
+        FluentIcons.warning_24_filled,
+        color: Colors.orange,
       );
     case SensorStatus.good:
       return const Icon(
-        FluentIcons.arrow_trending_24_filled,
+        FluentIcons.checkmark_circle_24_filled,
         color: Colors.greenAccent,
       );
     default:
       return const Icon(
-        FluentIcons.line_horizontal_1_24_filled,
+        FluentIcons.subtract_circle_24_filled,
         color: Colors.white,
       );
   }

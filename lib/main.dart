@@ -61,8 +61,6 @@ void main() async {
       child: const MyApp(),
     ),
   );
-
-  // runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {

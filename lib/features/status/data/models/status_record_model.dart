@@ -1,5 +1,5 @@
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
-import 'package:flutter_vermicomposting/core/utils/format-to-local-time.dart';
+import 'package:flutter_vermicomposting/core/utils/format_to_local_time.dart';
 import 'package:flutter_vermicomposting/features/status/domain/entity/status_record.dart';
 
 class StatusRecordModel extends StatusRecord {

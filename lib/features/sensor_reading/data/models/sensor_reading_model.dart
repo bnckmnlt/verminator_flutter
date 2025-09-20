@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter_vermicomposting/core/utils/format-to-local-time.dart';
+import 'package:flutter_vermicomposting/core/utils/format_to_local_time.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 
 class SensorReadingModel extends SensorReading {

@@ -35,7 +35,6 @@ class MqttService extends ChangeNotifier {
     'layer/bedding',
     'layer/compost',
     'layer/fluid',
-    'layer/worms',
     'system/current_cycle',
     'system/status',
     'system/health',

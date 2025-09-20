@@ -1,4 +1,4 @@
-import 'package:flutter_vermicomposting/core/utils/format-to-local-time.dart';
+import 'package:flutter_vermicomposting/core/utils/format_to_local_time.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
 
 class FoodWasteModel extends FoodWaste {

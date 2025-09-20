@@ -80,11 +80,10 @@ class _NotificationWidgetState extends State<NotificationWidget> {
       ),
       icon: Badge(
         isLabelVisible:
-            (notificationList?.where((n) => n.read == false).isNotEmpty) ??
+            (notificationList.where((n) => n.read == false).isNotEmpty) ??
                 false,
-        label: Text(
-            (notificationList?.where((n) => n.read == false).length ?? 0)
-                .toString()),
+        label: Text((notificationList.where((n) => n.read == false).length ?? 0)
+            .toString()),
         backgroundColor: Colors.blueAccent,
         textStyle: GoogleFonts.spaceMono(
           fontWeight: FontWeight.w600,
@@ -113,7 +112,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
     final bool isEmpty = dataToDisplay.isEmpty;
 
     return Material(
-      elevation: 8,
+      elevation: 10,
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,

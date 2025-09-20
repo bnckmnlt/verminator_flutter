@@ -3,18 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/entities/layer_classes.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/animation.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/core/utils/food_waste_to_chartdata.dart';
 import 'package:flutter_vermicomposting/core/utils/sensor_reading_to_daily_avg.dart';
+import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/test_screen.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class CompostingPerformanceOverviewWidget extends StatefulWidget {
   final List<SensorReading> sensorReadingList;
+  final List<FoodWaste> foodWasteList;
 
   const CompostingPerformanceOverviewWidget({
     super.key,
     required this.sensorReadingList,
+    required this.foodWasteList,
   });
 
   @override
@@ -27,6 +32,7 @@ class _CompostingPerformanceOverviewWidgetState
   Key animationKey = UniqueKey();
 
   late List<SensorReading> _sensorReadingList;
+  late List<FoodWaste> _foodWasteList;
 
   int chartOverviewCurrentTab = 0;
   int selectedChart = 0;
@@ -35,6 +41,7 @@ class _CompostingPerformanceOverviewWidgetState
   @override
   void initState() {
     _sensorReadingList = widget.sensorReadingList;
+    _foodWasteList = widget.foodWasteList;
 
     super.initState();
   }
@@ -71,6 +78,30 @@ class _CompostingPerformanceOverviewWidgetState
             ))
         .toList();
 
+    final Map<String, List<ChartData>> foodWasteChartData = {
+      "fruit": foodWasteToChartData(
+          FoodWasteClassname.fruit, _foodWasteList, DateFormat.yMMMMd()),
+      "vegetable": foodWasteToChartData(
+          FoodWasteClassname.vegetable, _foodWasteList, DateFormat.yMMMMd()),
+      "grains": foodWasteToChartData(
+          FoodWasteClassname.grains, _foodWasteList, DateFormat.yMMMMd()),
+      "citrus": foodWasteToChartData(
+          FoodWasteClassname.citrus, _foodWasteList, DateFormat.yMMMMd()),
+      "meat": foodWasteToChartData(
+          FoodWasteClassname.meat, _foodWasteList, DateFormat.yMMMMd()),
+      "foreign": foodWasteToChartData(
+          FoodWasteClassname.foreign, _foodWasteList, DateFormat.yMMMMd()),
+    };
+
+    final kitchenWasteChartAnnotations = [
+      AnnotationData("Fruit", const Color(0xFF2563EB)),
+      AnnotationData("Vegetable", const Color(0xFF3B82F6)),
+      AnnotationData("Grains", const Color(0xFF93C5FD)),
+      AnnotationData("Citrus", const Color(0xFFDC2626)),
+      AnnotationData("Meat", const Color(0xFFF87171)),
+      AnnotationData("Foreign", const Color(0xFFFECACA)),
+    ];
+
     final chartsOverviewTabs = [
       ChartOverview(
         label: "Nutrient Level",
@@ -92,6 +123,87 @@ class _CompostingPerformanceOverviewWidgetState
         ],
         chartWidget: _beddingConditionChartOverview(
           beddingConditionCharts[selectedChart],
+        ),
+      ),
+      ChartOverview(
+        label: "Kitchen Waste Processed",
+        description: "The kitchen waste processed throughout the month",
+        annotation: kitchenWasteChartAnnotations,
+        chartWidget: Align(
+          alignment: Alignment.bottomCenter,
+          child: SizedBox(
+            height: 248,
+            child: SfCartesianChart(
+              enableAxisAnimation: true,
+              margin: EdgeInsets.zero,
+              plotAreaBorderWidth: 0,
+              primaryXAxis: CategoryAxis(
+                borderWidth: 0,
+                borderColor: Colors.transparent,
+                labelPlacement: LabelPlacement.onTicks,
+                edgeLabelPlacement: EdgeLabelPlacement.hide,
+                majorGridLines: MajorGridLines(width: 0),
+                majorTickLines: MajorTickLines(width: 0),
+                labelPosition: ChartDataLabelPosition.inside,
+                labelAlignment: LabelAlignment.end,
+                tickPosition: TickPosition.inside,
+                plotOffset: 0,
+                labelStyle: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.025,
+                ),
+                axisLine: AxisLine(
+                  width: 0,
+                ),
+              ),
+              primaryYAxis: NumericAxis(
+                edgeLabelPlacement: EdgeLabelPlacement.hide,
+                labelPosition: ChartDataLabelPosition.inside,
+                labelAlignment: LabelAlignment.center,
+                tickPosition: TickPosition.inside,
+                minorTickLines: MinorTickLines(width: 0),
+                majorTickLines: MajorTickLines(width: 0),
+                borderWidth: 0,
+                plotOffset: 0,
+                labelStyle: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.025,
+                ),
+                axisLine: AxisLine(
+                  width: 0,
+                ),
+              ),
+              series: <CartesianSeries>[
+                ...foodWasteChartData.entries
+                    .toList()
+                    .asMap()
+                    .entries
+                    .map((item) {
+                  final int index = item.key;
+                  final List<ChartData> data = item.value.value;
+
+                  return StackedColumnSeries<ChartData, String>(
+                    groupName: index < 2 ? "Valid" : "Invalid",
+                    dataSource: data,
+                    color: kitchenWasteChartAnnotations[index].color,
+                    sortingOrder: SortingOrder.descending,
+                    dataLabelSettings: DataLabelSettings(
+                        isVisible: true,
+                        showCumulativeValues: true,
+                        textStyle: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.025,
+                        )),
+                    xValueMapper: (ChartData d, _) => d.x,
+                    yValueMapper: (ChartData d, _) => d.y,
+                  );
+                })
+              ],
+            ),
+          ),
         ),
       ),
     ];
@@ -159,7 +271,7 @@ class _CompostingPerformanceOverviewWidgetState
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: Theme.of(context).colorScheme.surfaceContainer,
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
           ),
         ),
         child: Row(
@@ -281,7 +393,7 @@ class _CompostingPerformanceOverviewWidgetState
                       Dismissible(
                         key: UniqueKey(),
                         onDismissed: (chartOverviewCurrentTab >= 0 &&
-                                chartOverviewCurrentTab < 2)
+                                chartOverviewCurrentTab < 3)
                             ? (DismissDirection direction) {
                                 if (direction == DismissDirection.endToStart) {
                                   navigateNextChart();
@@ -466,7 +578,7 @@ class _CompostingPerformanceOverviewWidgetState
   }
 
   void navigateNextChart() {
-    if (chartOverviewCurrentTab < 1) {
+    if (chartOverviewCurrentTab < 2) {
       setState(() {
         chartOverviewCurrentTab++;
       });
@@ -485,7 +597,7 @@ class _CompostingPerformanceOverviewWidgetState
       });
     } else {
       setState(() {
-        chartOverviewCurrentTab = 1;
+        chartOverviewCurrentTab = 2;
       });
     }
     refreshAnimations();

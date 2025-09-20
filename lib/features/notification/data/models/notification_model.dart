@@ -1,4 +1,4 @@
-import 'package:flutter_vermicomposting/core/utils/format-to-local-time.dart';
+import 'package:flutter_vermicomposting/core/utils/format_to_local_time.dart';
 import 'package:flutter_vermicomposting/features/notification/domain/entities/notification.dart';
 
 class NotificationModel extends NotificationEntity {
