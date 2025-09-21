@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/popup_selection_widget.dart';
 import 'package:flutter_vermicomposting/core/error/exception.dart';
 import 'package:flutter_vermicomposting/core/secrets/app_secrets.dart';
 import 'package:flutter_vermicomposting/core/utils/evaluate_soil_health.dart';
@@ -28,11 +29,14 @@ class DailyReportWidget extends StatefulWidget {
 }
 
 class _DailyReportWidgetState extends State<DailyReportWidget> {
-  late SummaryPromptResponse _dailyReportResponse;
-  late SensorValues _sensorValues;
-  late Map<String, PromptBody> _summaryData;
-  late List<String> dataKeys;
   DateTime? _selectedDate = DateTime.now();
+
+  late PromptResponse _dailyReportResponse;
+  late SensorValues _sensorValues;
+
+  late Map<String, PromptBody> _summaryData;
+  late List<String> _dataKeys;
+  late Widget _selection;
 
   int currentSummaryTab = 0;
 
@@ -42,35 +46,9 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
   void initState() {
     _sensorValues = widget.sensorValues;
 
-    log.severe(_selectedDate?.toIso8601String());
-
     super.initState();
 
     _getResponse();
-  }
-
-  Future<void> _getResponse() async {
-    try {
-      final response = await http.post(
-        Uri.parse(
-            "${AppSecrets.domainURL}/prompt/${_selectedDate?.toUtc().toIso8601String()}"),
-      );
-
-      if (response.statusCode == 200) {
-        _dailyReportResponse =
-            SummaryPromptResponse.fromJson(jsonDecode(response.body));
-
-        setState(() {
-          responseLoaded = true;
-        });
-      } else {
-        throw ServerException(response.body.parseErrorMessage());
-      }
-    } on ServerException catch (e) {
-      log.warning(e.toString());
-    } catch (e, stack) {
-      log.severe('Unexpected error: $e', e, stack);
-    }
   }
 
   @override
@@ -89,7 +67,19 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
         return prev;
       });
 
-      dataKeys = _summaryData.keys.toList();
+      _dataKeys = _summaryData.keys.toList();
+
+      _selection = PopupSelectionWidget(
+        label: _dataKeys[currentSummaryTab].toUpperCase(),
+        selectedFunction: (value) => setState(() {
+          currentSummaryTab = value;
+        }),
+        popupKeys: _dataKeys,
+        trailingIcon: const Icon(
+          FluentIcons.chevron_down_24_filled,
+          size: 14,
+        ),
+      );
     }
 
     final result = evaluateSoilHealth(
@@ -99,65 +89,6 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
       nitrogen: safeParseDouble(_sensorValues.nitrogen),
       phosphorus: safeParseDouble(_sensorValues.phosphorus),
       potassium: safeParseDouble(_sensorValues.potassium),
-    );
-
-    Widget selection = PopupMenuButton(
-      onSelected: (value) => setState(() {
-        currentSummaryTab = value;
-      }),
-      itemBuilder: (context) => const [
-        PopupMenuItem(
-          value: 0,
-          child: Text('Temperature'),
-        ),
-        PopupMenuItem(
-          value: 1,
-          child: Text('Humidity'),
-        ),
-        PopupMenuItem(
-          value: 2,
-          child: Text('Soil Moisture'),
-        ),
-        PopupMenuItem(
-          value: 3,
-          child: Text('Nitrogen'),
-        ),
-        PopupMenuItem(
-          value: 4,
-          child: Text('Phosphorus'),
-        ),
-        PopupMenuItem(
-          value: 5,
-          child: Text('Potassium'),
-        ),
-      ],
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 8, 12, 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          ),
-        ),
-        child: Row(
-          spacing: 6,
-          children: [
-            Text(
-              responseLoaded
-                  ? dataKeys[currentSummaryTab].toUpperCase()
-                  : "Loading",
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const Icon(
-              FluentIcons.chevron_down_24_filled,
-              size: 14,
-            ),
-          ],
-        ),
-      ),
     );
 
     return Column(
@@ -204,36 +135,42 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("System Health"),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            result["status"].toString().toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.025,
-                            ),
-                          ),
-                          Icon(
-                            result['icon'],
-                            size: 20,
-                            color: result["color"],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                  _systemConditionSection(result),
                   Divider(),
-                  _readingPromptSection(selection),
+                  responseLoaded
+                      ? _readingPromptSection(_selection)
+                      : SizedBox(height: 324, child: Loader()),
                 ],
               ),
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _systemConditionSection(Map<String, dynamic> result) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("System Condition"),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              result["status"].toString().toUpperCase(),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.025,
+              ),
+            ),
+            Icon(
+              result['icon'],
+              size: 20,
+              color: result["color"],
+            ),
+          ],
         ),
       ],
     );
@@ -328,7 +265,7 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
             ),
             responseLoaded
                 ? insightAndRecommendationSection(
-                    _summaryData[dataKeys[currentSummaryTab]]!)
+                    _summaryData[_dataKeys[currentSummaryTab]]!)
                 : Center(child: Loader()),
           ],
         ),
@@ -380,6 +317,30 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
     );
   }
 
+  Future<void> _getResponse() async {
+    try {
+      final response = await http.post(
+        Uri.parse(
+            "${AppSecrets.domainURL}/prompt/${_selectedDate?.toUtc().toIso8601String()}"),
+      );
+
+      if (response.statusCode == 200) {
+        _dailyReportResponse =
+            PromptResponse.fromJson(jsonDecode(response.body));
+
+        setState(() {
+          responseLoaded = true;
+        });
+      } else {
+        throw ServerException(response.body.parseErrorMessage());
+      }
+    } on ServerException catch (e) {
+      log.warning(e.toString());
+    } catch (e, stack) {
+      log.severe('Unexpected error: $e', e, stack);
+    }
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -404,28 +365,28 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
   }
 }
 
-class SummaryPromptResponse {
+class PromptResponse {
   final PromptBody temperature;
   final PromptBody humidity;
-  final PromptBody soilMoisture;
+  final PromptBody moisture;
   final PromptBody nitrogen;
   final PromptBody phosphorus;
   final PromptBody potassium;
 
-  SummaryPromptResponse({
+  PromptResponse({
     required this.temperature,
     required this.humidity,
-    required this.soilMoisture,
+    required this.moisture,
     required this.nitrogen,
     required this.phosphorus,
     required this.potassium,
   });
 
-  factory SummaryPromptResponse.fromJson(Map<String, dynamic> json) {
-    return SummaryPromptResponse(
+  factory PromptResponse.fromJson(Map<String, dynamic> json) {
+    return PromptResponse(
       temperature: PromptBody.fromJson(json["temperature"]),
       humidity: PromptBody.fromJson(json["humidity"]),
-      soilMoisture: PromptBody.fromJson(json["moisture"]),
+      moisture: PromptBody.fromJson(json["moisture"]),
       nitrogen: PromptBody.fromJson(json["nitrogen"]),
       phosphorus: PromptBody.fromJson(json["phosphorus"]),
       potassium: PromptBody.fromJson(json["potassium"]),
@@ -434,12 +395,12 @@ class SummaryPromptResponse {
 
   Map<String, dynamic> toMap() {
     return {
-      "temperature": this.temperature,
-      "humidity": this.humidity,
-      "soilMoisture": this.soilMoisture,
-      "nitrogen": this.nitrogen,
-      "phosphorus": this.phosphorus,
-      "potassium": this.potassium,
+      "temperature": temperature,
+      "humidity": humidity,
+      "moisture": moisture,
+      "nitrogen": nitrogen,
+      "phosphorus": phosphorus,
+      "potassium": potassium,
     };
   }
 }

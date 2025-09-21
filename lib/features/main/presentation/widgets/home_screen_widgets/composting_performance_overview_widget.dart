@@ -2,6 +2,8 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/entities/layer_classes.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/animation.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/popup_selection_widget.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/spline_area_chart_widget.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/core/utils/food_waste_to_chartdata.dart';
 import 'package:flutter_vermicomposting/core/utils/sensor_reading_to_daily_avg.dart';
@@ -93,34 +95,17 @@ class _CompostingPerformanceOverviewWidgetState
           FoodWasteClassname.foreign, _foodWasteList, DateFormat.yMMMMd()),
     };
 
-    final kitchenWasteChartAnnotations = [
-      AnnotationData("Fruit", const Color(0xFF2563EB)),
-      AnnotationData("Vegetable", const Color(0xFF3B82F6)),
-      AnnotationData("Grains", const Color(0xFF93C5FD)),
-      AnnotationData("Citrus", const Color(0xFFDC2626)),
-      AnnotationData("Meat", const Color(0xFFF87171)),
-      AnnotationData("Foreign", const Color(0xFFFECACA)),
-    ];
-
     final chartsOverviewTabs = [
       ChartOverview(
         label: "Nutrient Level",
         description: "The nutrient readings recorded throughout the month",
-        annotation: [
-          AnnotationData("Nitrogen", const Color(0xff2563EB)),
-          AnnotationData("Phosphorus", const Color(0xff3B86F7)),
-          AnnotationData("Potassium", const Color(0xff90C7FE)),
-        ],
+        annotation: Constants().nutrientAnnotations,
         chartWidget: _nutrientLevelChartOverview(compostConditionCharts),
       ),
       ChartOverview(
         label: "Bedding Condition",
         description: "The bedding condition recorded throughout the month",
-        annotation: [
-          AnnotationData("Temperature", Color(0xff2563EB)),
-          AnnotationData("Humidity", Color(0xff3B86F7)),
-          AnnotationData("Soil Moisture", Color(0xff90C7FE)),
-        ],
+        annotation: Constants().beddingAnnotations,
         chartWidget: _beddingConditionChartOverview(
           beddingConditionCharts[selectedChart],
         ),
@@ -128,169 +113,33 @@ class _CompostingPerformanceOverviewWidgetState
       ChartOverview(
         label: "Kitchen Waste Processed",
         description: "The kitchen waste processed throughout the month",
-        annotation: kitchenWasteChartAnnotations,
-        chartWidget: Align(
-          alignment: Alignment.bottomCenter,
-          child: SizedBox(
-            height: 248,
-            child: SfCartesianChart(
-              enableAxisAnimation: true,
-              margin: EdgeInsets.zero,
-              plotAreaBorderWidth: 0,
-              primaryXAxis: CategoryAxis(
-                borderWidth: 0,
-                borderColor: Colors.transparent,
-                labelPlacement: LabelPlacement.onTicks,
-                edgeLabelPlacement: EdgeLabelPlacement.hide,
-                majorGridLines: MajorGridLines(width: 0),
-                majorTickLines: MajorTickLines(width: 0),
-                labelPosition: ChartDataLabelPosition.inside,
-                labelAlignment: LabelAlignment.end,
-                tickPosition: TickPosition.inside,
-                plotOffset: 0,
-                labelStyle: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.025,
-                ),
-                axisLine: AxisLine(
-                  width: 0,
-                ),
-              ),
-              primaryYAxis: NumericAxis(
-                edgeLabelPlacement: EdgeLabelPlacement.hide,
-                labelPosition: ChartDataLabelPosition.inside,
-                labelAlignment: LabelAlignment.center,
-                tickPosition: TickPosition.inside,
-                minorTickLines: MinorTickLines(width: 0),
-                majorTickLines: MajorTickLines(width: 0),
-                borderWidth: 0,
-                plotOffset: 0,
-                labelStyle: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.025,
-                ),
-                axisLine: AxisLine(
-                  width: 0,
-                ),
-              ),
-              series: <CartesianSeries>[
-                ...foodWasteChartData.entries
-                    .toList()
-                    .asMap()
-                    .entries
-                    .map((item) {
-                  final int index = item.key;
-                  final List<ChartData> data = item.value.value;
-
-                  return StackedColumnSeries<ChartData, String>(
-                    groupName: index < 2 ? "Valid" : "Invalid",
-                    dataSource: data,
-                    color: kitchenWasteChartAnnotations[index].color,
-                    sortingOrder: SortingOrder.descending,
-                    dataLabelSettings: DataLabelSettings(
-                        isVisible: true,
-                        showCumulativeValues: true,
-                        textStyle: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.025,
-                        )),
-                    xValueMapper: (ChartData d, _) => d.x,
-                    yValueMapper: (ChartData d, _) => d.y,
-                  );
-                })
-              ],
-            ),
-          ),
+        annotation: Constants().kitchenWasteChartAnnotations,
+        chartWidget: _kitchenWasteChartOverview(
+          foodWasteChartData,
+          Constants().kitchenWasteChartAnnotations,
         ),
       ),
     ];
 
-    Widget dateRangeFilter = PopupMenuButton(
-      onSelected: (value) => setState(() {
+    final dateRangeFilter = PopupSelectionWidget(
+      label: Constants().dateRangeList[selectedDateRange],
+      selectedFunction: (value) => setState(() {
         selectedDateRange = value;
       }),
-      itemBuilder: (context) => const [
-        PopupMenuItem(
-          value: 0,
-          child: Text('24 hours'),
-        ),
-        PopupMenuItem(
-          value: 1,
-          child: Text('1 week'),
-        ),
-        PopupMenuItem(
-          value: 2,
-          child: Text('1 month'),
-        ),
-        PopupMenuItem(
-          value: 3,
-          child: Text('1 year'),
-        ),
-      ],
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(28, 8, 28, 8),
-        decoration: BoxDecoration(
-          color: Colors.grey.withAlpha(32),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.surfaceContainer,
-          ),
-        ),
-        child: Text(
-          ["24 hours", "1 week", "1 month", "1 year"][selectedDateRange],
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
+      popupKeys: Constants().dateRangeList,
+      isElevated: true,
     );
 
-    Widget selection = PopupMenuButton(
-      onSelected: (value) => setState(() {
+    final selection = PopupSelectionWidget(
+      label: Constants().beddingAnnotations[selectedChart].label,
+      selectedFunction: (value) => setState(() {
         selectedChart = value;
       }),
-      itemBuilder: (context) => const [
-        PopupMenuItem(
-          value: 0,
-          child: Text('Temperature'),
-        ),
-        PopupMenuItem(
-          value: 1,
-          child: Text('Humidity'),
-        ),
-        PopupMenuItem(
-          value: 2,
-          child: Text('Soil Moisture'),
-        ),
-      ],
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(18, 8, 16, 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          ),
-        ),
-        child: Row(
-          spacing: 6,
-          children: [
-            Text(
-              chartsOverviewTabs[chartOverviewCurrentTab]
-                  .annotation![selectedChart]
-                  .label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const Icon(
-              FluentIcons.chevron_down_24_filled,
-              size: 18,
-            ),
-          ],
-        ),
+      popupKeys:
+          Constants().beddingAnnotations.map((item) => item.label).toList(),
+      trailingIcon: const Icon(
+        FluentIcons.chevron_down_24_filled,
+        size: 18,
       ),
     );
 
@@ -333,6 +182,28 @@ class _CompostingPerformanceOverviewWidgetState
                   delay: 1,
                   child: Stack(
                     children: [
+                      Dismissible(
+                        key: UniqueKey(),
+                        onDismissed: (chartOverviewCurrentTab >= 0 &&
+                                chartOverviewCurrentTab < 3)
+                            ? (DismissDirection direction) {
+                                if (direction == DismissDirection.endToStart) {
+                                  navigateNextChart();
+                                } else if (direction ==
+                                    DismissDirection.startToEnd) {
+                                  navigatePreviousChart();
+                                }
+                              }
+                            : (direction) {},
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: SizedBox(
+                            height: 248,
+                            child: chartsOverviewTabs[chartOverviewCurrentTab]
+                                .chartWidget,
+                          ),
+                        ),
+                      ),
                       Positioned(
                         top: 24,
                         right: 24,
@@ -390,22 +261,6 @@ class _CompostingPerformanceOverviewWidgetState
                           ],
                         ),
                       ),
-                      Dismissible(
-                        key: UniqueKey(),
-                        onDismissed: (chartOverviewCurrentTab >= 0 &&
-                                chartOverviewCurrentTab < 3)
-                            ? (DismissDirection direction) {
-                                if (direction == DismissDirection.endToStart) {
-                                  navigateNextChart();
-                                } else if (direction ==
-                                    DismissDirection.startToEnd) {
-                                  navigatePreviousChart();
-                                }
-                              }
-                            : (direction) {},
-                        child: chartsOverviewTabs[chartOverviewCurrentTab]
-                            .chartWidget,
-                      ),
                       Positioned(
                         top: 24,
                         left: 24,
@@ -430,150 +285,155 @@ class _CompostingPerformanceOverviewWidgetState
   }
 
   Widget _nutrientLevelChartOverview(
-      List<ChartDatasource> nutrientLevelDatasources) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: SizedBox(
-        height: 248,
-        child: SfCartesianChart(
-          margin: const EdgeInsets.all(0),
-          plotAreaBorderWidth: 0,
-          plotAreaBackgroundColor: Colors.transparent,
-          primaryXAxis: CategoryAxis(
-            axisLine: AxisLine(width: 0),
-            borderWidth: 0,
-            borderColor: Colors.transparent,
-            labelPlacement: LabelPlacement.onTicks,
-            edgeLabelPlacement: EdgeLabelPlacement.shift,
-            majorGridLines: MajorGridLines(width: 0),
-            majorTickLines: MajorTickLines(width: 0),
-            isVisible: false,
-          ),
-          primaryYAxis: NumericAxis(
-            labelPosition: ChartDataLabelPosition.inside,
-            labelAlignment: LabelAlignment.end,
-            tickPosition: TickPosition.inside,
-            minorTickLines: MinorTickLines(width: 0),
-            majorTickLines: MajorTickLines(width: 0),
-            borderWidth: 0,
-            plotOffset: 0,
-            labelFormat: ' {value}%',
-            labelStyle: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.025,
-            ),
-            axisLine: AxisLine(
-              width: 0,
-            ),
-          ),
-          series: <CartesianSeries>[
-            ...nutrientLevelDatasources.map((item) {
-              return SplineAreaSeries<ChartData, String>(
-                sortingOrder: SortingOrder.ascending,
-                dataSource: item.chartData,
-                xValueMapper: (ChartData data, _) => data.x,
-                yValueMapper: (ChartData data, _) => data.y,
-                color: Colors.white,
-                borderColor: Colors.white,
-                borderWidth: 4,
-                borderDrawMode: BorderDrawMode.top,
-                gradient: LinearGradient(
-                  colors: [
-                    item.chartColor!.withAlpha(58),
-                    item.chartColor!.withAlpha(24),
-                    item.chartColor!.withAlpha(0),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                markerSettings: MarkerSettings(
-                  borderWidth: 1.5,
-                  borderColor: Colors.white,
-                  width: 12,
-                  height: 12,
-                  isVisible: true,
-                  shape: DataMarkerType.circle,
-                ),
-              );
-            }),
-          ],
+      List<ChartDatasource> chartDatasourceList) {
+    return SfCartesianChart(
+      margin: const EdgeInsets.all(0),
+      plotAreaBorderWidth: 0,
+      plotAreaBackgroundColor: Colors.transparent,
+      primaryXAxis: CategoryAxis(
+        axisLine: AxisLine(width: 0),
+        borderWidth: 0,
+        borderColor: Colors.transparent,
+        labelPlacement: LabelPlacement.onTicks,
+        edgeLabelPlacement: EdgeLabelPlacement.shift,
+        majorGridLines: MajorGridLines(width: 0),
+        majorTickLines: MajorTickLines(width: 0),
+        isVisible: false,
+      ),
+      primaryYAxis: NumericAxis(
+        labelPosition: ChartDataLabelPosition.inside,
+        labelAlignment: LabelAlignment.end,
+        tickPosition: TickPosition.inside,
+        minorTickLines: MinorTickLines(width: 0),
+        majorTickLines: MajorTickLines(width: 0),
+        borderWidth: 0,
+        plotOffset: 0,
+        labelFormat: ' {value}%',
+        labelStyle: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.025,
+        ),
+        axisLine: AxisLine(
+          width: 0,
         ),
       ),
+      series: chartDatasourceList.map((item) {
+        return SplineAreaChartWidget.build(chartDatasource: item);
+      }).toList(),
     );
   }
 
-  Widget _beddingConditionChartOverview(ChartDatasource datasource) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: SizedBox(
-        height: 248,
-        child: SfCartesianChart(
-          enableAxisAnimation: true,
-          margin: EdgeInsets.zero,
-          plotAreaBorderWidth: 0,
-          primaryXAxis: CategoryAxis(
-            axisLine: AxisLine(width: 0),
-            borderWidth: 0,
-            borderColor: Colors.transparent,
-            labelPlacement: LabelPlacement.onTicks,
-            edgeLabelPlacement: EdgeLabelPlacement.shift,
-            majorGridLines: MajorGridLines(width: 0),
-            majorTickLines: MajorTickLines(width: 0),
-            isVisible: false,
-          ),
-          primaryYAxis: NumericAxis(
-            edgeLabelPlacement: EdgeLabelPlacement.hide,
-            minimum: selectedChart == 0 ? 20 : 0,
-            maximum: selectedChart == 0 ? 45 : 120,
-            labelPosition: ChartDataLabelPosition.inside,
-            labelAlignment: LabelAlignment.end,
-            tickPosition: TickPosition.inside,
-            minorTickLines: MinorTickLines(width: 0),
-            majorTickLines: MajorTickLines(width: 0),
-            borderWidth: 0,
-            plotOffset: 0,
-            labelFormat: ' {value}${selectedChart == 0 ? "°C" : "%"}',
-            labelStyle: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.025,
-            ),
-            axisLine: AxisLine(
-              width: 0,
-            ),
-          ),
-          series: <CartesianSeries>[
-            SplineAreaSeries<ChartData, String>(
-              sortingOrder: SortingOrder.ascending,
-              dataSource: datasource.chartData,
-              xValueMapper: (ChartData data, _) => data.x,
-              yValueMapper: (ChartData data, _) => data.y,
-              color: Colors.white,
-              borderColor: Colors.white,
-              borderWidth: 4,
-              borderDrawMode: BorderDrawMode.top,
-              gradient: LinearGradient(
-                colors: [
-                  Colors.blueAccent.withAlpha(58),
-                  Colors.blueAccent.withAlpha(24),
-                  Colors.blueAccent.withAlpha(0),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-              markerSettings: MarkerSettings(
-                borderWidth: 1.5,
-                borderColor: Colors.white,
-                width: 12,
-                height: 12,
-                isVisible: true,
-                shape: DataMarkerType.circle,
-              ),
-            )
-          ],
+  Widget _beddingConditionChartOverview(ChartDatasource chartDatasource) {
+    return SfCartesianChart(
+      enableAxisAnimation: true,
+      margin: EdgeInsets.zero,
+      plotAreaBorderWidth: 0,
+      primaryXAxis: CategoryAxis(
+        axisLine: AxisLine(width: 0),
+        borderWidth: 0,
+        borderColor: Colors.transparent,
+        labelPlacement: LabelPlacement.onTicks,
+        edgeLabelPlacement: EdgeLabelPlacement.shift,
+        majorGridLines: MajorGridLines(width: 0),
+        majorTickLines: MajorTickLines(width: 0),
+        isVisible: false,
+      ),
+      primaryYAxis: NumericAxis(
+        edgeLabelPlacement: EdgeLabelPlacement.hide,
+        minimum: selectedChart == 0 ? 20 : 0,
+        maximum: selectedChart == 0 ? 45 : 120,
+        labelPosition: ChartDataLabelPosition.inside,
+        labelAlignment: LabelAlignment.end,
+        tickPosition: TickPosition.inside,
+        minorTickLines: MinorTickLines(width: 0),
+        majorTickLines: MajorTickLines(width: 0),
+        borderWidth: 0,
+        plotOffset: 0,
+        labelFormat: ' {value}${selectedChart == 0 ? "°C" : "%"}',
+        labelStyle: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.025,
+        ),
+        axisLine: AxisLine(
+          width: 0,
         ),
       ),
+      series: <CartesianSeries>[
+        SplineAreaChartWidget.build(chartDatasource: chartDatasource),
+      ],
+    );
+  }
+
+  Widget _kitchenWasteChartOverview(
+      Map<String, List<ChartData>> foodWasteChartData,
+      List<AnnotationData> kitchenWasteChartAnnotations) {
+    return SfCartesianChart(
+      enableAxisAnimation: true,
+      margin: EdgeInsets.zero,
+      plotAreaBorderWidth: 0,
+      primaryXAxis: CategoryAxis(
+        borderWidth: 0,
+        borderColor: Colors.transparent,
+        labelPlacement: LabelPlacement.onTicks,
+        edgeLabelPlacement: EdgeLabelPlacement.hide,
+        majorGridLines: MajorGridLines(width: 0),
+        majorTickLines: MajorTickLines(width: 0),
+        labelPosition: ChartDataLabelPosition.inside,
+        labelAlignment: LabelAlignment.end,
+        tickPosition: TickPosition.inside,
+        plotOffset: 0,
+        labelStyle: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.025,
+        ),
+        axisLine: AxisLine(
+          width: 0,
+        ),
+      ),
+      primaryYAxis: NumericAxis(
+        edgeLabelPlacement: EdgeLabelPlacement.hide,
+        labelPosition: ChartDataLabelPosition.inside,
+        labelAlignment: LabelAlignment.center,
+        tickPosition: TickPosition.inside,
+        minorTickLines: MinorTickLines(width: 0),
+        majorTickLines: MajorTickLines(width: 0),
+        borderWidth: 0,
+        plotOffset: 0,
+        labelStyle: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.025,
+        ),
+        axisLine: AxisLine(
+          width: 0,
+        ),
+      ),
+      series: <CartesianSeries>[
+        ...foodWasteChartData.entries.toList().asMap().entries.map((item) {
+          final int index = item.key;
+          final List<ChartData> data = item.value.value;
+
+          return StackedColumnSeries<ChartData, String>(
+            groupName: index < 2 ? "Valid" : "Invalid",
+            dataSource: data,
+            color: kitchenWasteChartAnnotations[index].color,
+            sortingOrder: SortingOrder.descending,
+            dataLabelSettings: DataLabelSettings(
+                isVisible: true,
+                showCumulativeValues: true,
+                textStyle: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.025,
+                )),
+            xValueMapper: (ChartData d, _) => d.x,
+            yValueMapper: (ChartData d, _) => d.y,
+          );
+        })
+      ],
     );
   }
 
@@ -616,7 +476,7 @@ class _CompostingPerformanceOverviewWidgetState
     int color,
   ) {
     return ChartDatasource(
-      chartData: sensorReadingToDailyAvg<T>(
+      datasource: sensorReadingToDailyAvg<T>(
         _sensorReadingList,
         layer,
         selector,
@@ -644,11 +504,11 @@ class ChartOverview {
 }
 
 class ChartDatasource {
-  final List<ChartData> chartData;
-  final Color? chartColor;
+  final List<ChartData> datasource;
+  final Color chartColor;
 
   ChartDatasource({
-    required this.chartData,
+    required this.datasource,
     required this.chartColor,
   });
 }

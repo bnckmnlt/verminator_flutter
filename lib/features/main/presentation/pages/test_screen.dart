@@ -35,22 +35,22 @@ class TestScreen extends StatefulWidget {
 }
 
 class _TestScreenState extends State<TestScreen> {
-  late List<SummaryCardItem> _summaryItems;
+  late MqttService _mqttService;
 
   final DateTime now = DateTime.now();
-
-  late MqttService _mqttService;
 
   late List<CompostSchedule> compostScheduleList;
   late List<FoodWaste> foodWasteList;
   late List<SensorReading> sensorReadingList;
 
-  bool compostScheduleLoadingState = true;
-  bool foodWasteLoadingState = true;
-  bool sensorReadingLoadingState = true;
+  late List<SummaryCardItem> _summaryItems;
 
-  bool _hasLoaded = false;
-  bool _hasFailed = false;
+  bool _compostScheduleLoadingState = true;
+  bool _foodWasteLoadingState = true;
+  bool _sensorReadingLoadingState = true;
+
+  bool _hasInitialized = false;
+  bool _isError = false;
 
   List<String> _errorList = [];
 
@@ -76,14 +76,15 @@ class _TestScreenState extends State<TestScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_hasLoaded) {
+
+    if (!_hasInitialized) {
       context.read<CompostScheduleBloc>().add(CompostScheduleList());
       context.read<FoodWasteBloc>().add(FoodWasteList());
       context.read<SensorReadingBloc>().add(SensorReadingList());
       context.read<LogBloc>().add(LogList());
       context.read<WormActivityBloc>().add(WormActivityList());
       context.read<StatusRecordBloc>().add(StatusRecordList());
-      _hasLoaded = true;
+      _hasInitialized = true;
     }
   }
 
@@ -92,13 +93,13 @@ class _TestScreenState extends State<TestScreen> {
     final double deviceHeight = MediaQuery.of(context).size.height;
     final double deviceWidth = MediaQuery.of(context).size.width;
 
-    bool mountedState = !compostScheduleLoadingState &&
-        !foodWasteLoadingState &&
-        !sensorReadingLoadingState;
-
     final formattedDate = DateFormat('d MMMM y').format(now);
     final formattedTime = DateFormat('h:mm a')
         .format(DateTime.parse(formatToLocalTime(DateTime.now().toString())));
+
+    bool mountedState = !_compostScheduleLoadingState &&
+        !_foodWasteLoadingState &&
+        !_sensorReadingLoadingState;
 
     return Scaffold(
       extendBody: true,
@@ -108,15 +109,15 @@ class _TestScreenState extends State<TestScreen> {
           BlocListener<CompostScheduleBloc, CompostScheduleState>(
               listener: (context, state) {
             if (state is CompostScheduleLoading) {
-              compostScheduleLoadingState = true;
+              _compostScheduleLoadingState = true;
             } else if (state is CompostScheduleListSuccess) {
               setState(() {
-                compostScheduleLoadingState = false;
+                _compostScheduleLoadingState = false;
                 compostScheduleList = state.compostScheduleList;
               });
             } else if (state is CompostScheduleFailure) {
               setState(() {
-                _hasFailed = true;
+                _isError = true;
                 _errorList.add(state.error);
               });
             }
@@ -124,15 +125,15 @@ class _TestScreenState extends State<TestScreen> {
           BlocListener<FoodWasteBloc, FoodWasteState>(
               listener: (context, state) {
             if (state is FoodWasteLoading) {
-              foodWasteLoadingState = true;
+              _foodWasteLoadingState = true;
             } else if (state is FoodWasteListSuccess) {
               setState(() {
-                foodWasteLoadingState = false;
+                _foodWasteLoadingState = false;
                 foodWasteList = state.foodWaste;
               });
             } else if (state is FoodWasteFailure) {
               setState(() {
-                _hasFailed = true;
+                _isError = true;
                 _errorList.add(state.error);
               });
             }
@@ -140,15 +141,15 @@ class _TestScreenState extends State<TestScreen> {
           BlocListener<SensorReadingBloc, SensorReadingState>(
               listener: (context, state) {
             if (state is SensorReadingLoading) {
-              sensorReadingLoadingState = true;
+              _sensorReadingLoadingState = true;
             } else if (state is SensorReadingListSuccess) {
               setState(() {
-                sensorReadingLoadingState = false;
+                _sensorReadingLoadingState = false;
                 sensorReadingList = state.list;
               });
             } else if (state is SensorReadingFailure) {
               setState(() {
-                _hasFailed = true;
+                _isError = true;
                 _errorList.add(state.error);
               });
             }
@@ -249,7 +250,7 @@ class _TestScreenState extends State<TestScreen> {
                   ),
                 ),
               )
-            : _hasFailed
+            : _isError
                 ? EmptyDisplayWidget(
                     title: "An error has occurred",
                     description: _errorList.join("/n"),
@@ -418,7 +419,7 @@ class _TestScreenState extends State<TestScreen> {
       ),
       SummaryCardItem(
         label: "Total Cycle/s Completed",
-        value: "${compostScheduleList.length.toString()}",
+        value: compostScheduleList.length.toString(),
         unit: " cycles",
         icon: FluentIcons.recycle_20_filled,
         color: Colors.lightBlueAccent,

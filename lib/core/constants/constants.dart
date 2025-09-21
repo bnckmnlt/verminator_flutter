@@ -1,5 +1,6 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/composting_performance_overview_widget.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 
 enum LogSeverityFilter { all, info, warn, error, fatal }
@@ -207,6 +208,34 @@ class Constants {
     'vermijuice': Threshold(goodMin: 1, goodMax: 10),
     'reservoir': Threshold(goodMin: 1, goodMax: double.infinity),
   };
+
+  final kitchenWasteChartAnnotations = [
+    AnnotationData("Fruit", const Color(0xFF2563EB)),
+    AnnotationData("Vegetable", const Color(0xFF3B82F6)),
+    AnnotationData("Grains", const Color(0xFF93C5FD)),
+    AnnotationData("Citrus", const Color(0xFFDC2626)),
+    AnnotationData("Meat", const Color(0xFFF87171)),
+    AnnotationData("Foreign", const Color(0xFFFECACA)),
+  ];
+
+  final List<AnnotationData> nutrientAnnotations = [
+    AnnotationData("Nitrogen", const Color(0xff2563EB)),
+    AnnotationData("Phosphorus", const Color(0xff3B86F7)),
+    AnnotationData("Potassium", const Color(0xff90C7FE)),
+  ];
+
+  final List<AnnotationData> beddingAnnotations = [
+    AnnotationData("Temperature", Color(0xff2563EB)),
+    AnnotationData("Humidity", Color(0xff3B86F7)),
+    AnnotationData("Soil Moisture", Color(0xff90C7FE)),
+  ];
+
+  final List<String> dateRangeList = [
+    "24 hours",
+    "1 week",
+    "1 month",
+    "1 year"
+  ];
 }
 
 class ReminderInterval {
