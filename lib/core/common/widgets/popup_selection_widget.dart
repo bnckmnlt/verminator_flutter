@@ -31,18 +31,19 @@ class PopupSelectionWidget extends StatelessWidget {
               ))
           .toList(),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 8, 12, 8),
+        padding: const EdgeInsets.fromLTRB(18, 8, 18, 8),
         decoration:
             isElevated ? _elevatedStyle(context) : _outlinedStyle(context),
         child: Row(
-          spacing: 6,
+          spacing: 8,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            leadingIcon ?? const SizedBox.shrink(),
+            if (leadingIcon != null) leadingIcon as Widget,
             Text(
               label,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
             ),
-            trailingIcon ?? const SizedBox.shrink(),
+            if (trailingIcon != null) trailingIcon as Widget,
           ],
         ),
       ),

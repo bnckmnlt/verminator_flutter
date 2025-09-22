@@ -20,6 +20,7 @@ import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/daily_report_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/environmental_metrics_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/notification_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/system_summary_widget.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
@@ -100,6 +101,41 @@ class _TestScreenState extends State<TestScreen> {
     bool mountedState = !_compostScheduleLoadingState &&
         !_foodWasteLoadingState &&
         !_sensorReadingLoadingState;
+
+    if (mountedState) {
+      _summaryItems = [
+        SummaryCardItem(
+          label: "Total Kitchen Waste Processed",
+          value: "${foodWasteList.length.toString()} ",
+          unit: "pcs.",
+          icon: FluentIcons.food_apple_24_filled,
+          color: Colors.lightBlueAccent,
+        ),
+        SummaryCardItem(
+          label: "Total Vermicast Produced",
+          value:
+              "${compostScheduleList.fold(0, (prev, next) => prev + int.parse(next.compostProduced as String))}",
+          unit: "kg of soil",
+          icon: Icons.eco_rounded,
+          color: Colors.lightBlueAccent,
+        ),
+        SummaryCardItem(
+          label: "Total Vermitea Collected",
+          value:
+              "${compostScheduleList.fold(0, (prev, next) => prev + int.parse(next.juiceProduced as String))}",
+          unit: "L of vermitea",
+          icon: FluentIcons.drink_bottle_20_filled,
+          color: Colors.lightBlueAccent,
+        ),
+        SummaryCardItem(
+          label: "Total Cycle/s Completed",
+          value: compostScheduleList.length.toString(),
+          unit: " cycles",
+          icon: FluentIcons.recycle_20_filled,
+          color: Colors.lightBlueAccent,
+        ),
+      ];
+    }
 
     return Scaffold(
       extendBody: true,
@@ -227,7 +263,9 @@ class _TestScreenState extends State<TestScreen> {
                                 ),
                               ),
                               Expanded(
-                                child: _summarySection(),
+                                child: SystemSummaryWidget(
+                                  summaryItems: _summaryItems,
+                                ),
                               ),
                             ],
                           ),
@@ -389,124 +427,6 @@ class _TestScreenState extends State<TestScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _summarySection() {
-    _summaryItems = [
-      SummaryCardItem(
-        label: "Total Kitchen Waste Processed",
-        value: "${foodWasteList.length.toString()} ",
-        unit: "pcs.",
-        icon: FluentIcons.food_apple_24_filled,
-        color: Colors.lightBlueAccent,
-      ),
-      SummaryCardItem(
-        label: "Total Vermicast Produced",
-        value:
-            "${compostScheduleList.fold(0, (prev, next) => prev + int.parse(next.compostProduced as String))}",
-        unit: "kg of soil",
-        icon: Icons.eco_rounded,
-        color: Colors.lightBlueAccent,
-      ),
-      SummaryCardItem(
-        label: "Total Vermitea Collected",
-        value:
-            "${compostScheduleList.fold(0, (prev, next) => prev + int.parse(next.juiceProduced as String))}",
-        unit: "L of vermitea",
-        icon: FluentIcons.drink_bottle_20_filled,
-        color: Colors.lightBlueAccent,
-      ),
-      SummaryCardItem(
-        label: "Total Cycle/s Completed",
-        value: compostScheduleList.length.toString(),
-        unit: " cycles",
-        icon: FluentIcons.recycle_20_filled,
-        color: Colors.lightBlueAccent,
-      ),
-    ];
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 18,
-      children: [
-        Text(
-          "Summary",
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        Column(
-          spacing: 12,
-          children: [
-            ..._summaryItems.map((item) {
-              return Glassmorphism(
-                blur: 32,
-                opacity: 0.2,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 24,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHigh
-                        .withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Column(
-                        spacing: 2.5,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            textHeightBehavior: TextHeightBehavior(
-                              applyHeightToLastDescent: false,
-                              applyHeightToFirstAscent: true,
-                            ),
-                            "${item.value}${item.unit}",
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          Text(
-                            item.label,
-                            style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withAlpha(164),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          item.icon,
-                          size: 28,
-                          color: Colors.black87,
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              );
-            })
-          ],
-        ),
-      ],
     );
   }
 }

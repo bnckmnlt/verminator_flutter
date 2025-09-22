@@ -236,6 +236,8 @@ class Constants {
     "1 month",
     "1 year"
   ];
+
+  List<String> scaleSelection = ["COMPOST", "RESERVOIR", "VERMITEA"];
 }
 
 class ReminderInterval {
