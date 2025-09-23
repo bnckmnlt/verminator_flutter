@@ -256,15 +256,15 @@ class _TestScreenState extends State<TestScreen> {
                                     sensorValues: sensorValues),
                               ),
                               Expanded(
+                                child: SystemSummaryWidget(
+                                  summaryItems: _summaryItems,
+                                ),
+                              ),
+                              Expanded(
                                 flex: 2,
                                 child: CompostingPerformanceOverviewWidget(
                                   sensorReadingList: sensorReadingList,
                                   foodWasteList: foodWasteList,
-                                ),
-                              ),
-                              Expanded(
-                                child: SystemSummaryWidget(
-                                  summaryItems: _summaryItems,
                                 ),
                               ),
                             ],

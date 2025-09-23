@@ -20,7 +20,7 @@ class _CalibrationWidgetState extends State<CalibrationWidget> {
   late MqttService _mqttService;
 
   final TextEditingController _knownWeightController = TextEditingController();
-  final Key _animationKey = UniqueKey();
+  Key _animationKey = UniqueKey();
 
   int _currentStep = 0;
   int _scaleSelected = 0;
@@ -223,7 +223,7 @@ class _CalibrationWidgetState extends State<CalibrationWidget> {
                           )),
                       child: BounceWithFadeAnimation(
                         key: _animationKey,
-                        delay: 2,
+                        delay: 1.5,
                         child: Container(
                           padding: EdgeInsets.symmetric(
                             vertical: deviceHeight * 0.05,
@@ -240,7 +240,7 @@ class _CalibrationWidgetState extends State<CalibrationWidget> {
                                     spacing: 14,
                                     children: [
                                       SizedBox(
-                                        height: deviceHeight * 0.2,
+                                        height: deviceHeight * 0.3,
                                         child:
                                             calibrationStepsData[_currentStep]
                                                         .isAnimated !=
@@ -256,13 +256,25 @@ class _CalibrationWidgetState extends State<CalibrationWidget> {
                                                                 .height *
                                                             0.2,
                                                   )
-                                                : Image.asset(
-                                                    calibrationStepsData[
-                                                            _currentStep]
-                                                        .imageSrc,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .onSurface,
+                                                : ShaderMask(
+                                                    shaderCallback: (bounds) =>
+                                                        RadialGradient(
+                                                      center: Alignment.center,
+                                                      radius: 1.0,
+                                                      colors: [
+                                                        Colors.white,
+                                                        Colors.transparent
+                                                      ],
+                                                      stops: [0.2, 1.0],
+                                                    ).createShader(bounds),
+                                                    blendMode: BlendMode.dstIn,
+                                                    child: Image.asset(
+                                                      calibrationStepsData[
+                                                              _currentStep]
+                                                          .imageSrc,
+                                                      fit: BoxFit.fill,
+                                                      color: Colors.white,
+                                                    ),
                                                   ),
                                       ),
                                       Padding(
@@ -438,6 +450,8 @@ class _CalibrationWidgetState extends State<CalibrationWidget> {
   }
 
   void _publishCommand(String command) {
+    refreshAnimations();
+
     setState(() {
       _currentStep < 4 ? _currentStep++ : null;
     });
@@ -445,6 +459,12 @@ class _CalibrationWidgetState extends State<CalibrationWidget> {
     _mqttService.publish("control/scale",
         "${Constants().scaleSelection[_scaleSelected]}:$command",
         qos: MqttQos.atLeastOnce);
+  }
+
+  void refreshAnimations() {
+    setState(() {
+      _animationKey = UniqueKey();
+    });
   }
 }
 

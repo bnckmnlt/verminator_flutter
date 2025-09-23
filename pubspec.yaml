@@ -65,6 +65,8 @@ dependencies:
   timeago: ^3.7.1
   wakelock_plus: ^1.4.0
   flutter_launcher_icons: ^0.14.4
+  animated_text_kit: ^4.2.3
+  step_progress_indicator: ^1.0.2
 
 dev_dependencies:
   flutter_test:
@@ -90,13 +92,14 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-     - assets/animations/
-     - assets/fonts/geist/
-     - assets/fonts/satoshi/
-     - assets/fonts/general-sans/
-     - assets/icons/
-     - assets/images/
-     - .env
+    - assets/animations/
+    - assets/fonts/geist/
+    - assets/fonts/satoshi/
+    - assets/fonts/general-sans/
+    - assets/fonts/zenbones-mono/
+    - assets/icons/
+    - assets/images/
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -176,32 +179,59 @@ flutter:
         - asset: assets/fonts/satoshi/Satoshi-BlackItalic.otf
           weight: 800
           style: italic
-    - family: General Sans
+    - family: Zenbones Mono
       fonts:
-        - asset: assets/fonts/general-sans/GeneralSans-Light.otf
+        - asset: assets/fonts/zenbones-mono/Zenbones-Mono-Light.ttf
           weight: 300
-        - asset: assets/fonts/general-sans/GeneralSans-LightItalic.otf
+        - asset: assets/fonts/zenbones-mono/Zenbones-Mono-LightItalic.ttf
           weight: 300
           style: italic
-        - asset: assets/fonts/general-sans/GeneralSans-Regular.otf
+        - asset: assets/fonts/zenbones-mono/Zenbones-Mono-Regular.ttf
           weight: 400
-        - asset: assets/fonts/general-sans/GeneralSans-Italic.otf
+        - asset: assets/fonts/zenbones-mono/Zenbones-Mono-Italic.ttf
           style: italic
-        - asset: assets/fonts/general-sans/GeneralSans-Medium.otf
+        - asset: assets/fonts/zenbones-mono/Zenbones-Mono-Medium.ttf
           weight: 500
-        - asset: assets/fonts/general-sans/GeneralSans-MediumItalic.otf
+        - asset: assets/fonts/zenbones-mono/Zenbones-Mono-MediumItalic.ttf
           weight: 500
           style: italic
-        - asset: assets/fonts/general-sans/GeneralSans-Semibold.otf
+        - asset: assets/fonts/zenbones-mono/Zenbones-Mono-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/general-sans/GeneralSans-SemiboldItalic.otf
+        - asset: assets/fonts/zenbones-mono/Zenbones-Mono-SemiBoldItalic.ttf
           weight: 600
           style: italic
-        - asset: assets/fonts/general-sans/GeneralSans-Bold.otf
+        - asset: assets/fonts/zenbones-mono/Zenbones-Mono-Bold.ttf
           weight: 700
-        - asset: assets/fonts/general-sans/GeneralSans-BoldItalic.otf
+        - asset: assets/fonts/zenbones-mono/Zenbones-Mono-BoldItalic.ttf
           weight: 700
           style: italic
+    - family: Zenbones Brainy
+      fonts:
+        - asset: assets/fonts/zenbones-brainy/Zenbones-Brainy-Light.ttf
+          weight: 300
+        - asset: assets/fonts/zenbones-brainy/Zenbones-Brainy-LightItalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/zenbones-brainy/Zenbones-Brainy-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/zenbones-brainy/Zenbones-Brainy-Italic.ttf
+          style: italic
+        - asset: assets/fonts/zenbones-brainy/Zenbones-Brainy-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/zenbones-brainy/Zenbones-Brainy-MediumItalic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/zenbones-brainy/Zenbones-Brainy-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/zenbones-brainy/Zenbones-Brainy-SemiBoldItalic.ttf
+          weight: 600
+          style: italic
+        - asset: assets/fonts/zenbones-brainy/Zenbones-Brainy-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/zenbones-brainy/Zenbones-Brainy-BoldItalic.ttf
+          weight: 700
+          style: italic
+
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

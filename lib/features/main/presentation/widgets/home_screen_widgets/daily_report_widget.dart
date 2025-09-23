@@ -221,47 +221,53 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
           ],
         ),
         Column(
-          spacing: 8,
+          spacing: 16,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 24),
-                    minimumSize: Size.zero,
-                    side: BorderSide(
-                      width: 1,
-                      color:
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                spacing: 12,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
                           Theme.of(context).colorScheme.surfaceContainerHighest,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadiusGeometry.circular(24),
-                    ),
-                  ),
-                  onPressed: () => _selectDate(context),
-                  child: Row(
-                    spacing: 6,
-                    children: [
-                      Icon(
-                        Icons.calendar_today_rounded,
-                        color: Colors.white,
-                        size: 16,
+                      foregroundColor: Colors.white,
+                      padding:
+                          EdgeInsets.symmetric(vertical: 8, horizontal: 24),
+                      minimumSize: Size.zero,
+                      side: BorderSide(
+                        width: 1,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
                       ),
-                      Text(
-                        DateFormat.yMMMd().format(_selectedDate!),
-                        style: TextStyle(
-                          fontSize: 12,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadiusGeometry.circular(24),
+                      ),
+                    ),
+                    onPressed: () => _selectDate(context),
+                    child: Row(
+                      spacing: 6,
+                      children: [
+                        Icon(
+                          Icons.calendar_today_rounded,
+                          color: Colors.white,
+                          size: 16,
                         ),
-                      ),
-                    ],
+                        Text(
+                          DateFormat.yMMMd().format(_selectedDate!),
+                          style: TextStyle(
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                selection,
-              ],
+                  selection,
+                ],
+              ),
             ),
             responseLoaded
                 ? insightAndRecommendationSection(
@@ -275,10 +281,10 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
 
   Widget insightAndRecommendationSection(PromptBody promptBody) {
     return Column(
-      spacing: 14,
+      spacing: 18,
       children: [
         Column(
-          spacing: 6,
+          spacing: 12,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -292,11 +298,12 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
             Text(
               promptBody.insight,
               textAlign: TextAlign.justify,
+              style: TextStyle(height: 1.5),
             )
           ],
         ),
         Column(
-          spacing: 6,
+          spacing: 12,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -310,6 +317,7 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
             Text(
               promptBody.recommendation,
               textAlign: TextAlign.justify,
+              style: TextStyle(height: 1.5),
             )
           ],
         )

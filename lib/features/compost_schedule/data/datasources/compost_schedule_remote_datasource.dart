@@ -48,7 +48,8 @@ class CompostScheduleRemoteDatasourceImpl
         return (jsonDecode(response.body) as List)
             .map((compostSchedule) =>
                 CompostScheduleModel.fromJson(compostSchedule))
-            .toList();
+            .toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
       } else {
         throw ServerException(response.body.parseErrorMessage());
       }

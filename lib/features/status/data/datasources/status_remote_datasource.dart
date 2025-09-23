@@ -25,7 +25,8 @@ class StatusRemoteDatasourceImpl implements StatusRemoteDatasource {
       if (response.statusCode == 200) {
         return (jsonDecode(response.body) as List)
             .map((statusRecord) => StatusRecordModel.fromJson(statusRecord))
-            .toList();
+            .toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
       } else {
         throw ServerException(response.body.parseErrorMessage());
       }

@@ -20,7 +20,9 @@ import 'package:flutter/material.dart';
 sealed class AppTheme {
   // The defined light theme.
   static ThemeData light = FlexThemeData.light(
-    fontFamily: "General Sans",
+    // textTheme: GoogleFonts.interTextTheme(),
+    // fontFamily: GoogleFonts.inter.toString(),
+    fontFamily: "Geist",
     scheme: FlexScheme.blue,
     appBarStyle: FlexAppBarStyle.primary,
     appBarElevation: 4.0,
@@ -102,9 +104,12 @@ sealed class AppTheme {
     visualDensity: FlexColorScheme.comfortablePlatformDensity,
     cupertinoOverrideTheme: const CupertinoThemeData(applyThemeToAll: true),
   );
+
   // The defined dark theme.
   static ThemeData dark = FlexThemeData.dark(
-    fontFamily: "General Sans",
+    // textTheme: GoogleFonts.interTextTheme(),
+    // fontFamily: GoogleFonts.inter.toString(),
+    fontFamily: "Geist",
     scheme: FlexScheme.blue,
     appBarStyle: FlexAppBarStyle.material,
     appBarElevation: 4.0,
