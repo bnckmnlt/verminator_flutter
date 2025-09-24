@@ -12,10 +12,10 @@ import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/fo
 import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/calibration_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/control_screen.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/home_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/logs_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_list_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/settings_screen.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/test_screen.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
@@ -87,7 +87,7 @@ class _MyAppState extends State<MyApp> {
       selector: (state) => state is AppScheduleActive,
       builder: (context, scheduleActive) {
         if (scheduleActive) {
-          return const SafeArea(child: TestScreen());
+          return const SafeArea(child: HomeScreen());
         }
         return Scaffold(
           body: Center(

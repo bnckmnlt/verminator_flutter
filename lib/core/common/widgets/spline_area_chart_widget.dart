@@ -8,13 +8,11 @@ class SplineAreaChartWidget {
     required ChartDatasource chartDatasource,
   }) {
     return SplineAreaSeries<ChartData, String>(
-      sortingOrder: SortingOrder.ascending,
       dataSource: chartDatasource.datasource,
-      xValueMapper: (ChartData data, _) => data.x,
-      yValueMapper: (ChartData data, _) => data.y,
+      sortingOrder: SortingOrder.ascending,
       color: Colors.white,
+      borderWidth: 2,
       borderColor: Colors.white,
-      borderWidth: 4,
       borderDrawMode: BorderDrawMode.top,
       gradient: LinearGradient(
         colors: [
@@ -26,13 +24,15 @@ class SplineAreaChartWidget {
         end: Alignment.bottomCenter,
       ),
       markerSettings: const MarkerSettings(
+        isVisible: true,
+        height: 10,
+        width: 10,
         borderWidth: 1.5,
         borderColor: Colors.white,
-        width: 12,
-        height: 12,
-        isVisible: true,
         shape: DataMarkerType.circle,
       ),
+      xValueMapper: (ChartData data, _) => data.x,
+      yValueMapper: (ChartData data, _) => data.y,
     );
   }
 }

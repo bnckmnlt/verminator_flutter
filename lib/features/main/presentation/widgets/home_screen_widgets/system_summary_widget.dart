@@ -29,7 +29,7 @@ class _SystemSummaryWidgetState extends State<SystemSummaryWidget> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 18,
+      spacing: 14,
       children: [
         Text(
           "Summary",
@@ -79,7 +79,8 @@ class _SystemSummaryWidgetState extends State<SystemSummaryWidget> {
                             "${item.value}${item.unit}",
                             style: TextStyle(
                               fontSize: 28,
-                              fontWeight: FontWeight.w700,
+                              fontFamily: "Zenbones Mono",
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                           Text(

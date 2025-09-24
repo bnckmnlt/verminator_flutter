@@ -93,7 +93,7 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 18,
+      spacing: 14,
       children: [
         Text(
           "Today's Report",
@@ -129,18 +129,27 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
                 end: Alignment.bottomLeft,
               ),
             ),
-            child: SingleChildScrollView(
-              child: Column(
-                spacing: 12,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _systemConditionSection(result),
-                  Divider(),
-                  responseLoaded
-                      ? _readingPromptSection(_selection)
-                      : SizedBox(height: 324, child: Loader()),
-                ],
+            child: ShaderMask(
+              shaderCallback: (bounds) => LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.white, Colors.transparent],
+                stops: [0.8, 1.0],
+              ).createShader(bounds),
+              blendMode: BlendMode.dstIn,
+              child: SingleChildScrollView(
+                child: Column(
+                  spacing: 12,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _systemConditionSection(result),
+                    Divider(),
+                    responseLoaded
+                        ? _readingPromptSection(_selection)
+                        : SizedBox(height: 324, child: Loader()),
+                  ],
+                ),
               ),
             ),
           ),
@@ -153,16 +162,21 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("System Condition"),
+        Text(
+          "System Condition",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface.withAlpha(164),
+          ),
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               result["status"].toString().toUpperCase(),
               style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.025,
+                fontSize: 24,
+                fontFamily: "Zenbones Mono",
+                fontWeight: FontWeight.bold,
               ),
             ),
             Icon(
@@ -178,7 +192,7 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
 
   Widget _readingPromptSection(Widget selection) {
     return Column(
-      spacing: 14,
+      spacing: 8,
       children: [
         Row(
           spacing: 12,
@@ -200,16 +214,16 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
                     horizontal: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.orangeAccent.withAlpha(64),
+                    color: Colors.lightBlue.withAlpha(64),
                     borderRadius: BorderRadius.circular(4),
                     border: Border.all(
-                      color: Colors.orangeAccent,
+                      color: Colors.lightBlue,
                     ),
                   ),
                   child: Text(
                     "AI",
                     style: TextStyle(
-                      color: Colors.orangeAccent,
+                      color: Colors.lightBlue,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       letterSpacing: 0.025,
@@ -284,7 +298,7 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
       spacing: 18,
       children: [
         Column(
-          spacing: 12,
+          spacing: 10,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -298,12 +312,15 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
             Text(
               promptBody.insight,
               textAlign: TextAlign.justify,
-              style: TextStyle(height: 1.5),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(186),
+                height: 1.5,
+              ),
             )
           ],
         ),
         Column(
-          spacing: 12,
+          spacing: 10,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -317,9 +334,15 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
             Text(
               promptBody.recommendation,
               textAlign: TextAlign.justify,
-              style: TextStyle(height: 1.5),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(186),
+                height: 1.5,
+              ),
             )
           ],
+        ),
+        SizedBox.fromSize(
+          size: Size(24, 24),
         )
       ],
     );

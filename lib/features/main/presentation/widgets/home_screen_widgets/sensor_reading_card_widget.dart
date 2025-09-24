@@ -77,8 +77,9 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
             children: [
               Text(
                 widget.item['reading_key'].toUpperCase(),
-                style: GoogleFonts.inter(
-                  fontSize: 14,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontFamily: "Zenbones Mono",
                   fontWeight: FontWeight.bold,
                 ),
               ),

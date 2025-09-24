@@ -2,34 +2,30 @@ import 'dart:async';
 
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
-import 'package:flutter_vermicomposting/core/common/widgets/error_widget.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
-import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/core/utils/format_to_local_time.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
+import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/bedding_condition_widget.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/liquid_and_compost_level_widget.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/materials_processed_widget.dart';
+import 'package:flutter_vermicomposting/features/main/domain/entities/sensor_values.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/camera_and_thermal_monitoring_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/composting_performance_overview_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/daily_report_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/environmental_metrics_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/notification_widget.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/nutrient_summary_widget.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/sensor_readings_widget.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/system_information_widget.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/video_feed_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/system_summary_widget.dart';
+import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
-import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
-import 'package:mqtt_client/mqtt_client.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -41,653 +37,266 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late MqttService _mqttService;
 
-  late StreamSubscription<String> _controlCameraSubscription;
-  late StreamSubscription<String> _controlThermalSubscription;
-
-  WebViewController? cameraFeedController;
-  WebViewController? thermalFeedController;
-
-  late bool cameraState;
-  late bool thermalState;
-
   final DateTime now = DateTime.now();
 
-  int _currentTab = 0;
+  late List<CompostSchedule> compostScheduleList;
+  late List<FoodWaste> foodWasteList;
+  late List<SensorReading> sensorReadingList;
 
-  late CompostSchedule currentSchedule;
+  late List<SummaryCardItem> _summaryItems;
+
+  bool _compostScheduleLoadingState = true;
+  bool _foodWasteLoadingState = true;
+  bool _sensorReadingLoadingState = true;
+
+  bool _hasInitialized = false;
+  bool _isError = false;
+
+  List<String> _errorList = [];
+
+  SensorValues sensorValues = SensorValues(
+    temperature: "0",
+    humidity: "0",
+    soilMoisture: "0",
+    nitrogen: "0",
+    phosphorus: "0",
+    potassium: "0",
+    compost: "0",
+    vermijuice: "0",
+    reservoir: "0",
+  );
 
   @override
   void initState() {
+    context.read<SensorReadingBloc>().add(SensorReadingList());
+
     super.initState();
-
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
-
-    _mqttService = GetIt.I<MqttService>();
-
-    cameraState = false;
-    thermalState = false;
-
-    _controlCameraSubscription =
-        _mqttService.controlCameraStream.listen((value) {
-      setState(() {
-        cameraState = value == 'active' ? true : false;
-      });
-    });
-
-    _controlThermalSubscription =
-        _mqttService.controlThermalStream.listen((value) {
-      setState(() {
-        thermalState = value == 'active' ? true : false;
-      });
-    });
   }
-
-  bool _hasLoaded = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_hasLoaded) {
+
+    if (!_hasInitialized) {
       context.read<CompostScheduleBloc>().add(CompostScheduleList());
       context.read<FoodWasteBloc>().add(FoodWasteList());
       context.read<SensorReadingBloc>().add(SensorReadingList());
       context.read<LogBloc>().add(LogList());
       context.read<WormActivityBloc>().add(WormActivityList());
       context.read<StatusRecordBloc>().add(StatusRecordList());
-      _hasLoaded = true;
+      _hasInitialized = true;
     }
   }
 
   @override
-  void dispose() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
-
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final double deviceHeight = MediaQuery.of(context).size.height;
+    final double deviceWidth = MediaQuery.of(context).size.width;
+
     final formattedDate = DateFormat('d MMMM y').format(now);
     final formattedTime = DateFormat('h:mm a')
         .format(DateTime.parse(formatToLocalTime(DateTime.now().toString())));
 
-    final toastHelper = ToastHelper(context);
+    bool mountedState = !_compostScheduleLoadingState &&
+        !_foodWasteLoadingState &&
+        !_sensorReadingLoadingState;
 
-    final List<Widget> _cardSections = [
-      MaterialsProcessedWidget(),
-      NutrientSummaryWidget(),
-      BeddingConditionWidget(),
-    ];
+    if (mountedState) {
+      _summaryItems = [
+        SummaryCardItem(
+          label: "Total Kitchen Waste Processed",
+          value: "${foodWasteList.length.toString()} ",
+          unit: "pcs.",
+          icon: FluentIcons.food_apple_24_filled,
+          color: Colors.lightBlueAccent,
+        ),
+        SummaryCardItem(
+          label: "Total Vermicast Produced",
+          value:
+              "${compostScheduleList.fold(0, (prev, next) => prev + int.parse(next.compostProduced as String))}",
+          unit: "kg of soil",
+          icon: Icons.eco_rounded,
+          color: Colors.lightBlueAccent,
+        ),
+        SummaryCardItem(
+          label: "Total Vermitea Collected",
+          value:
+              "${compostScheduleList.fold(0, (prev, next) => prev + int.parse(next.juiceProduced as String))}",
+          unit: "L of vermitea",
+          icon: FluentIcons.drink_bottle_20_filled,
+          color: Colors.lightBlueAccent,
+        ),
+        SummaryCardItem(
+          label: "Total cycle/s Completed",
+          value: compostScheduleList.length.toString(),
+          unit: " cycles",
+          icon: FluentIcons.recycle_20_filled,
+          color: Colors.lightBlueAccent,
+        ),
+      ];
+    }
 
-    final List<WebViewController?> controllerList = [
-      cameraFeedController,
-      thermalFeedController,
-    ];
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final double deviceHeight = MediaQuery.of(context).size.height;
-        final double deviceWidth = MediaQuery.of(context).size.width;
-
-        final List<bool> monitoringStates = [
-          cameraState,
-          thermalState,
-        ];
-
-        return Scaffold(
-          extendBody: true,
-          extendBodyBehindAppBar: true,
-          body: RefreshIndicator(
-            onRefresh: () {
-              return Future.delayed(Duration(seconds: 1), () {
-                setState(() {
-                  context
-                      .read<CompostScheduleBloc>()
-                      .add(CompostScheduleList());
-                  context.read<FoodWasteBloc>().add(FoodWasteList());
-                  context.read<SensorReadingBloc>().add(SensorReadingList());
-                  context.read<LogBloc>().add(LogList());
-                  context.read<WormActivityBloc>().add(WormActivityList());
-                  context.read<StatusRecordBloc>().add(StatusRecordList());
-                });
-
-                _mqttService.connect();
-
-                // showing snackbar
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Page Refreshed',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    backgroundColor:
-                        Theme.of(context).colorScheme.surfaceContainer,
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                        color:
-                            Theme.of(context).colorScheme.surfaceContainerHigh,
-                      ),
-                    ),
-                  ),
-                );
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      body: MultiBlocListener(
+        listeners: [
+          BlocListener<CompostScheduleBloc, CompostScheduleState>(
+              listener: (context, state) {
+            if (state is CompostScheduleLoading) {
+              _compostScheduleLoadingState = true;
+            } else if (state is CompostScheduleListSuccess) {
+              setState(() {
+                _compostScheduleLoadingState = false;
+                compostScheduleList = state.compostScheduleList;
               });
-            },
-            child: SafeArea(
-              child: Container(
-                height: deviceHeight,
-                width: deviceWidth,
-                padding: const EdgeInsets.fromLTRB(44, 44, 44, 28),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    _homeScreenHeaderSection(
-                      formattedDate: formattedDate,
-                      formattedTime: formattedTime,
-                    ),
-                    const SizedBox(height: 44),
-                    Expanded(
-                      child: Row(
-                        spacing: 16,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // TODO: 1ST ROW: []
-                          Expanded(
-                            child: Column(
-                              spacing: 16,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                // TODO: SYSTEM CHARTS SECTION: []
-                                Expanded(
-                                  flex: 1,
-                                  child: Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 24, horizontal: 24),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        width: 1,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .surfaceContainerHigh,
-                                      ),
-                                    ),
-                                    child: Stack(
-                                      children: [
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 0),
-                                          child: Align(
-                                            alignment: Alignment.topCenter,
-                                            child: SingleChildScrollView(
-                                              child: _cardSections[_currentTab],
-                                            ),
-                                          ),
-                                        ),
-                                        Positioned(
-                                          top: 0,
-                                          right: 0,
-                                          child: Row(
-                                            children: List.generate(
-                                                    3, (int index) => index,
-                                                    growable: false)
-                                                .map((item) {
-                                              return Padding(
-                                                padding: EdgeInsets.fromLTRB(
-                                                    item == 0 ? 0 : 6, 0, 0, 0),
-                                                child: GestureDetector(
-                                                  onTap: () {
-                                                    setState(() {
-                                                      _currentTab = item;
-                                                    });
-                                                  },
-                                                  child: Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        vertical: 4,
-                                                        horizontal: 12),
-                                                    decoration: BoxDecoration(
-                                                      color: item == _currentTab
-                                                          ? Theme.of(context)
-                                                              .colorScheme
-                                                              .surfaceContainerHigh
-                                                          : Colors.transparent,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              24),
-                                                      border: Border.all(
-                                                        color: item ==
-                                                                _currentTab
-                                                            ? Color(0xFF27272a)
-                                                            : Theme.of(context)
-                                                                .colorScheme
-                                                                .surfaceContainerHigh,
-                                                      ),
-                                                    ),
-                                                    child: Text(
-                                                      "${item + 1}",
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            }).toList(),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                // TODO: SENSOR PRESENT READINGS SECTION: []
-                                Expanded(
-                                  flex: 1,
-                                  child: SensorReadingsWidget(
-                                    mqttService: _mqttService,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // TODO: 2ND ROW: []
-                          Expanded(
-                            child: Row(
-                              spacing: 16,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // TODO: CAMERA AND COMPOST/RESERVOIR SECTION: []
-                                SingleChildScrollView(
-                                  child: Column(
-                                    spacing: 16,
-                                    children: [
-                                      ...Constants.serverList
-                                          .asMap()
-                                          .entries
-                                          .map((entry) {
-                                        final index = entry.key;
-                                        final serverSrc = entry.value;
+            } else if (state is CompostScheduleFailure) {
+              setState(() {
+                _isError = true;
+                _errorList.add(state.error);
+              });
+            }
+          }),
+          BlocListener<FoodWasteBloc, FoodWasteState>(
+              listener: (context, state) {
+            if (state is FoodWasteLoading) {
+              _foodWasteLoadingState = true;
+            } else if (state is FoodWasteListSuccess) {
+              setState(() {
+                _foodWasteLoadingState = false;
+                foodWasteList = state.foodWaste;
+              });
+            } else if (state is FoodWasteFailure) {
+              setState(() {
+                _isError = true;
+                _errorList.add(state.error);
+              });
+            }
+          }),
+          BlocListener<SensorReadingBloc, SensorReadingState>(
+              listener: (context, state) {
+            if (state is SensorReadingLoading) {
+              _sensorReadingLoadingState = true;
+            } else if (state is SensorReadingListSuccess) {
+              setState(() {
+                _sensorReadingLoadingState = false;
+                sensorReadingList = state.list;
+              });
+            } else if (state is SensorReadingFailure) {
+              setState(() {
+                _isError = true;
+                _errorList.add(state.error);
+              });
+            }
+          }),
+        ],
+        child: mountedState
+            ? RefreshIndicator(
+                onRefresh: () {
+                  return Future.delayed(Duration(seconds: 1), () {
+                    setState(() {
+                      context
+                          .read<CompostScheduleBloc>()
+                          .add(CompostScheduleList());
+                      context.read<FoodWasteBloc>().add(FoodWasteList());
+                      context
+                          .read<SensorReadingBloc>()
+                          .add(SensorReadingList());
+                      context.read<LogBloc>().add(LogList());
+                      context.read<WormActivityBloc>().add(WormActivityList());
+                      context.read<StatusRecordBloc>().add(StatusRecordList());
+                    });
 
-                                        return Container(
-                                          height: 320,
-                                          width: 320,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            border: Border.all(
-                                              width: 1,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .surfaceContainerHigh,
-                                            ),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(4),
-                                            child: Stack(
-                                              children: [
-                                                monitoringStates[index]
-                                                    ? VideoFeedWidget(
-                                                        onWebViewCreated:
-                                                            (controller) {
-                                                          controllerList[
-                                                                  index] =
-                                                              controller;
-                                                        },
-                                                        cameraChannel:
-                                                            serverSrc['src'],
-                                                      )
-                                                    : Center(
-                                                        child:
-                                                            EmptyDisplayWidget(
-                                                          title:
-                                                              "Inactive Device",
-                                                          description:
-                                                              "The device is currently not operational or has no active session.",
-                                                        ),
-                                                      ),
-                                                Positioned(
-                                                  top: 18,
-                                                  right: 6,
-                                                  child: Container(
-                                                      padding: const EdgeInsets
-                                                          .fromLTRB(
-                                                          12, 2, 12, 2),
-                                                      decoration: BoxDecoration(
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .colorScheme
-                                                              .surfaceContainerHighest
-                                                              .withValues(
-                                                                  alpha: 0.3),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(12),
-                                                          border: Border.all(
-                                                            width: 1,
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .colorScheme
-                                                                .surfaceContainerHighest
-                                                                .withAlpha(32),
-                                                          )),
-                                                      child: Row(
-                                                        spacing: 4,
-                                                        children: [
-                                                          Container(
-                                                            height: 8,
-                                                            width: 8,
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              shape: BoxShape
-                                                                  .circle,
-                                                              color: monitoringStates[
-                                                                      index]
-                                                                  ? Colors
-                                                                      .greenAccent
-                                                                  : Colors
-                                                                      .redAccent,
-                                                            ),
-                                                          ),
-                                                          Text(
-                                                            monitoringStates[
-                                                                    index]
-                                                                ? "Active"
-                                                                : "Inactive",
-                                                            style: TextStyle(
-                                                              fontSize: 10,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w500,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      )),
-                                                ),
-                                                Positioned(
-                                                  bottom: 10,
-                                                  left: 6,
-                                                  child: Container(
-                                                      padding: const EdgeInsets
-                                                          .fromLTRB(
-                                                          14, 4, 14, 4),
-                                                      decoration: BoxDecoration(
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .colorScheme
-                                                              .surfaceContainerHighest
-                                                              .withValues(
-                                                                  alpha: 0.5),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(12),
-                                                          border: Border.all(
-                                                            width: 1,
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .colorScheme
-                                                                .surfaceContainerHighest
-                                                                .withAlpha(32),
-                                                          )),
-                                                      child: Text(
-                                                        index == 0
-                                                            ? "Pi Camera – Material Classification"
-                                                            : "MLX90640 – Worm Monitoring",
-                                                        style: TextStyle(
-                                                          fontSize: 10,
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                        ),
-                                                      )),
-                                                ),
-                                                Positioned(
-                                                  bottom: 6,
-                                                  right: 6,
-                                                  child: Row(
-                                                    spacing: 8,
-                                                    children: [
-                                                      ClipRRect(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(4),
-                                                        child: Material(
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .colorScheme
-                                                              .surfaceContainerHighest
-                                                              .withValues(
-                                                                  alpha: 0.5),
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        4),
-                                                            side: BorderSide(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .colorScheme
-                                                                  .surfaceContainerHighest
-                                                                  .withAlpha(
-                                                                      32),
-                                                              width: 1,
-                                                            ),
-                                                          ),
-                                                          child: InkWell(
-                                                            onTap: () {
-                                                              _mqttService.publish(
-                                                                  serverSrc[
-                                                                      'topic'],
-                                                                  monitoringStates[
-                                                                          index]
-                                                                      ? "inactive"
-                                                                      : "active",
-                                                                  qos: MqttQos
-                                                                      .atLeastOnce,
-                                                                  retain: true);
-                                                            },
-                                                            splashColor: Theme
-                                                                    .of(context)
-                                                                .colorScheme
-                                                                .primary
-                                                                .withOpacity(
-                                                                    0.1),
-                                                            highlightColor:
-                                                                Colors
-                                                                    .transparent,
-                                                            child: Padding(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .all(8.0),
-                                                              child: Icon(
-                                                                FluentIcons
-                                                                    .power_24_filled,
-                                                                size: 18,
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .colorScheme
-                                                                    .onSurface,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      ClipRRect(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(4),
-                                                        child: Material(
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .colorScheme
-                                                              .surfaceContainerHighest
-                                                              .withValues(
-                                                                  alpha: 0.5),
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        4),
-                                                            side: BorderSide(
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .colorScheme
-                                                                  .surfaceContainerHighest
-                                                                  .withAlpha(
-                                                                      32),
-                                                              width: 1,
-                                                            ),
-                                                          ),
-                                                          child: InkWell(
-                                                            onTap: () {
-                                                              reloadWebView(
-                                                                  controllerList[
-                                                                      index]);
-                                                            },
-                                                            splashColor: Theme
-                                                                    .of(context)
-                                                                .colorScheme
-                                                                .primary
-                                                                .withOpacity(
-                                                                    0.1),
-                                                            highlightColor:
-                                                                Colors
-                                                                    .transparent,
-                                                            child: Padding(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .all(8.0),
-                                                              child: Icon(
-                                                                FluentIcons
-                                                                    .arrow_sync_24_filled,
-                                                                size: 18,
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .colorScheme
-                                                                    .onSurface,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      )
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      }),
-                                      LiquidAndCompostLevelWidget(
-                                          mqttService: _mqttService),
-                                    ],
-                                  ),
+                    _mqttService.connect();
+
+                    // showing snackbar
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Page Refreshed',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        backgroundColor:
+                            Theme.of(context).colorScheme.surfaceContainer,
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHigh,
+                          ),
+                        ),
+                      ),
+                    );
+                  });
+                },
+                child: SafeArea(
+                  child: Container(
+                    height: deviceHeight,
+                    width: deviceWidth,
+                    padding: const EdgeInsets.fromLTRB(44, 54, 44, 28),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 44,
+                        children: [
+                          _homeScreenHeaderSection(
+                            formattedDate: formattedDate,
+                            formattedTime: formattedTime,
+                          ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 20,
+                            children: [
+                              Expanded(
+                                child: DailyReportWidget(
+                                    sensorValues: sensorValues),
+                              ),
+                              Expanded(
+                                child: SystemSummaryWidget(
+                                  summaryItems: _summaryItems,
                                 ),
-                                // TODO:SYSTEM HEALTH SECTION: []
-                                Expanded(
-                                  child: BlocConsumer<CompostScheduleBloc,
-                                      CompostScheduleState>(
-                                    listener: (context, state) {
-                                      if (state is CompostScheduleFailure) {
-                                        toastHelper.show(
-                                          title: "An error has occurred",
-                                          description: state.error,
-                                          isError: true,
-                                        );
-                                      }
-                                    },
-                                    builder: (context, compostScheduleState) {
-                                      if (compostScheduleState
-                                          is CompostScheduleLoading) {
-                                        return const Loader();
-                                      }
-                                      if (compostScheduleState
-                                          is CompostScheduleFailure) {
-                                        return Center(
-                                          child: GeneralErrorWidget(
-                                            errorTitle:
-                                                "An error has occurred during fetching",
-                                            errorMessage:
-                                                compostScheduleState.error,
-                                          ),
-                                        );
-                                      }
-                                      if (compostScheduleState
-                                          is CompostScheduleListSuccess) {
-                                        return BlocConsumer<FoodWasteBloc,
-                                            FoodWasteState>(
-                                          listener: (context, state) {
-                                            if (state is FoodWasteFailure) {
-                                              toastHelper.show(
-                                                title: "An error has occurred",
-                                                description: state.error,
-                                                isError: true,
-                                              );
-                                            }
-                                          },
-                                          builder: (context, foodWasteState) {
-                                            if (foodWasteState
-                                                is FoodWasteLoading) {
-                                              return const Loader();
-                                            }
-                                            if (foodWasteState
-                                                is FoodWasteFailure) {
-                                              return Center(
-                                                child: GeneralErrorWidget(
-                                                  errorTitle:
-                                                      "An error has occurred during fetching",
-                                                  errorMessage:
-                                                      foodWasteState.error,
-                                                ),
-                                              );
-                                            }
-                                            if (foodWasteState
-                                                is FoodWasteListSuccess) {
-                                              return SystemInformationWidget(
-                                                mqttService: _mqttService,
-                                                scheduleData:
-                                                    compostScheduleState
-                                                        .compostScheduleList,
-                                                foodWasteData:
-                                                    foodWasteState.foodWaste,
-                                              );
-                                            }
-                                            return const Loader();
-                                          },
-                                        );
-                                      }
-                                      return const Loader();
-                                    },
-                                  ),
-                                )
-                              ],
-                            ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: CompostingPerformanceOverviewWidget(
+                                  sensorReadingList: sensorReadingList,
+                                  foodWasteList: foodWasteList,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            spacing: 20,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CameraAndThermalMonitoringWidget(),
+                              Expanded(
+                                flex: 2,
+                                child: EnvironmentalMetricsWidget(
+                                  sensorReadingList: sensorReadingList,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ),
-        );
-      },
+              )
+            : _isError
+                ? EmptyDisplayWidget(
+                    title: "An error has occurred",
+                    description: _errorList.join("/n"),
+                    icon: FluentIcons.cloud_error_24_filled,
+                  )
+                : Center(
+                    child: Loader(),
+                  ),
+      ),
     );
   }
 
@@ -729,63 +338,95 @@ class _HomeScreenState extends State<HomeScreen> {
           }),
     ];
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              getGreeting(),
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              "The following summary reflects system conditions as of ${formattedDate} at ${formattedTime}",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(186),
-              ),
-            ),
-          ],
-        ),
-        Row(
-          spacing: 8,
-          children: [
-            NotificationWidget(),
-            ...buttonList.asMap().entries.map((entry) {
-              final item = entry.value;
-              return OutlinedButton(
-                onPressed: item.onPressedFunction,
-                style: OutlinedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  minimumSize: Size.zero,
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    width: 1,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        spacing: 18,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Glassmorphism(
+                blur: 64,
+                opacity: 0.3,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    height: 54,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(64),
+                          offset: const Offset(0, 4),
+                          blurRadius: 6,
+                          spreadRadius: -1,
+                        ),
+                      ],
+                    ),
+                    child: Image.asset("assets/icons/verminator_logo.png"),
                   ),
                 ),
-                child: Icon(
-                  item.icon,
-                  size: 24,
-                  color: Theme.of(context).colorScheme.onSurface,
+              ),
+              Row(
+                spacing: 8,
+                children: [
+                  NotificationWidget(),
+                  ...buttonList.asMap().entries.map((entry) {
+                    final item = entry.value;
+                    return OutlinedButton(
+                      onPressed: item.onPressedFunction,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        minimumSize: Size.zero,
+                        side: BorderSide(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHigh,
+                          width: 1,
+                        ),
+                      ),
+                      child: Icon(
+                        item.icon,
+                        size: 28,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    );
+                  })
+                ],
+              ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 6,
+            children: [
+              Text(
+                getGreeting(),
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
                 ),
-              );
-            })
-          ],
-        )
-      ],
+              ),
+              Text(
+                "The following summary reflects system conditions as of ${formattedDate} at ${formattedTime}",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface.withAlpha(186),
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
-  }
-
-  void reloadWebView(WebViewController? _webViewController) {
-    _webViewController?.reload();
   }
 }
 
@@ -797,4 +438,17 @@ class ButtonList {
     required this.icon,
     required this.onPressedFunction,
   });
+}
+
+int getDateRange(int selectedRange) {
+  switch (selectedRange) {
+    case 1:
+      return 7;
+    case 2:
+      return 30;
+    case 3:
+      return 365;
+    default:
+      return 24;
+  }
 }

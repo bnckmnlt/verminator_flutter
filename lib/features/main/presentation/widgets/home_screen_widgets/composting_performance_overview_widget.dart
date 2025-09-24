@@ -8,7 +8,7 @@ import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/core/utils/food_waste_to_chartdata.dart';
 import 'package:flutter_vermicomposting/core/utils/sensor_reading_to_daily_avg.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/test_screen.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/home_screen.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -144,7 +144,7 @@ class _CompostingPerformanceOverviewWidgetState
     );
 
     return Column(
-      spacing: 18,
+      spacing: 14,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -220,18 +220,19 @@ class _CompostingPerformanceOverviewWidgetState
                                       .label,
                                   style: TextStyle(
                                     fontSize: 24,
-                                    fontWeight: FontWeight.w600,
+                                    fontFamily: "Zenbones Mono",
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 Text(
                                   chartsOverviewTabs[chartOverviewCurrentTab]
                                       .description,
                                   style: TextStyle(
-                                    fontSize: 18,
+                                    fontSize: 16,
                                     color: Theme.of(context)
                                         .colorScheme
                                         .onSurface
-                                        .withAlpha(186),
+                                        .withAlpha(164),
                                   ),
                                 ),
                               ],
@@ -309,8 +310,9 @@ class _CompostingPerformanceOverviewWidgetState
         borderWidth: 0,
         plotOffset: 0,
         labelFormat: ' {value}%',
-        labelStyle: GoogleFonts.inter(
+        labelStyle: TextStyle(
           fontSize: 14,
+          fontFamily: "Zenbones Mono",
           fontWeight: FontWeight.w600,
           letterSpacing: 0.025,
         ),
@@ -351,8 +353,9 @@ class _CompostingPerformanceOverviewWidgetState
         borderWidth: 0,
         plotOffset: 0,
         labelFormat: ' {value}${selectedChart == 0 ? "°C" : "%"}',
-        labelStyle: GoogleFonts.inter(
+        labelStyle: TextStyle(
           fontSize: 14,
+          fontFamily: "Zenbones Mono",
           fontWeight: FontWeight.w600,
           letterSpacing: 0.025,
         ),

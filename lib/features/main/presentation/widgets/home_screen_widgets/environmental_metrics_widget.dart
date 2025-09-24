@@ -5,7 +5,7 @@ import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/core/utils/convert_to_reading.dart';
 import 'package:flutter_vermicomposting/features/main/data/models/sensor_values_model.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/sensor_values.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/SensorReadingCard.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/sensor_reading_card_widget.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
