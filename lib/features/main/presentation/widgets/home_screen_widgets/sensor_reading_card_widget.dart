@@ -59,7 +59,6 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
     );
 
     return Container(
-      height: 640,
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       decoration: BoxDecoration(
         color:

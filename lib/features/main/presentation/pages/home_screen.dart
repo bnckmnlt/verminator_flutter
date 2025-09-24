@@ -127,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Colors.lightBlueAccent,
         ),
         SummaryCardItem(
-          label: "Total cycle/s Completed",
+          label: "Total Cycles Completed",
           value: compostScheduleList.length.toString(),
           unit: " cycles",
           icon: FluentIcons.recycle_20_filled,
@@ -206,8 +206,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       context.read<WormActivityBloc>().add(WormActivityList());
                       context.read<StatusRecordBloc>().add(StatusRecordList());
                     });
-
-                    _mqttService.connect();
 
                     // showing snackbar
                     ScaffoldMessenger.of(context).showSnackBar(

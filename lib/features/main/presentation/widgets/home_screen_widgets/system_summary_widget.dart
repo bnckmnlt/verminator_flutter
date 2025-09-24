@@ -38,80 +38,86 @@ class _SystemSummaryWidgetState extends State<SystemSummaryWidget> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        Column(
-          spacing: 12,
-          children: [
-            ..._summaryItems.map((item) {
-              return Glassmorphism(
-                blur: 32,
-                opacity: 0.2,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 24,
-                  ),
-                  decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHigh
-                          .withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha(64),
-                          blurRadius: 4,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Column(
-                        spacing: 2.5,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+        SizedBox(
+          height: 470,
+          child: Column(
+            spacing: 12,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ..._summaryItems.map((item) {
+                return Expanded(
+                  child: Glassmorphism(
+                    blur: 32,
+                    opacity: 0.2,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 24,
+                      ),
+                      decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHigh
+                              .withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(64),
+                              blurRadius: 4,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text(
-                            textHeightBehavior: TextHeightBehavior(
-                              applyHeightToLastDescent: false,
-                              applyHeightToFirstAscent: true,
-                            ),
-                            "${item.value}${item.unit}",
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontFamily: "Zenbones Mono",
-                              fontWeight: FontWeight.bold,
-                            ),
+                          Column(
+                            spacing: 2.5,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                textHeightBehavior: TextHeightBehavior(
+                                  applyHeightToLastDescent: false,
+                                  applyHeightToFirstAscent: true,
+                                ),
+                                "${item.value}${item.unit}",
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontFamily: "Zenbones Mono",
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                item.label,
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withAlpha(164),
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(
-                            item.label,
-                            style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withAlpha(164),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                          ),
+                            child: Icon(
+                              item.icon,
+                              size: 28,
+                              color: Colors.black87,
+                            ),
+                          )
                         ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          item.icon,
-                          size: 28,
-                          color: Colors.black87,
-                        ),
-                      )
-                    ],
+                    ),
                   ),
-                ),
-              );
-            })
-          ],
+                );
+              })
+            ],
+          ),
         ),
       ],
     );
