@@ -111,9 +111,10 @@ Widget getLogSeverityWidget(LogSeverity severity) {
     child: Text(
       label,
       style: TextStyle(
-        fontSize: 12,
         color: color,
-        fontWeight: FontWeight.w500,
+        fontSize: 12,
+        fontFamily: "Zenbones Mono",
+        fontWeight: FontWeight.bold,
       ),
     ),
   );
@@ -139,8 +140,9 @@ class LogDataTableSource extends DataTableSource {
         DataCell(
           Text(
             row.createdAt,
-            style: GoogleFonts.spaceMono(
+            style: TextStyle(
               color: Constants().textMutedFgDark,
+              fontFamily: "Zenbones Mono",
               fontWeight: FontWeight.w400,
               letterSpacing: 0.025,
             ),
@@ -148,9 +150,8 @@ class LogDataTableSource extends DataTableSource {
         ),
         DataCell(Text(
           row.message,
-          style: TextStyle(
+          style: GoogleFonts.inter(
             fontWeight: FontWeight.w500,
-            letterSpacing: 0.025,
           ),
         )),
       ],

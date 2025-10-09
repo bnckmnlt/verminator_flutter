@@ -151,7 +151,7 @@ class _EnvironmentalMetricsWidgetState
                   ),
                 ),
                 SizedBox(
-                  height: 498,
+                  height: 516,
                   width: 364,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -239,7 +239,7 @@ class _EnvironmentalMetricsWidgetState
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisAlignment: MainAxisAlignment.end,
-                    spacing: 6,
+                    spacing: 2.5,
                     children: [
                       Text("${containerData.value}${containerData.unit}",
                           style: TextStyle(

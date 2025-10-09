@@ -154,10 +154,10 @@ class _CalibrationWidgetState extends State<CalibrationWidget> {
                           opacity: 0.2,
                           child: AnimatedContainer(
                             height: deviceHeight * 0.1,
-                            curve: Curves.easeInOut,
-                            duration: const Duration(milliseconds: 500),
                             padding: EdgeInsets.symmetric(
                                 horizontal: horizontalPadding * 0.3),
+                            curve: Curves.easeInOut,
+                            duration: const Duration(milliseconds: 500),
                             decoration: BoxDecoration(
                                 color: Theme.of(context)
                                     .colorScheme
@@ -185,7 +185,9 @@ class _CalibrationWidgetState extends State<CalibrationWidget> {
                                   "Step ${index + 1}:\t\t${data.label}",
                                   style: TextStyle(
                                     fontSize: 20,
-                                    fontWeight: FontWeight.w600,
+                                    fontFamily: "Zenbones Mono",
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.025,
                                   ),
                                 ),
                                 Icon(
@@ -288,7 +290,8 @@ class _CalibrationWidgetState extends State<CalibrationWidget> {
                                               textAlign: TextAlign.center,
                                               style: TextStyle(
                                                 fontSize: 18,
-                                                fontWeight: FontWeight.w700,
+                                                fontFamily: "Zenbones Mono",
+                                                fontWeight: FontWeight.bold,
                                                 letterSpacing: 0.025,
                                               ),
                                             ),

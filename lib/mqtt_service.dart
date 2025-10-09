@@ -21,15 +21,6 @@ class MqttService extends ChangeNotifier {
     AppSecrets.clusterPort,
   );
   final List<String> _topics = [
-    'control/relay',
-    'control/fan',
-    'control/pump',
-    'control/vermijuice',
-    'control/aeration',
-    'control/misting',
-    'control/conveyor',
-    'control/rake',
-    'control/sifter',
     'control/monitoring/camera',
     'control/monitoring/thermal',
     'layer/bedding',

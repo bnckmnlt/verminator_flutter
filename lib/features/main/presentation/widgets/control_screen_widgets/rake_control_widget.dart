@@ -27,6 +27,7 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
   late bool _rakeState;
 
   int _currentCycle = 1;
+  double _speedValue = 1000;
 
   @override
   void initState() {
@@ -226,16 +227,17 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
         SizedBox(
           height: 32,
           child: Slider(
-              activeColor: Theme.of(context).colorScheme.tertiary,
-              inactiveColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-              value: 1000,
-              min: 1000,
-              max: 5000,
-              divisions: 10,
-              onChanged: (double newValue) {
-                mqttClient.publish(
-                    'control/conveyor', "Acceleration:$newValue");
-              }),
+            activeColor: Theme.of(context).colorScheme.tertiary,
+            inactiveColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+            value: _speedValue,
+            min: 1000,
+            max: 5000,
+            divisions: 10,
+            onChanged: (double newValue) => setState(() {
+              _speedValue = newValue;
+              mqttClient.publish("control/rake", "Acceleration:$_speedValue");
+            }),
+          ),
         ),
       ],
     );

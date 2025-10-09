@@ -94,7 +94,6 @@ flutter:
   assets:
     - assets/animations/
     - assets/fonts/geist/
-    - assets/fonts/satoshi/
     - assets/fonts/general-sans/
     - assets/fonts/zenbones-mono/
     - assets/icons/
@@ -153,32 +152,6 @@ flutter:
           weight: 800
         - asset: assets/fonts/geist/GeistMono-UltraBlack.ttf
           weight: 900
-    - family: Satoshi
-      fonts:
-        - asset: assets/fonts/satoshi/Satoshi-Light.otf
-          weight: 300
-        - asset: assets/fonts/satoshi/Satoshi-LightItalic.otf
-          weight: 300
-          style: italic
-        - asset: assets/fonts/satoshi/Satoshi-Regular.otf
-          weight: 400
-        - asset: assets/fonts/satoshi/Satoshi-Italic.otf
-          style: italic
-        - asset: assets/fonts/satoshi/Satoshi-Medium.otf
-          weight: 500
-        - asset: assets/fonts/satoshi/Satoshi-MediumItalic.otf
-          weight: 500
-          style: italic
-        - asset: assets/fonts/satoshi/Satoshi-Bold.otf
-          weight: 700
-        - asset: assets/fonts/satoshi/Satoshi-BoldItalic.otf
-          weight: 700
-          style: italic
-        - asset: assets/fonts/satoshi/Satoshi-Black.otf
-          weight: 800
-        - asset: assets/fonts/satoshi/Satoshi-BlackItalic.otf
-          weight: 800
-          style: italic
     - family: Zenbones Mono
       fonts:
         - asset: assets/fonts/zenbones-mono/Zenbones-Mono-Light.ttf

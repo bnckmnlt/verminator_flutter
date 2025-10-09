@@ -175,8 +175,7 @@ class _LogsScreenState extends State<LogsScreen> {
                                         isFirst ? 0 : 14, 0, 0, 0),
                                     child: Container(
                                       height: 124,
-                                      padding: const EdgeInsets.fromLTRB(
-                                          12, 12, 12, 12),
+                                      padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
@@ -195,13 +194,12 @@ class _LogsScreenState extends State<LogsScreen> {
                                           Text(
                                             item.label,
                                             style: TextStyle(
-                                              fontSize: 12,
                                               color: Theme.of(context)
                                                   .colorScheme
                                                   .onSurface
-                                                  .withAlpha(124),
-                                              fontWeight: FontWeight.w500,
-                                              letterSpacing: 0.025,
+                                                  .withAlpha(164),
+                                              fontFamily: "Zenbones Mono",
+                                              fontWeight: FontWeight.w600,
                                             ),
                                           ),
                                           Row(
@@ -270,6 +268,7 @@ class _LogsScreenState extends State<LogsScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.start,
+      spacing: 2,
       children: [
         SizedBox(
           height: 32,
@@ -323,7 +322,6 @@ class _LogsScreenState extends State<LogsScreen> {
             textAlignVertical: TextAlignVertical.center,
           ),
         ),
-        const SizedBox(width: 2),
         OutlinedButton(
           onPressed: () {
             context.read<LogBloc>().add(LogList());
@@ -345,7 +343,6 @@ class _LogsScreenState extends State<LogsScreen> {
             color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
           ),
         ),
-        const SizedBox(width: 2),
         PopupMenuButton(
           onSelected: (value) {
             setState(() {
@@ -355,7 +352,11 @@ class _LogsScreenState extends State<LogsScreen> {
           itemBuilder: (context) => _severityOptions.map((item) {
             return PopupMenuItem(
               value: item,
-              child: Text(item[0].toUpperCase() + item.substring(1)),
+              child: Text(item[0].toUpperCase() + item.substring(1),
+                  style: TextStyle(
+                    fontFamily: "Zenbones Mono",
+                    fontWeight: FontWeight.w600,
+                  )),
             );
           }).toList(),
           child: DottedBorder(
@@ -370,13 +371,13 @@ class _LogsScreenState extends State<LogsScreen> {
               _selectedSeverity.toUpperCase(),
               style: TextStyle(
                 fontSize: 12,
+                fontFamily: "Zenbones Mono",
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.025,
               ),
             ),
           ),
         ),
-        const SizedBox(width: 2),
         OutlinedButton(
           onPressed: () {},
           style: OutlinedButton.styleFrom(

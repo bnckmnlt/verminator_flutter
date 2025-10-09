@@ -27,6 +27,8 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
 
   late bool _conveyorState;
 
+  double _speedValue = 1000;
+
   @override
   void initState() {
     super.initState();
@@ -50,16 +52,12 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
   Widget build(BuildContext context) {
     final List<ConveyorCommand> conveyorCommands = [
       ConveyorCommand(
-        label: "Reverse",
-        onPressed: () => publishConveyorCommand("Flip"),
+        label: "Expand",
+        onPressed: () => publishConveyorCommand("Eject:Block"),
       ),
       ConveyorCommand(
-        label: "Eject",
-        onPressed: () => publishConveyorCommand("Eject"),
-      ),
-      ConveyorCommand(
-        label: "Return Eject",
-        onPressed: () => publishConveyorCommand("Eject"),
+        label: "Retract",
+        onPressed: () => publishConveyorCommand("Eject:Unblock"),
       ),
       ConveyorCommand(
         label: "Stop",
@@ -108,37 +106,6 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _conveyorSpeedControlSection(MqttService mqttClient) {
-    return Column(
-      spacing: 6,
-      children: [
-        const Text(
-          "Speed Control",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.025,
-          ),
-        ),
-        SizedBox(
-          height: 32,
-          child: Slider(
-              activeColor: Theme.of(context).colorScheme.tertiary,
-              inactiveColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-              value: 1000,
-              min: 1000,
-              max: 5000,
-              divisions: 10,
-              onChanged: (double newValue) {
-                mqttClient.publish(
-                    'control/conveyor', "Acceleration:$newValue");
-              }),
-        ),
-      ],
     );
   }
 
@@ -206,6 +173,39 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
               ),
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  Widget _conveyorSpeedControlSection(MqttService mqttClient) {
+    return Column(
+      spacing: 6,
+      children: [
+        const Text(
+          "Speed Control",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.025,
+          ),
+        ),
+        SizedBox(
+          height: 32,
+          child: Slider(
+            activeColor: Theme.of(context).colorScheme.tertiary,
+            inactiveColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+            value: _speedValue,
+            min: 1000,
+            max: 5000,
+            divisions: 10,
+            onChanged: (double newValue) => setState(() {
+              _speedValue = newValue;
+              mqttClient.publish(
+                  "control/conveyor", "Acceleration:$_speedValue");
+            }),
+          ),
         ),
       ],
     );

@@ -27,6 +27,7 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
   late bool _sifterState;
 
   int _currentCycle = 5;
+  double _speedValue = 1000;
 
   @override
   void initState() {
@@ -224,16 +225,17 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
         SizedBox(
           height: 32,
           child: Slider(
-              activeColor: Theme.of(context).colorScheme.tertiary,
-              inactiveColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-              value: 1000,
-              min: 1000,
-              max: 5000,
-              divisions: 10,
-              onChanged: (double newValue) {
-                mqttClient.publish(
-                    'control/conveyor', "Acceleration:$newValue");
-              }),
+            activeColor: Theme.of(context).colorScheme.tertiary,
+            inactiveColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+            value: _speedValue,
+            min: 1000,
+            max: 5000,
+            divisions: 10,
+            onChanged: (double newValue) => setState(() {
+              _speedValue = newValue;
+              mqttClient.publish("control/sifter", "Acceleration:$_speedValue");
+            }),
+          ),
         ),
       ],
     );

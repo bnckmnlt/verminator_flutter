@@ -1,7 +1,6 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart' hide Threshold;
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/sensor_readings_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -162,5 +161,60 @@ Icon getSensorValueIcon(SensorStatus status) {
         FluentIcons.subtract_circle_24_filled,
         color: Colors.white,
       );
+  }
+}
+
+SensorStatus getSensorStatus({
+  required String type,
+  required String? value,
+}) {
+  if (value == null) return SensorStatus.bad;
+
+  double? numValue = double.tryParse(value);
+  if (numValue == null) return SensorStatus.bad;
+
+  switch (type) {
+    case 'temperature':
+      if (numValue >= 20 && numValue <= 28) return SensorStatus.good;
+      if (numValue >= 10 && numValue < 15 || numValue > 30 && numValue <= 35) {
+        return SensorStatus.fair;
+      }
+      return SensorStatus.bad;
+    case 'humidity':
+      if (numValue >= 70 && numValue <= 80) return SensorStatus.good;
+      if ((numValue >= 60 && numValue < 70) ||
+          (numValue > 80 && numValue <= 85)) return SensorStatus.fair;
+      return SensorStatus.bad;
+    case 'soilMoisture':
+      if (numValue >= 65 && numValue <= 80) return SensorStatus.good;
+      if ((numValue >= 60 && numValue < 65) ||
+          (numValue > 80 && numValue <= 90)) return SensorStatus.fair;
+      return SensorStatus.bad;
+    case 'nitrogen':
+      if (numValue >= 20 && numValue <= 40) return SensorStatus.good;
+      if (numValue >= 15 && numValue < 20 || numValue > 40 && numValue <= 50)
+        return SensorStatus.fair;
+      return SensorStatus.bad;
+    case 'phosphorus':
+      if (numValue >= 10 && numValue <= 30) return SensorStatus.good;
+      if ((numValue >= 5 && numValue < 10) || (numValue > 30 && numValue <= 40))
+        return SensorStatus.fair;
+      return SensorStatus.bad;
+    case 'potassium':
+      if (numValue >= 15 && numValue <= 30) return SensorStatus.good;
+      if ((numValue >= 10 && numValue < 15) ||
+          (numValue > 30 && numValue <= 35)) return SensorStatus.fair;
+      return SensorStatus.bad;
+    case 'compost':
+      if (numValue >= 1 && numValue <= 10) return SensorStatus.good;
+      return SensorStatus.fair;
+    case 'vermijuice':
+      if (numValue >= 1 && numValue <= 10) return SensorStatus.good;
+      return SensorStatus.fair;
+    case 'reservoir':
+      if (numValue > 1) return SensorStatus.good;
+      return SensorStatus.bad;
+    default:
+      return SensorStatus.bad;
   }
 }
