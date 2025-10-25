@@ -27,7 +27,8 @@ class WormActivityRemoteDatasourceImpl implements WormActivityRemoteDatasource {
       if (response.statusCode == 200) {
         return (jsonDecode(response.body) as List)
             .map((wormActivity) => WormActivityModel.fromJson(wormActivity))
-            .toList();
+            .toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
       } else {
         throw ServerException(response.body.parseErrorMessage());
       }

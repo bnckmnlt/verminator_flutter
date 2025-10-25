@@ -125,11 +125,10 @@ class _EnvironmentalMetricsWidgetState
                     ),
                     itemBuilder: (BuildContext context, int index) {
                       final List<ChartData> readingList = (_sensorReadingList
-                              .where((reading) =>
-                                  reading.layer ==
-                                  Constants.parametersToMonitorList[index]
-                                      ['layer'])
-                              .map((reading) {
+                          .where((reading) =>
+                              reading.layer ==
+                              Constants.parametersToMonitorList[index]['layer'])
+                          .map((reading) {
                         return ChartData(
                           reading.createdAt,
                           (convertToReading(
@@ -138,8 +137,7 @@ class _EnvironmentalMetricsWidgetState
                                   reading) ??
                               0),
                         );
-                      }).toList())
-                          .sublist(0, 7);
+                      }).toList());
 
                       return SensorReadingCard(
                         key: Key(index.toString()),
@@ -227,7 +225,7 @@ class _EnvironmentalMetricsWidgetState
                 mainAxisAlignment: MainAxisAlignment.end,
                 spacing: 6,
                 children: [
-                  Text("Occupied",
+                  Text("Capacity",
                       style: TextStyle(
                         color: Theme.of(context)
                             .colorScheme

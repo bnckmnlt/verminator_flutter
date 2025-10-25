@@ -27,9 +27,11 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_initialized) {
+    if (!_initialized && widget.readingValueList.isNotEmpty) {
       currentValue = widget.readingValueList.first.y.toInt();
       _initialized = true;
+    } else {
+      currentValue = 0;
     }
   }
 
@@ -104,40 +106,42 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
               ],
             ),
           ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: SizedBox(
-              height: 64,
-              child: SfCartesianChart(
-                trackballBehavior: trackballBehavior,
-                margin: EdgeInsets.zero,
-                plotAreaBorderWidth: 0,
-                primaryXAxis: CategoryAxis(isVisible: false),
-                primaryYAxis: NumericAxis(isVisible: false),
-                series: <CartesianSeries>[
-                  AreaSeries<ChartData, String>(
-                    sortingOrder: SortingOrder.ascending,
-                    dataSource: widget.readingValueList,
-                    xValueMapper: (ChartData data, _) => data.x,
-                    yValueMapper: (ChartData data, _) => data.y,
-                    color: Colors.white,
-                    borderColor: Colors.white,
-                    borderWidth: 3,
-                    borderDrawMode: BorderDrawMode.all,
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.white54.withAlpha(58),
-                        Colors.white54.withAlpha(24),
-                        Colors.white54.withAlpha(0),
+          widget.readingValueList.isNotEmpty
+              ? Align(
+                  alignment: Alignment.bottomCenter,
+                  child: SizedBox(
+                    height: 64,
+                    child: SfCartesianChart(
+                      trackballBehavior: trackballBehavior,
+                      margin: EdgeInsets.zero,
+                      plotAreaBorderWidth: 0,
+                      primaryXAxis: CategoryAxis(isVisible: false),
+                      primaryYAxis: NumericAxis(isVisible: false),
+                      series: <CartesianSeries>[
+                        AreaSeries<ChartData, String>(
+                          sortingOrder: SortingOrder.ascending,
+                          dataSource: widget.readingValueList,
+                          xValueMapper: (ChartData data, _) => data.x,
+                          yValueMapper: (ChartData data, _) => data.y,
+                          color: Colors.white,
+                          borderColor: Colors.white,
+                          borderWidth: 3,
+                          borderDrawMode: BorderDrawMode.all,
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white54.withAlpha(58),
+                              Colors.white54.withAlpha(24),
+                              Colors.white54.withAlpha(0),
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                        ),
                       ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
+                )
+              : SizedBox.shrink(),
         ],
       ),
     );

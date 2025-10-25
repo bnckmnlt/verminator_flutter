@@ -130,7 +130,7 @@ class Constants {
     "Did you know? Citrus peels and onions are valid — but too much can slow down composting!",
     "Never throw glass, metal, or rubber items — these are harmful to the worms.",
     "Cut large scraps (like melon rinds) into smaller pieces for faster breakdown.",
-    "Reminder: Do not stack food waste — multiple items at once may lead to misclassification.",
+    "Do not stack food waste — multiple items at once may lead to misclassification.",
     "Paper towels and napkins are compostable if they’re not soaked in chemicals.",
     "Coffee grounds and filters are great for worm bins, but the system doesn't support them yet. :(",
     "Plastics, styrofoam, and foil should never go into the compost stream.",

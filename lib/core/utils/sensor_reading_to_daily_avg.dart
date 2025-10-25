@@ -32,8 +32,7 @@ List<ChartData> sensorReadingToDailyAvg<T>(
             values.length;
         return ChartData(entry.key, avg.toDouble());
       })
-      .toList()
-      .sublist(0, limit ?? 7);
+      .toList();
 
   return chartData;
 }

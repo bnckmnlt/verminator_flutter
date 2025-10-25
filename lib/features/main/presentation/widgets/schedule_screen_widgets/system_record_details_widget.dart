@@ -365,7 +365,7 @@ class _SystemRecordDetailsState extends State<SystemRecordDetails> {
           return currentDayMatched;
         });
 
-        final data = filteredLogs.map((item) {
+        final data = (filteredLogs.map((item) {
           final date = DateTime.parse(item.createdAt);
           final formattedDate = DateFormat("HH:mm:ss").format(date);
 
@@ -374,7 +374,8 @@ class _SystemRecordDetailsState extends State<SystemRecordDetails> {
             message: item.message,
             createdAt: formattedDate,
           );
-        }).toList();
+        }).toList())
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/popup_selection_widget.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/core/error/exception.dart';
 import 'package:flutter_vermicomposting/core/secrets/app_secrets.dart';
 import 'package:flutter_vermicomposting/core/utils/evaluate_soil_health.dart';
 import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/core/utils/string_extensions.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/sensor_values.dart';
-import 'package:flutter_vermicomposting/main.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
@@ -38,6 +38,10 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
   late List<String> _dataKeys;
   late Widget _selection;
 
+  bool _isError = false;
+
+  late ToastHelper _toaster;
+
   int currentSummaryTab = 0;
 
   bool responseLoaded = false;
@@ -53,6 +57,8 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
 
   @override
   Widget build(BuildContext context) {
+    _toaster = ToastHelper(context);
+
     if (responseLoaded) {
       _summaryData =
           _dailyReportResponse.toMap().entries.fold({}, (prev, curr) {
@@ -147,7 +153,54 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
                     Divider(),
                     responseLoaded
                         ? _readingPromptSection(_selection)
-                        : SizedBox(height: 324, child: Loader()),
+                        : SizedBox(
+                            height: 324,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              spacing: 20,
+                              children: [
+                                Loader(),
+                                if (_isError)
+                                  OutlinedButton(
+                                    onPressed: () => _getResponse(),
+                                    style: OutlinedButton.styleFrom(
+                                      disabledBackgroundColor:
+                                          Color(0xFF27272a).withAlpha(124),
+                                      disabledForegroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withAlpha(0),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 8,
+                                        horizontal: 24,
+                                      ),
+                                      side: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .surfaceContainerHighest,
+                                      ),
+                                      foregroundColor: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                      minimumSize: Size(0, 0),
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: Text(
+                                      "Reload response",
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        letterSpacing: 0.025,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            )),
                   ],
                 ),
               ),
@@ -365,10 +418,21 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
       } else {
         throw ServerException(response.body.parseErrorMessage());
       }
+      _isError = false;
     } on ServerException catch (e) {
-      log.warning(e.toString());
+      _toaster.show(
+        title: "Something went wrong",
+        description: e.toString(),
+        isError: false,
+      );
+      _isError = true;
     } catch (e, stack) {
-      log.severe('Unexpected error: $e', e, stack);
+      _toaster.show(
+        title: "Unexpected error has occured",
+        description: e.toString(),
+        isError: false,
+      );
+      _isError = true;
     }
   }
 
@@ -417,7 +481,7 @@ class PromptResponse {
     return PromptResponse(
       temperature: PromptBody.fromJson(json["temperature"]),
       humidity: PromptBody.fromJson(json["humidity"]),
-      moisture: PromptBody.fromJson(json["moisture"]),
+      moisture: PromptBody.fromJson(json["soil_moisture"]),
       nitrogen: PromptBody.fromJson(json["nitrogen"]),
       phosphorus: PromptBody.fromJson(json["phosphorus"]),
       potassium: PromptBody.fromJson(json["potassium"]),

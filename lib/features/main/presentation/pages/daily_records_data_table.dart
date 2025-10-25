@@ -169,10 +169,9 @@ class _DailyRecordsDataTableState extends State<DailyRecordsDataTable> {
       final phosphorus = avg(comp.map((r) => r.npk.phosphorus).toList());
       final potassium = avg(comp.map((r) => r.npk.potassium).toList());
 
-      final wormActivity = (wormActivitiesByTimeUnit[timeUnit]
-              ?.getActiveZoneLabel(
-                  wormActivitiesByTimeUnit[timeUnit]!.zones)) ??
-          "Unknown";
+      final wormActivity =
+          (wormActivitiesByTimeUnit[timeUnit]?.getActiveZoneLabel()) ??
+              "Unknown";
 
       final String displayLabel;
       if (isSingleDayRange) {

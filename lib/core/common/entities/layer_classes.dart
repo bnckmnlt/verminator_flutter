@@ -78,3 +78,25 @@ class Npk {
         phosphorus: json['phosphorus'],
       );
 }
+
+class Reading {
+  final String date;
+  final double temperature;
+  final double humidity;
+  final double soilMoisture;
+  final double nitrogen;
+  final double phosphorus;
+  final double potassium;
+  final String activeZone;
+
+  Reading({
+    required this.date,
+    this.temperature = 0,
+    this.humidity = 0,
+    this.soilMoisture = 0,
+    this.nitrogen = 0,
+    this.phosphorus = 0,
+    this.potassium = 0,
+    this.activeZone = "Unknown",
+  });
+}

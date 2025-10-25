@@ -5,7 +5,6 @@ import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/features/logs/domain/entity/log_entity.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/data_table_column.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class LogsDataTable extends StatelessWidget {
   final List<DataTableColumn> columns;
@@ -150,8 +149,10 @@ class LogDataTableSource extends DataTableSource {
         ),
         DataCell(Text(
           row.message,
-          style: GoogleFonts.inter(
+          style: TextStyle(
+            fontFamily: 'Geist',
             fontWeight: FontWeight.w500,
+            letterSpacing: 0.025,
           ),
         )),
       ],

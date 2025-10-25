@@ -79,7 +79,7 @@ class _PumpControlWidgetState extends State<PumpControlWidget> {
         label: "Vermijuice Dispenser",
         icon: FluentIcons.drink_bottle_20_regular,
         state: vermijuiceControlState,
-        topic: "control/vermijuice",
+        topic: "control/vermitea",
       ),
     ];
 

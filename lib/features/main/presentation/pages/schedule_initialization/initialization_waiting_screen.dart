@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -178,6 +179,29 @@ class _InitializationWaitingScreenState
                   description: "Do you want to cancel this process?",
                   confirmButtonLabel: "Cancel Process",
                   approvedFunction: () {
+                    final settingsPayload = {
+                      "status": "idle",
+                      "id": widget.scheduleId.toString(),
+                      "reading_interval": "15",
+                      "refresh_rate": "2",
+                    };
+
+                    _mqttService.publish(
+                      "system/settings",
+                      jsonEncode(settingsPayload),
+                      qos: MqttQos.atLeastOnce,
+                      retain: true,
+                    );
+                    _mqttService.publish(
+                        "control/monitoring/camera", "inactive",
+                        qos: MqttQos.atLeastOnce, retain: true);
+                    _mqttService.publish(
+                      "control/conveyor",
+                      "Stop",
+                      qos: MqttQos.atLeastOnce,
+                      retain: true,
+                    );
+
                     Navigator.popUntil(context, (route) => route.isFirst);
                   },
                 );
@@ -242,12 +266,27 @@ class _InitializationWaitingScreenState
   }
 
   void startTimer() {
-    _mqttService.publish("system/feeding/id", widget.scheduleId.toString(),
-        qos: MqttQos.atLeastOnce, retain: true);
-    _mqttService.publish("system/status", "feeding",
-        qos: MqttQos.atLeastOnce, retain: true);
+    final settingsPayload = {
+      "status": "feeding",
+      "id": widget.scheduleId.toString(),
+      "reading_interval": "15",
+      "refresh_rate": "2",
+    };
+
+    _mqttService.publish(
+      "system/settings",
+      jsonEncode(settingsPayload),
+      qos: MqttQos.atLeastOnce,
+      retain: true,
+    );
     _mqttService.publish("control/monitoring/camera", "active",
         qos: MqttQos.atLeastOnce, retain: true);
+    _mqttService.publish(
+      "control/conveyor",
+      "Continuous",
+      qos: MqttQos.atLeastOnce,
+      retain: true,
+    );
 
     final toastHelper = ToastHelper(context);
 
@@ -304,6 +343,28 @@ class _InitializationWaitingScreenState
             if (!mounted) return;
 
             if (isError) {
+              final settingsPayload = {
+                "status": "idle",
+                "id": widget.scheduleId.toString(),
+                "reading_interval": "15",
+                "refresh_rate": "2",
+              };
+
+              _mqttService.publish(
+                "system/settings",
+                jsonEncode(settingsPayload),
+                qos: MqttQos.atLeastOnce,
+                retain: true,
+              );
+              _mqttService.publish("control/monitoring/camera", "inactive",
+                  qos: MqttQos.atLeastOnce, retain: true);
+              _mqttService.publish(
+                "control/conveyor",
+                "Stop",
+                qos: MqttQos.atLeastOnce,
+                retain: true,
+              );
+
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -355,10 +416,27 @@ class _InitializationWaitingScreenState
                 return;
               }
 
-              _mqttService.publish("system/status", "idle",
-                  qos: MqttQos.atLeastOnce, retain: true);
+              final settingsPayload = {
+                "status": "active",
+                "id": widget.scheduleId.toString(),
+                "reading_interval": "15",
+                "refresh_rate": "2",
+              };
+
+              _mqttService.publish(
+                "system/settings",
+                jsonEncode(settingsPayload),
+                qos: MqttQos.atLeastOnce,
+                retain: true,
+              );
               _mqttService.publish("control/monitoring/camera", "inactive",
                   qos: MqttQos.atLeastOnce, retain: true);
+              _mqttService.publish(
+                "control/conveyor",
+                "Stop",
+                qos: MqttQos.atLeastOnce,
+                retain: true,
+              );
 
               Navigator.pushReplacement(
                 context,
@@ -420,71 +498,6 @@ class _InitializationWaitingScreenState
     );
   }
 
-  Widget _materialIndicatorWidget({
-    required int value,
-    required String label,
-    required Color chipColor,
-  }) {
-    return Column(
-      children: [
-        Text(
-          value.toString(),
-          style: const TextStyle(
-            fontSize: 164,
-            fontWeight: FontWeight.w700,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-        Chip(
-          backgroundColor: chipColor.withAlpha(16),
-          side: BorderSide(
-            color: chipColor,
-          ),
-          label: Text(
-            label,
-            style: TextStyle(
-              color: chipColor,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _materialsListSection({
-    required String listLabel,
-  }) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Text(
-          listLabel,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            fontStyle: FontStyle.italic,
-            letterSpacing: 0.025,
-          ),
-        ),
-        const SizedBox(height: 24),
-        Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh),
-              ),
-              child: const Text("Valid Materiales"),
-            )
-          ],
-        ),
-      ],
-    );
-  }
-
   Widget _bottomInformationSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -496,7 +509,7 @@ class _InitializationWaitingScreenState
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Badge(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 backgroundColor: Colors.amberAccent,
                 label: Text(
                   "TIP",

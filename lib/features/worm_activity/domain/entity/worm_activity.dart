@@ -23,7 +23,7 @@ class WormActivity {
     required this.createdAt,
   });
 
-  String getActiveZoneLabel(Map<String, dynamic> zones) {
+  String getActiveZoneLabel() {
     const targetLevel = 'moderate';
     for (final entry in zones.entries) {
       final activityLevel =
