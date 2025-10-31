@@ -18,13 +18,19 @@ class FoodWaste {
   });
 }
 
-enum MaterialStatus { valid, invalid }
+enum MaterialStatus { valid, invalid, controlled }
 
 enum FoodWasteClassname {
-  fruit,
-  vegetable,
-  grains,
-  citrus,
-  meat,
-  foreign,
+  fruitWaste,
+  vegetableWaste,
+  paperCardboard,
+  leavesDryMaterial,
+  onionGarlic,
+  spicyMaterial,
+  eggshellsCoffeeGrounds,
+  grainsAndBread,
+  citrusPeels,
+  meatDairy,
+  foreignMaterial,
+  medicalWaste,
 }

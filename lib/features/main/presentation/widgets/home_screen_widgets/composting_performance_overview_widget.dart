@@ -81,18 +81,38 @@ class _CompostingPerformanceOverviewWidgetState
         .toList();
 
     final Map<String, List<ChartData>> foodWasteChartData = {
-      "fruit": foodWasteToChartData(
-          FoodWasteClassname.fruit, _foodWasteList, DateFormat.yMMMMd()),
-      "vegetable": foodWasteToChartData(
-          FoodWasteClassname.vegetable, _foodWasteList, DateFormat.yMMMMd()),
-      "grains": foodWasteToChartData(
-          FoodWasteClassname.grains, _foodWasteList, DateFormat.yMMMMd()),
-      "citrus": foodWasteToChartData(
-          FoodWasteClassname.citrus, _foodWasteList, DateFormat.yMMMMd()),
-      "meat": foodWasteToChartData(
-          FoodWasteClassname.meat, _foodWasteList, DateFormat.yMMMMd()),
-      "foreign": foodWasteToChartData(
-          FoodWasteClassname.foreign, _foodWasteList, DateFormat.yMMMMd()),
+      "fruit_waste": foodWasteToChartData(
+          FoodWasteClassname.fruitWaste, _foodWasteList, DateFormat.yMMMMd()),
+      "vegetable_waste": foodWasteToChartData(FoodWasteClassname.vegetableWaste,
+          _foodWasteList, DateFormat.yMMMMd()),
+      "paper_cardboard": foodWasteToChartData(FoodWasteClassname.paperCardboard,
+          _foodWasteList, DateFormat.yMMMMd()),
+      "leaves_dry_material": foodWasteToChartData(
+          FoodWasteClassname.leavesDryMaterial,
+          _foodWasteList,
+          DateFormat.yMMMMd()),
+      "onion_garlic": foodWasteToChartData(
+          FoodWasteClassname.onionGarlic, _foodWasteList, DateFormat.yMMMMd()),
+      "spicy_material": foodWasteToChartData(FoodWasteClassname.spicyMaterial,
+          _foodWasteList, DateFormat.yMMMMd()),
+      "eggshells_coffee_grounds": foodWasteToChartData(
+          FoodWasteClassname.eggshellsCoffeeGrounds,
+          _foodWasteList,
+          DateFormat.yMMMMd()),
+      "grains_and_bread": foodWasteToChartData(
+          FoodWasteClassname.grainsAndBread,
+          _foodWasteList,
+          DateFormat.yMMMMd()),
+      "citrus_peels": foodWasteToChartData(
+          FoodWasteClassname.citrusPeels, _foodWasteList, DateFormat.yMMMMd()),
+      "meat_dairy": foodWasteToChartData(
+          FoodWasteClassname.meatDairy, _foodWasteList, DateFormat.yMMMMd()),
+      "foreign_material": foodWasteToChartData(
+          FoodWasteClassname.foreignMaterial,
+          _foodWasteList,
+          DateFormat.yMMMMd()),
+      "medical_waste": foodWasteToChartData(
+          FoodWasteClassname.medicalWaste, _foodWasteList, DateFormat.yMMMMd()),
     };
 
     final chartsOverviewTabs = [
@@ -237,27 +257,38 @@ class _CompostingPerformanceOverviewWidgetState
                                 ),
                               ],
                             ),
-                            Row(
-                              spacing: 14,
-                              children:
-                                  chartsOverviewTabs[chartOverviewCurrentTab]
-                                      .annotation!
-                                      .map((item) {
-                                return Row(
-                                  spacing: 8,
-                                  children: [
-                                    Container(
-                                      height: 12,
-                                      width: 12,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: item.color,
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.4,
+                              child: Wrap(
+                                spacing: 14,
+                                runSpacing: 8,
+                                alignment: WrapAlignment.end,
+                                children:
+                                    chartsOverviewTabs[chartOverviewCurrentTab]
+                                        .annotation!
+                                        .map((item) {
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    spacing: 8,
+                                    children: [
+                                      Container(
+                                        height: 12,
+                                        width: 12,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: item.color,
+                                        ),
                                       ),
-                                    ),
-                                    Text(item.label),
-                                  ],
-                                );
-                              }).toList(),
+                                      Text(
+                                        item.label,
+                                        style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w500),
+                                      ),
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
                             )
                           ],
                         ),
@@ -419,23 +450,35 @@ class _CompostingPerformanceOverviewWidgetState
           final int index = item.key;
           final List<ChartData> data = item.value.value;
 
+          String groupName;
+          if (index == 0) {
+            groupName = "Valid";
+          } else if (index == 1) {
+            groupName = "Controlled";
+          } else {
+            groupName = "Invalid";
+          }
+
           return StackedColumnSeries<ChartData, String>(
-            groupName: index < 2 ? "Valid" : "Invalid",
+            groupName: groupName,
             dataSource: data,
-            color: kitchenWasteChartAnnotations[index].color,
+            color: index < kitchenWasteChartAnnotations.length
+                ? kitchenWasteChartAnnotations[index].color
+                : Colors.grey,
             sortingOrder: SortingOrder.descending,
-            dataLabelSettings: DataLabelSettings(
-                isVisible: true,
-                showCumulativeValues: true,
-                textStyle: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.025,
-                )),
+            dataLabelSettings: const DataLabelSettings(
+              isVisible: true,
+              showCumulativeValues: true,
+              textStyle: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.025,
+              ),
+            ),
             xValueMapper: (ChartData d, _) => d.x,
             yValueMapper: (ChartData d, _) => d.y,
           );
-        })
+        }),
       ],
     );
   }

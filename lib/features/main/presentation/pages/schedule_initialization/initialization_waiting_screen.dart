@@ -113,10 +113,12 @@ class _InitializationWaitingScreenState
 
             for (final item in newEntries) {
               if (item.materialStatus.name == 'valid') {
-                speak(
-                    "Valid material detected. Proceeding to the bedding layer.");
+                speak("Valid material detected. Proceeding to bedding layer.");
               } else if (item.materialStatus.name == 'invalid') {
-                speak("Invalid material identified. Redirecting for disposal.");
+                speak("Invalid material detected. Redirecting for disposal.");
+              } else if (item.materialStatus.name == 'controlled') {
+                speak(
+                    "Controlled material detected. Handle feeding with caution.");
               }
             }
 
@@ -323,13 +325,35 @@ class _InitializationWaitingScreenState
               errorList[1] = true;
             }
 
-            const validClassNames = ['fruit', 'vegetable', 'grains'];
-            final hasValid = wasteList.any((waste) {
-              return validClassNames
-                  .contains(waste.classname.name.toLowerCase());
+            const validClasses = [
+              "fruit_waste",
+              "vegetable_waste",
+              "paper_cardboard",
+              "leaves_dry_material",
+            ];
+
+            const controlledClasses = [
+              "onion_garlic",
+              "spicy_material",
+              "eggshells_coffee_grounds",
+              "grains_and_bread",
+            ];
+
+            final acceptedClasses = [...validClasses, ...controlledClasses];
+
+            String toSnakeCase(String name) {
+              return name
+                  .replaceAllMapped(
+                      RegExp(r'([a-z0-9])([A-Z])'), (m) => '${m[1]}_${m[2]}')
+                  .toLowerCase();
+            }
+
+            final hasAccepted = wasteList.any((waste) {
+              final classname = toSnakeCase(waste.classname.name);
+              return acceptedClasses.contains(classname);
             });
 
-            if (!hasValid) {
+            if (!hasAccepted) {
               errorList[0] = true;
             }
           }

@@ -473,18 +473,24 @@ IconData getClassnameIconData(FoodWasteClassname classname) {
   IconData iconData;
 
   switch (classname) {
-    case FoodWasteClassname.fruit:
+    case FoodWasteClassname.fruitWaste:
+    case FoodWasteClassname.vegetableWaste:
+    case FoodWasteClassname.paperCardboard:
+    case FoodWasteClassname.leavesDryMaterial:
       iconData = FluentIcons.food_apple_24_regular;
-    case FoodWasteClassname.vegetable:
+      break;
+
+    case FoodWasteClassname.onionGarlic:
+    case FoodWasteClassname.spicyMaterial:
+    case FoodWasteClassname.eggshellsCoffeeGrounds:
+    case FoodWasteClassname.grainsAndBread:
       iconData = FluentIcons.plant_grass_24_regular;
-    case FoodWasteClassname.grains:
-      iconData = FluentIcons.food_20_regular;
-    case FoodWasteClassname.citrus:
+      break;
+
+    default:
       iconData = FluentIcons.prohibited_24_regular;
-    case FoodWasteClassname.meat:
-      iconData = FluentIcons.prohibited_24_regular;
-    case FoodWasteClassname.foreign:
-      iconData = FluentIcons.prohibited_24_regular;
+      ;
+      break;
   }
 
   return iconData;

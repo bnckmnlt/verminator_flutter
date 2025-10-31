@@ -1,6 +1,5 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_vermicomposting/core/utils/string_extensions.dart';
 import 'package:flutter_vermicomposting/features/food_waste/data/models/food_waste_model.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -37,11 +36,16 @@ class _SystemImageDetailsState extends State<SystemImageDetails> {
       },
       {
         'label': 'Classname',
-        'widget': _getClassnameWidget(widget.foodWaste.classname)
+        'widget': _getClassnameWidget(
+          widget.foodWaste.materialStatus,
+          widget.foodWaste.classname,
+        )
       },
       {
         'label': 'Status',
-        'widget': _getStatusBadge(widget.foodWaste.materialStatus)
+        'widget': _getStatusBadge(
+          widget.foodWaste.materialStatus,
+        )
       },
       {
         'label': 'Loaded at',
@@ -164,35 +168,44 @@ class _SystemImageDetailsState extends State<SystemImageDetails> {
     );
   }
 
-  Widget _getClassnameWidget(FoodWasteClassname classname) {
+  Widget _getClassnameWidget(
+      MaterialStatus status, FoodWasteClassname classname) {
     IconData icon;
     MaterialAccentColor color;
 
-    switch (classname) {
-      case FoodWasteClassname.fruit:
+    switch (status) {
+      case MaterialStatus.valid:
         icon = FluentIcons.food_apple_24_regular;
         color = Colors.blueAccent;
-      case FoodWasteClassname.vegetable:
+        break;
+
+      case MaterialStatus.controlled:
         icon = FluentIcons.plant_grass_24_regular;
         color = Colors.greenAccent;
-      case FoodWasteClassname.grains:
-        icon = FluentIcons.plant_grass_24_regular;
-        color = Colors.amberAccent;
+        break;
+
       default:
         icon = FluentIcons.prohibited_24_regular;
         color = Colors.redAccent;
+        break;
     }
+
+    final formattedName = classname.name
+        .replaceAllMapped(
+            RegExp(r'([a-z0-9])([A-Z])'), (m) => '${m[1]} ${m[2]}')
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((word) => word.isNotEmpty
+            ? '${word[0].toUpperCase()}${word.substring(1)}'
+            : '')
+        .join(' ');
 
     return Row(
       spacing: 6,
       children: [
-        Icon(
-          icon,
-          size: 14,
-          color: color,
-        ),
+        Icon(icon, size: 14, color: color),
         Text(
-          classname.name.firstLetterUpperCase(),
+          formattedName,
           style: GoogleFonts.spaceMono(
             color: color,
             fontSize: 12,
@@ -210,6 +223,9 @@ class _SystemImageDetailsState extends State<SystemImageDetails> {
 
     if (status == MaterialStatus.valid) {
       color = Colors.greenAccent;
+      fgColor = Colors.black;
+    } else if (status == MaterialStatus.controlled) {
+      color = Colors.amberAccent;
       fgColor = Colors.black;
     } else {
       color = Colors.redAccent;

@@ -210,12 +210,18 @@ class Constants {
   };
 
   final kitchenWasteChartAnnotations = [
-    AnnotationData("Fruit", const Color(0xFF2563EB)),
-    AnnotationData("Vegetable", const Color(0xFF3B82F6)),
-    AnnotationData("Grains", const Color(0xFF93C5FD)),
-    AnnotationData("Citrus", const Color(0xFFDC2626)),
-    AnnotationData("Meat", const Color(0xFFF87171)),
-    AnnotationData("Foreign", const Color(0xFFFECACA)),
+    AnnotationData("Fruit Waste", const Color(0xFF2563EB)),
+    AnnotationData("Vegetable Waste", const Color(0xFF3B82F6)),
+    AnnotationData("Paper/Cardboard", const Color(0xFF60A5FA)),
+    AnnotationData("Leaves/Dry Material", const Color(0xFF93C5FD)),
+    AnnotationData("Onion/Garlic", const Color(0xFF10B981)),
+    AnnotationData("Spicy Material", const Color(0xFF34D399)),
+    AnnotationData("Eggshells/Coffee Grounds", const Color(0xFF6EE7B7)),
+    AnnotationData("Grains & Bread", const Color(0xFFA7F3D0)),
+    AnnotationData("Meat/Dairy", const Color(0xFFDC2626)),
+    AnnotationData("Citrus Peels", const Color(0xFFF87171)),
+    AnnotationData("Foreign Material", const Color(0xFFFECACA)),
+    AnnotationData("Medical Waste", const Color(0xFFFFCDD2)),
   ];
 
   final List<AnnotationData> nutrientAnnotations = [
