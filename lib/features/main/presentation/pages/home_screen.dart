@@ -24,7 +24,6 @@ import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/se
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
-import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -35,8 +34,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late MqttService _mqttService;
-
   final DateTime now = DateTime.now();
 
   late List<CompostSchedule> compostScheduleList;

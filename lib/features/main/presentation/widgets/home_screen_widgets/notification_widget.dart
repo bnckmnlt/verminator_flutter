@@ -80,10 +80,9 @@ class _NotificationWidgetState extends State<NotificationWidget> {
       ),
       icon: Badge(
         isLabelVisible:
-            (notificationList.where((n) => n.read == false).isNotEmpty) ??
-                false,
-        label: Text((notificationList.where((n) => n.read == false).length ?? 0)
-            .toString()),
+            (notificationList.where((n) => n.read == false).isNotEmpty),
+        label: Text(
+            (notificationList.where((n) => n.read == false).length).toString()),
         backgroundColor: Colors.blueAccent,
         textStyle: GoogleFonts.spaceMono(
           fontWeight: FontWeight.w600,

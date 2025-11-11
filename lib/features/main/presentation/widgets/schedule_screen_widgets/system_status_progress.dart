@@ -87,13 +87,13 @@ class _SystemStatusProgressState extends State<SystemStatusProgress> {
             labelFormatterCallback: (label) {
               return switch (label) {
                 '0' =>
-                  'Initial\n${statusList.length > 0 ? extractDay(statusList[0].updatedAt) ?? "" : ""}',
+                  'Initial\n${statusList.isNotEmpty ? extractDay(statusList[0].updatedAt) : ""}',
                 '30' =>
-                  'Active\n${statusList.length > 1 ? extractDay(statusList[1].updatedAt) ?? "" : ""}',
+                  'Active\n${statusList.length > 1 ? extractDay(statusList[1].updatedAt) : ""}',
                 '60' =>
-                  'Ready\n${statusList.length > 2 ? extractDay(statusList[2].updatedAt) ?? "" : ""}',
+                  'Ready\n${statusList.length > 2 ? extractDay(statusList[2].updatedAt) : ""}',
                 '90' =>
-                  'Released\n${statusList.length > 3 ? extractDay(statusList[3].updatedAt) ?? "" : ""}',
+                  'Released\n${statusList.length > 3 ? extractDay(statusList[3].updatedAt) : ""}',
                 _ => label,
               };
             },

@@ -70,28 +70,23 @@ class LogsDataTable extends StatelessWidget {
 }
 
 Widget getLogSeverityWidget(LogSeverity severity) {
-  IconData icon;
   String label;
   Color color;
 
   switch (severity) {
     case LogSeverity.info:
-      icon = FluentIcons.info_24_regular;
       label = "INFO";
       color = Colors.blueAccent;
       break;
     case LogSeverity.warn:
-      icon = FluentIcons.warning_24_regular;
       label = "WARN";
       color = Colors.amberAccent;
       break;
     case LogSeverity.error:
-      icon = FluentIcons.error_circle_24_regular;
       label = "ERROR";
       color = Colors.redAccent;
       break;
     case LogSeverity.fatal:
-      icon = FluentIcons.error_circle_12_regular;
       label = "FATAL";
       color = Colors.indigoAccent;
       break;

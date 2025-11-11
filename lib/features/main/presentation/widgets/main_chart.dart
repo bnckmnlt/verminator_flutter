@@ -57,7 +57,7 @@ class _MainChartState extends State<MainChart> {
         ),
         primaryYAxis: NumericAxis(
           labelFormat: '{value}${widget.title}',
-          isVisible: widget.showAxisLine ?? false,
+          isVisible: widget.showAxisLine,
           axisLine: AxisLine(width: 0),
           majorGridLines: MajorGridLines(width: 0),
           majorTickLines: MajorTickLines(width: 0),

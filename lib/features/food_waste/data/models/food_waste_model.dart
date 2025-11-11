@@ -19,8 +19,8 @@ class FoodWasteModel extends FoodWaste {
       filePath: json['filePath'] as String,
       materialStatus:
           MaterialStatus.values.byName(json['materialStatus'] as String),
-      confidence: json['confidence'].toDouble() ?? 0.0,
-      classname: FoodWasteClassname.values.byName(json['classname'] as String),
+      confidence: (json['confidence'] as num?)?.toDouble() ?? 0.0,
+      classname: _parseClassname(json['classname'] as String),
       createdAt: formatToLocalTime(json['createdAt']),
     );
   }
@@ -32,10 +32,18 @@ class FoodWasteModel extends FoodWaste {
       filePath: json['file_path'] as String,
       materialStatus:
           MaterialStatus.values.byName(json['material_status'] as String),
-      confidence: json['confidence'].toDouble() ?? 0.0,
-      classname: FoodWasteClassname.values.byName(json['classname'] as String),
+      confidence: (json['confidence'] as num?)?.toDouble() ?? 0.0,
+      classname: _parseClassname(json['classname'] as String),
       createdAt: formatToLocalTime(json['created_at']),
     );
+  }
+
+  static FoodWasteClassname _parseClassname(String value) {
+    final normalized = value.replaceAllMapped(
+      RegExp(r'_([a-z])'),
+      (match) => match.group(1)!.toUpperCase(),
+    );
+    return FoodWasteClassname.values.byName(normalized);
   }
 
   Map<String, dynamic> toJson() {

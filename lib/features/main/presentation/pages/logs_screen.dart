@@ -153,7 +153,7 @@ class _LogsScreenState extends State<LogsScreen> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(44, 64, 44, 0),
+                        padding: const EdgeInsets.fromLTRB(44, 86, 44, 0),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,

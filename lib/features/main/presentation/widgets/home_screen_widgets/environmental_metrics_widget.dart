@@ -112,7 +112,7 @@ class _EnvironmentalMetricsWidgetState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.51855,
+                  width: MediaQuery.of(context).size.width * 0.537,
                   child: GridView.builder(
                     padding: EdgeInsets.zero,
                     shrinkWrap: true,

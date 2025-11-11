@@ -27,18 +27,15 @@ class ToastHelper {
       ),
       description: Text(
         description,
-        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface.withAlpha(164),
+        ),
       ),
       alignment: Alignment.topRight,
       autoCloseDuration: Duration(seconds: duration),
-      animationBuilder: (
-        context,
-        animation,
-        alignment,
-        child,
-      ) {
-        return FadeTransition(
-          opacity: animation,
+      animationBuilder: (context, animation, alignment, child) {
+        return ScaleTransition(
+          scale: animation,
           child: child,
         );
       },
@@ -49,6 +46,10 @@ class ToastHelper {
       backgroundColor: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(4.0),
       showProgressBar: true,
+      progressBarTheme: ProgressIndicatorThemeData(
+          linearTrackColor:
+              Theme.of(context).colorScheme.surfaceContainerHighest,
+          color: isError ? Colors.redAccent : Colors.greenAccent),
       dragToClose: true,
     );
   }

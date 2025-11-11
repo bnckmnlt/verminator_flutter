@@ -4,7 +4,7 @@ import 'package:flutter_vermicomposting/core/network/connection_checker.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/data/datasources/sensor_reading_datasource.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/repositories/sensor_reading_repository.dart';
-import 'package:fpdart/src/either.dart';
+import 'package:fpdart/fpdart.dart';
 
 class SensorReadingRepositoryImpl implements SensorReadingRepository {
   final SensorReadingRemoteDatasource remoteDatasource;

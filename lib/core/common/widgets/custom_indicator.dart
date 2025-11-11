@@ -27,7 +27,6 @@ class CustomIndicator extends ShapePainter {
     the enviroment the indicators will be painted on. In the example bellow, we're transforming the canvas
     the indicators are build on to transform horizontally based on the net drag
   */
-  @override
   beforeIndicatorsRender(Canvas canvas, Size size) {
     if (translate) {
       final xTranslation = netDragPercent * pagesLength * (-lineWidth);

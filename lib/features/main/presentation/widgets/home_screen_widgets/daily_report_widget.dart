@@ -10,7 +10,6 @@ import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/core/error/exception.dart';
 import 'package:flutter_vermicomposting/core/secrets/app_secrets.dart';
 import 'package:flutter_vermicomposting/core/utils/evaluate_soil_health.dart';
-import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/core/utils/string_extensions.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/sensor_values.dart';
 import 'package:http/http.dart' as http;
@@ -111,97 +110,106 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
         Glassmorphism(
           blur: 12,
           opacity: 0.2,
-          child: Container(
-            height: 470,
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
-            decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .surfaceContainerHigh
-                  .withOpacity(0.3),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.surfaceContainer,
-                width: 1.5,
+          child: RefreshIndicator(
+            onRefresh: () {
+              return Future.delayed(Duration(seconds: 1), () {
+                responseLoaded = false;
+                _getResponse();
+              });
+            },
+            child: Container(
+              height: 470,
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHigh
+                    .withOpacity(0.3),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.surfaceContainer,
+                  width: 1.5,
+                ),
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.transparent,
+                    result["color"].withAlpha(28),
+                    result["color"].withAlpha(24),
+                  ],
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                ),
               ),
-              gradient: LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  result["color"].withAlpha(28),
-                  result["color"].withAlpha(24),
-                ],
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-              ),
-            ),
-            child: ShaderMask(
-              shaderCallback: (bounds) => LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.white, Colors.transparent],
-                stops: [0.8, 1.0],
-              ).createShader(bounds),
-              blendMode: BlendMode.dstIn,
-              child: SingleChildScrollView(
-                child: Column(
-                  spacing: 12,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _systemConditionSection(result),
-                    Divider(),
-                    responseLoaded
-                        ? _readingPromptSection(_selection)
-                        : SizedBox(
-                            height: 324,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              spacing: 20,
-                              children: [
-                                Loader(),
-                                if (_isError)
-                                  OutlinedButton(
-                                    onPressed: () => _getResponse(),
-                                    style: OutlinedButton.styleFrom(
-                                      disabledBackgroundColor:
-                                          Color(0xFF27272a).withAlpha(124),
-                                      disabledForegroundColor: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface
-                                          .withAlpha(0),
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 8,
-                                        horizontal: 24,
-                                      ),
-                                      side: BorderSide(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .surfaceContainerHighest,
-                                      ),
-                                      foregroundColor: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface,
-                                      minimumSize: Size(0, 0),
-                                      tapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    child: Text(
-                                      "Reload response",
-                                      style: TextStyle(
-                                        color: Theme.of(context)
+              child: ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.white, Colors.transparent],
+                  stops: [0.8, 1.0],
+                ).createShader(bounds),
+                blendMode: BlendMode.dstIn,
+                child: SingleChildScrollView(
+                  child: Column(
+                    spacing: 12,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _systemConditionSection(result),
+                      Divider(),
+                      responseLoaded
+                          ? _readingPromptSection(_selection)
+                          : SizedBox(
+                              height: 324,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                spacing: 20,
+                                children: [
+                                  Loader(),
+                                  if (_isError)
+                                    OutlinedButton(
+                                      onPressed: () => _getResponse(),
+                                      style: OutlinedButton.styleFrom(
+                                        disabledBackgroundColor:
+                                            Color(0xFF27272a).withAlpha(124),
+                                        disabledForegroundColor:
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withAlpha(0),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 8,
+                                          horizontal: 24,
+                                        ),
+                                        side: BorderSide(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .surfaceContainerHighest,
+                                        ),
+                                        foregroundColor: Theme.of(context)
                                             .colorScheme
                                             .onSurface,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        letterSpacing: 0.025,
+                                        minimumSize: Size(0, 0),
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      child: Text(
+                                        "Reload response",
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          letterSpacing: 0.025,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                              ],
-                            )),
-                  ],
+                                ],
+                              )),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -252,7 +260,7 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
           children: [
             Icon(CupertinoIcons.sparkles),
             Row(
-              spacing: 6,
+              spacing: 8,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
@@ -415,24 +423,28 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
         setState(() {
           responseLoaded = true;
         });
-      } else {
-        throw ServerException(response.body.parseErrorMessage());
       }
-      _isError = false;
+      setState(() {
+        _isError = false;
+      });
     } on ServerException catch (e) {
       _toaster.show(
         title: "Something went wrong",
         description: e.toString(),
-        isError: false,
+        isError: true,
       );
-      _isError = true;
-    } catch (e, stack) {
+      setState(() {
+        _isError = true;
+      });
+    } catch (e) {
       _toaster.show(
         title: "Unexpected error has occured",
         description: e.toString(),
-        isError: false,
+        isError: true,
       );
-      _isError = true;
+      setState(() {
+        _isError = true;
+      });
     }
   }
 
@@ -481,7 +493,7 @@ class PromptResponse {
     return PromptResponse(
       temperature: PromptBody.fromJson(json["temperature"]),
       humidity: PromptBody.fromJson(json["humidity"]),
-      moisture: PromptBody.fromJson(json["soil_moisture"]),
+      moisture: PromptBody.fromJson(json["moisture"]),
       nitrogen: PromptBody.fromJson(json["nitrogen"]),
       phosphorus: PromptBody.fromJson(json["phosphorus"]),
       potassium: PromptBody.fromJson(json["potassium"]),

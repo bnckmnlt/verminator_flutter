@@ -28,11 +28,11 @@ class SensorReadingModel extends SensorReading {
 
   Map<String, dynamic> toJson() {
     return {
-      "id": this.id,
-      "sensorScheduleId": this.sensorScheduleId,
-      "layer": this.layer,
-      "readings": this.readings,
-      "createdAt": this.createdAt,
+      "id": id,
+      "sensorScheduleId": sensorScheduleId,
+      "layer": layer,
+      "readings": readings,
+      "createdAt": createdAt,
     };
   }
 }

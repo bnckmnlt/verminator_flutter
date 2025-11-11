@@ -60,7 +60,7 @@ class _SensorReadingCardState extends State<SensorReadingCard> {
     );
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       decoration: BoxDecoration(
         color:
             Theme.of(context).colorScheme.surfaceContainerHigh.withOpacity(0.3),
@@ -187,27 +187,36 @@ SensorStatus getSensorStatus({
     case 'humidity':
       if (numValue >= 70 && numValue <= 80) return SensorStatus.good;
       if ((numValue >= 60 && numValue < 70) ||
-          (numValue > 80 && numValue <= 85)) return SensorStatus.fair;
+          (numValue > 80 && numValue <= 85)) {
+        return SensorStatus.fair;
+      }
       return SensorStatus.bad;
     case 'soilMoisture':
       if (numValue >= 65 && numValue <= 80) return SensorStatus.good;
       if ((numValue >= 60 && numValue < 65) ||
-          (numValue > 80 && numValue <= 90)) return SensorStatus.fair;
+          (numValue > 80 && numValue <= 90)) {
+        return SensorStatus.fair;
+      }
       return SensorStatus.bad;
     case 'nitrogen':
       if (numValue >= 20 && numValue <= 40) return SensorStatus.good;
-      if (numValue >= 15 && numValue < 20 || numValue > 40 && numValue <= 50)
+      if (numValue >= 15 && numValue < 20 || numValue > 40 && numValue <= 50) {
         return SensorStatus.fair;
+      }
       return SensorStatus.bad;
     case 'phosphorus':
       if (numValue >= 10 && numValue <= 30) return SensorStatus.good;
-      if ((numValue >= 5 && numValue < 10) || (numValue > 30 && numValue <= 40))
+      if ((numValue >= 5 && numValue < 10) ||
+          (numValue > 30 && numValue <= 40)) {
         return SensorStatus.fair;
+      }
       return SensorStatus.bad;
     case 'potassium':
       if (numValue >= 15 && numValue <= 30) return SensorStatus.good;
       if ((numValue >= 10 && numValue < 15) ||
-          (numValue > 30 && numValue <= 35)) return SensorStatus.fair;
+          (numValue > 30 && numValue <= 35)) {
+        return SensorStatus.fair;
+      }
       return SensorStatus.bad;
     case 'compost':
       if (numValue >= 1 && numValue <= 10) return SensorStatus.good;

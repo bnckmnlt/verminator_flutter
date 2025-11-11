@@ -4,7 +4,7 @@ import 'package:flutter_vermicomposting/core/network/connection_checker.dart';
 import 'package:flutter_vermicomposting/features/status/data/datasources/status_remote_datasource.dart';
 import 'package:flutter_vermicomposting/features/status/domain/entity/status_record.dart';
 import 'package:flutter_vermicomposting/features/status/domain/repositories/status_repository.dart';
-import 'package:fpdart/src/either.dart';
+import 'package:fpdart/fpdart.dart';
 
 class StatusRepositoryImpl implements StatusRepository {
   final StatusRemoteDatasource remoteDatasource;

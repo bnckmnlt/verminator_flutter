@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/device_information_widget.dart';
-import 'package:flutter_vermicomposting/main.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 
 class SystemDeviceInformation extends StatefulWidget {

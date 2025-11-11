@@ -63,7 +63,7 @@ class _SystemDetailsSectionState extends State<SystemDetailsSection> {
         "label": "Fruits",
         "value": widget.foodWasteList
             .where((item) =>
-                "fruit" == item.classname.name &&
+                item.classname == FoodWasteClassname.fruitWaste &&
                 item.foodWasteScheduleId == widget.compostSchedule.id)
             .length
             .toString(),
@@ -72,25 +72,97 @@ class _SystemDetailsSectionState extends State<SystemDetailsSection> {
         "label": "Vegetables",
         "value": widget.foodWasteList
             .where((item) =>
-                "vegetable" == item.classname.name &&
+                item.classname == FoodWasteClassname.vegetableWaste &&
                 item.foodWasteScheduleId == widget.compostSchedule.id)
             .length
             .toString(),
       },
       {
-        "label": "Grains",
+        "label": "Papers and Cardboards",
         "value": widget.foodWasteList
             .where((item) =>
-                "grains" == item.classname.name &&
+                item.classname == FoodWasteClassname.paperCardboard &&
                 item.foodWasteScheduleId == widget.compostSchedule.id)
             .length
             .toString(),
       },
       {
-        "label": "Rejected",
+        "label": "Leaves and Dry Materials",
         "value": widget.foodWasteList
             .where((item) =>
-                "invalid" == item.classname.name &&
+                item.classname == FoodWasteClassname.leavesDryMaterial &&
+                item.foodWasteScheduleId == widget.compostSchedule.id)
+            .length
+            .toString(),
+      },
+      {
+        "label": "Grains & Bread",
+        "value": widget.foodWasteList
+            .where((item) =>
+                item.classname == FoodWasteClassname.grainsAndBread &&
+                item.foodWasteScheduleId == widget.compostSchedule.id)
+            .length
+            .toString(),
+      },
+      {
+        "label": "Eggshells & Coffee Grounds",
+        "value": widget.foodWasteList
+            .where((item) =>
+                item.classname == FoodWasteClassname.eggshellsCoffeeGrounds &&
+                item.foodWasteScheduleId == widget.compostSchedule.id)
+            .length
+            .toString(),
+      },
+      {
+        "label": "Onion & Garlic",
+        "value": widget.foodWasteList
+            .where((item) =>
+                item.classname == FoodWasteClassname.onionGarlic &&
+                item.foodWasteScheduleId == widget.compostSchedule.id)
+            .length
+            .toString(),
+      },
+      {
+        "label": "Spicy Material",
+        "value": widget.foodWasteList
+            .where((item) =>
+                item.classname == FoodWasteClassname.spicyMaterial &&
+                item.foodWasteScheduleId == widget.compostSchedule.id)
+            .length
+            .toString(),
+      },
+      {
+        "label": "Citrus Peels",
+        "value": widget.foodWasteList
+            .where((item) =>
+                item.classname == FoodWasteClassname.citrusPeels &&
+                item.foodWasteScheduleId == widget.compostSchedule.id)
+            .length
+            .toString(),
+      },
+      {
+        "label": "Meat & Dairy",
+        "value": widget.foodWasteList
+            .where((item) =>
+                item.classname == FoodWasteClassname.meatDairy &&
+                item.foodWasteScheduleId == widget.compostSchedule.id)
+            .length
+            .toString(),
+      },
+      {
+        "label": "Foreign Material",
+        "value": widget.foodWasteList
+            .where((item) =>
+                item.classname == FoodWasteClassname.foreignMaterial &&
+                item.foodWasteScheduleId == widget.compostSchedule.id)
+            .length
+            .toString(),
+      },
+      {
+        "label": "Medical Waste",
+        "value": widget.foodWasteList
+            .where((item) =>
+                item.classname == FoodWasteClassname.medicalWaste &&
                 item.foodWasteScheduleId == widget.compostSchedule.id)
             .length
             .toString(),
@@ -173,46 +245,45 @@ class _SystemDetailsSectionState extends State<SystemDetailsSection> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    if (!hasFoodWaste)
-                      ElevatedButton(
-                        onPressed: () {
-                          showDialog(
-                              context: context,
-                              builder: (context) {
-                                return GeneralDialog(
-                                  title: "Start Worm Feeding",
-                                  description:
-                                      "Are you ready to begin adding food waste to this composting batch? This will mark the start of the feeding process",
-                                  isDismissable: true,
-                                  confirmButtonLabel: "Continue",
-                                  approvedFunction: () {
-                                    Navigator.pop(context);
+                    ElevatedButton(
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) {
+                              return GeneralDialog(
+                                title: "Start Worm Feeding",
+                                description:
+                                    "Are you ready to begin adding food waste to this composting batch? This will mark the start of the feeding process",
+                                isDismissable: true,
+                                confirmButtonLabel: "Continue",
+                                approvedFunction: () {
+                                  Navigator.pop(context);
 
-                                    Navigator.push(
-                                        context,
-                                        InitializationInstructionScreen.route(
-                                            widget.compostSchedule.id));
-                                  },
-                                );
-                              });
-                        },
-                        style: ElevatedButton.styleFrom(
-                            elevation: 0.75,
-                            backgroundColor:
-                                Colors.greenAccent.shade200.withAlpha(64),
-                            foregroundColor: Colors.greenAccent,
-                            padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
-                            minimumSize: Size.zero,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24))),
-                        child: Text(
-                          'Start Feeding',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
+                                  Navigator.push(
+                                      context,
+                                      InitializationInstructionScreen.route(
+                                          widget.compostSchedule.id));
+                                },
+                              );
+                            });
+                      },
+                      style: ElevatedButton.styleFrom(
+                          elevation: 0.75,
+                          backgroundColor:
+                              Colors.greenAccent.shade200.withAlpha(64),
+                          foregroundColor: Colors.greenAccent,
+                          padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
+                          minimumSize: Size.zero,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24))),
+                      child: Text(
+                        'Start Feeding',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
-                      )
+                      ),
+                    )
                   ],
                 ),
               ),

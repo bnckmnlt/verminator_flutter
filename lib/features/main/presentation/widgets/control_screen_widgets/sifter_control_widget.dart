@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/status_badge.dart';
@@ -22,8 +20,6 @@ class SifterControlWidget extends StatefulWidget {
 }
 
 class _SifterControlWidgetState extends State<SifterControlWidget> {
-  late StreamSubscription<String> _sifterFeedbackSubscription;
-
   late bool _sifterState;
 
   int _currentCycle = 5;
@@ -35,8 +31,7 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
 
     _sifterState = false;
 
-    _sifterFeedbackSubscription =
-        widget.mqttService.sifterFeedbackStream.listen((value) {
+    widget.mqttService.sifterFeedbackStream.listen((value) {
       setState(() {
         _sifterState = value == 'active' ? true : false;
       });

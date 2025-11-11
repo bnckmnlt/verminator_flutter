@@ -72,7 +72,7 @@ class _ControlScreenState extends State<ControlScreen> {
           body: Container(
             height: deviceHeight,
             width: deviceWidth,
-            padding: const EdgeInsets.fromLTRB(44, 64, 44, 28),
+            padding: const EdgeInsets.fromLTRB(44, 86, 44, 28),
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

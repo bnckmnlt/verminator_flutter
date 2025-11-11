@@ -1,5 +1,6 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/animation.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
@@ -41,6 +42,8 @@ class ScheduleScreen extends StatefulWidget {
 class _ScheduleScreenState extends State<ScheduleScreen> {
   @override
   void initState() {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive, overlays: []);
+
     super.initState();
   }
 
@@ -286,7 +289,7 @@ class _FoodWasteSectionState extends State<FoodWasteSection> {
                     flex: 2,
                     child: SingleChildScrollView(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 64, 24, 0),
+                        padding: const EdgeInsets.fromLTRB(24, 96, 24, 0),
                         child: Column(
                           spacing: 34,
                           mainAxisSize: MainAxisSize.min,

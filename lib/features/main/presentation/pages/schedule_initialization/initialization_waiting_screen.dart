@@ -15,6 +15,7 @@ import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/food_waste/data/models/food_waste_model.dart';
+import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_failed_screen.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
@@ -163,8 +164,6 @@ class _InitializationWaitingScreenState
     return LayoutBuilder(builder: (context, constraints) {
       final deviceHeight = MediaQuery.of(context).size.height;
       final deviceWidth = MediaQuery.of(context).size.width;
-      final isDarkMode =
-          MediaQuery.of(context).platformBrightness == Brightness.dark;
 
       return PopScope(
         canPop: false,
@@ -326,32 +325,24 @@ class _InitializationWaitingScreenState
             }
 
             const validClasses = [
-              "fruit_waste",
-              "vegetable_waste",
-              "paper_cardboard",
-              "leaves_dry_material",
+              FoodWasteClassname.fruitWaste,
+              FoodWasteClassname.vegetableWaste,
+              FoodWasteClassname.paperCardboard,
+              FoodWasteClassname.leavesDryMaterial,
             ];
 
             const controlledClasses = [
-              "onion_garlic",
-              "spicy_material",
-              "eggshells_coffee_grounds",
-              "grains_and_bread",
+              FoodWasteClassname.onionGarlic,
+              FoodWasteClassname.spicyMaterial,
+              FoodWasteClassname.eggshellsCoffeeGrounds,
+              FoodWasteClassname.grainsAndBread,
             ];
 
             final acceptedClasses = [...validClasses, ...controlledClasses];
 
-            String toSnakeCase(String name) {
-              return name
-                  .replaceAllMapped(
-                      RegExp(r'([a-z0-9])([A-Z])'), (m) => '${m[1]}_${m[2]}')
-                  .toLowerCase();
-            }
-
-            final hasAccepted = wasteList.any((waste) {
-              final classname = toSnakeCase(waste.classname.name);
-              return acceptedClasses.contains(classname);
-            });
+            final hasAccepted = wasteList.any(
+              (waste) => acceptedClasses.contains(waste.classname),
+            );
 
             if (!hasAccepted) {
               errorList[0] = true;
@@ -458,6 +449,12 @@ class _InitializationWaitingScreenState
               _mqttService.publish(
                 "control/conveyor",
                 "Stop",
+                qos: MqttQos.atLeastOnce,
+                retain: true,
+              );
+              _mqttService.publish(
+                "control/rake",
+                "Process:15",
                 qos: MqttQos.atLeastOnce,
                 retain: true,
               );

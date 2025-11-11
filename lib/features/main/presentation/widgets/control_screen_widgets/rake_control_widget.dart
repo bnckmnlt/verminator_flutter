@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/status_badge.dart';
@@ -22,8 +20,6 @@ class RakeControlWidget extends StatefulWidget {
 }
 
 class _RakeControlWidgetState extends State<RakeControlWidget> {
-  late StreamSubscription<String> _rakeFeedbackSubscription;
-
   late bool _rakeState;
 
   int _currentCycle = 1;
@@ -35,8 +31,7 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
 
     _rakeState = false;
 
-    _rakeFeedbackSubscription =
-        widget.mqttService.rakeFeedbackStream.listen((value) {
+    widget.mqttService.rakeFeedbackStream.listen((value) {
       setState(() {
         _rakeState = value == 'active' ? true : false;
       });

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -64,10 +66,19 @@ class _InitializationSuccessScreenState
       setState(() => currentSchedule = compostSchedule);
     }
 
-    _mqttService.publish("system/status", "active",
-        qos: MqttQos.atLeastOnce, retain: true);
-    _mqttService.publish("system/current_cycle", currentSchedule.id.toString(),
-        qos: MqttQos.atLeastOnce, retain: true);
+    final settingsPayload = {
+      "status": "active",
+      "id": currentSchedule.id.toString(),
+      "reading_interval": "15",
+      "refresh_rate": "2",
+    };
+
+    _mqttService.publish(
+      "system/settings",
+      jsonEncode(settingsPayload),
+      qos: MqttQos.atLeastOnce,
+      retain: true,
+    );
   }
 
   @override
@@ -80,9 +91,6 @@ class _InitializationSuccessScreenState
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       final double deviceHeight = MediaQuery.of(context).size.height;
-      final double deviceWidth = MediaQuery.of(context).size.width;
-      final bool isDarkMode =
-          MediaQuery.of(context).platformBrightness == Brightness.dark;
 
       return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,

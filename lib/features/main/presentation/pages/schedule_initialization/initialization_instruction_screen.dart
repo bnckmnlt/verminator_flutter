@@ -76,10 +76,9 @@ class _InitializationInstructionScreenState
       });
     }
 
-    return SafeArea(
-        child: Scaffold(
-      extendBodyBehindAppBar: true,
+    return Scaffold(
       extendBody: true,
+      extendBodyBehindAppBar: true,
       body: Glassmorphism(
         blur: 64,
         opacity: 0.3,
@@ -245,7 +244,7 @@ class _InitializationInstructionScreenState
           ),
         ),
       ),
-    ));
+    );
   }
 
   Widget _firstPageWidget() {

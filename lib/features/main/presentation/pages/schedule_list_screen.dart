@@ -206,10 +206,14 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
           ],
         ),
         ElevatedButton(
-          onPressed: () => _handleScheduleCreation(context, toastHelper),
+          onPressed: !_compostSchedules.first.isCompleted
+              ? null
+              : () => _handleScheduleCreation(context, toastHelper),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blueAccent,
             foregroundColor: Colors.white,
+            disabledBackgroundColor: Colors.grey.shade400,
+            disabledForegroundColor: Colors.white70,
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 18),
             minimumSize: Size.zero,
           ),
@@ -218,21 +222,21 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
             children: [
               Text(
                 "New",
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   fontFamily: "Zenbones Mono",
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.025,
                 ),
               ),
-              Icon(
+              const Icon(
                 FluentIcons.add_24_filled,
                 color: Colors.white,
                 grade: 100,
               )
             ],
           ),
-        )
+        ),
       ],
     );
   }
@@ -504,7 +508,11 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
             final scheduleResp = await http.post(
               Uri.parse("https://verminator.thinkio.me/schedule"),
               headers: {'Content-Type': 'application/json; charset=UTF-8'},
-              body: jsonEncode({"scheduleName": name}),
+              body: jsonEncode({
+                "scheduleName": name,
+                "compostProduced": "0",
+                "juiceProduced": "0",
+              }),
             );
 
             if (scheduleResp.statusCode != 200) {

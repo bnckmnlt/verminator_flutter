@@ -155,60 +155,6 @@ class Constants {
     ],
   };
 
-  static final Map<String, Threshold> _thresholds = {
-    'temperature': Threshold(
-      goodMin: 20,
-      goodMax: 28,
-      fairLowMin: 10,
-      fairLowMax: 15,
-      fairHighMin: 30,
-      fairHighMax: 35,
-    ),
-    'humidity': Threshold(
-      goodMin: 70,
-      goodMax: 80,
-      fairLowMin: 60,
-      fairLowMax: 70,
-      fairHighMin: 80,
-      fairHighMax: 85,
-    ),
-    'soilMoisture': Threshold(
-      goodMin: 65,
-      goodMax: 80,
-      fairLowMin: 60,
-      fairLowMax: 65,
-      fairHighMin: 80,
-      fairHighMax: 90,
-    ),
-    'nitrogen': Threshold(
-      goodMin: 20,
-      goodMax: 40,
-      fairLowMin: 15,
-      fairLowMax: 20,
-      fairHighMin: 40,
-      fairHighMax: 50,
-    ),
-    'phosphorus': Threshold(
-      goodMin: 10,
-      goodMax: 30,
-      fairLowMin: 5,
-      fairLowMax: 10,
-      fairHighMin: 30,
-      fairHighMax: 40,
-    ),
-    'potassium': Threshold(
-      goodMin: 15,
-      goodMax: 30,
-      fairLowMin: 10,
-      fairLowMax: 15,
-      fairHighMin: 30,
-      fairHighMax: 35,
-    ),
-    'compost': Threshold(goodMin: 1, goodMax: 10),
-    'vermijuice': Threshold(goodMin: 1, goodMax: 10),
-    'reservoir': Threshold(goodMin: 1, goodMax: double.infinity),
-  };
-
   final kitchenWasteChartAnnotations = [
     AnnotationData("Fruit Waste", const Color(0xFF2563EB)),
     AnnotationData("Vegetable Waste", const Color(0xFF3B82F6)),
@@ -243,7 +189,7 @@ class Constants {
     "1 year"
   ];
 
-  List<String> scaleSelection = ["COMPOST", "RESERVOIR", "VERMITEA"];
+  List<String> scaleSelection = ["COMPOST", "JUICE", "WATER"];
 }
 
 class ReminderInterval {

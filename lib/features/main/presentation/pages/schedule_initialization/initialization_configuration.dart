@@ -40,7 +40,6 @@ class _InitializationConfigurationState
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      final double deviceHeight = MediaQuery.of(context).size.height;
       final double deviceWidth = MediaQuery.of(context).size.width;
 
       return Scaffold(
@@ -566,7 +565,7 @@ Widget sectionContent({
           ),
         ),
       if (header != null) const SizedBox(height: 8),
-      if (content != null) content!,
+      if (content != null) content,
       const SizedBox(height: 24),
       Text(
         description ?? "",

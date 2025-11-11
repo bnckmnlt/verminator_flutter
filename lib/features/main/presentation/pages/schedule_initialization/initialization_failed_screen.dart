@@ -98,7 +98,6 @@ class _InitializationFailedScreenState
 
     return LayoutBuilder(builder: (context, constraints) {
       final double deviceHeight = MediaQuery.of(context).size.height;
-      final double deviceWidth = MediaQuery.of(context).size.width;
 
       return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,

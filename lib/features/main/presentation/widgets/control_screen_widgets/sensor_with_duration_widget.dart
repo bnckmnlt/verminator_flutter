@@ -106,7 +106,7 @@ class _SensorWithDurationWidgetState extends State<SensorWithDurationWidget> {
                       Theme.of(context).colorScheme.onSurface.withAlpha(124),
                   totalSwitches: 2,
                   labels: const ['ON', 'OFF'],
-                  initialLabelIndex: _toggleState ?? 0,
+                  initialLabelIndex: _toggleState,
                   onToggle: (index) {
                     setState(() {
                       _toggleState = index!;

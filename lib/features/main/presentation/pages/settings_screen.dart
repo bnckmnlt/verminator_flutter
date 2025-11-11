@@ -9,7 +9,6 @@ import 'package:flutter_vermicomposting/core/common/widgets/animation.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/configurations_screen.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -69,7 +68,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Expanded(
             flex: 1,
             child: Container(
-              padding: const EdgeInsets.fromLTRB(24, 64, 24, 24),
+              padding: const EdgeInsets.fromLTRB(24, 86, 24, 24),
               height: deviceHeight,
               decoration: BoxDecoration(
                 border: Border(
@@ -211,7 +210,7 @@ class _SidebarItem extends StatelessWidget {
 }
 
 class _AppSettings extends StatefulWidget {
-  const _AppSettings({super.key});
+  const _AppSettings();
 
   @override
   State<_AppSettings> createState() => _AppSettingsState();
@@ -277,7 +276,7 @@ class _AppSettingsState extends State<_AppSettings> {
     didChangeDependencies();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(32, 64, 32, 44),
+      padding: const EdgeInsets.fromLTRB(32, 86, 32, 44),
       child: Column(
         spacing: 64,
         children: [
@@ -390,7 +389,7 @@ class _AppSettingsState extends State<_AppSettings> {
 }
 
 class _SystemSettings extends StatefulWidget {
-  const _SystemSettings({super.key});
+  const _SystemSettings();
 
   @override
   State<_SystemSettings> createState() => _SystemSettingsState();
@@ -494,7 +493,7 @@ class _SystemSettingsState extends State<_SystemSettings> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(32, 64, 32, 44),
+      padding: const EdgeInsets.fromLTRB(32, 86, 32, 44),
       child: Column(
         spacing: 64,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -631,7 +630,7 @@ class _SystemSettingsState extends State<_SystemSettings> {
             context: context,
             title: "Board Reading Interval",
             description:
-                "Set how frequently sensor readings are taken and published\n by the Raspberry Pi",
+                "Set how frequently sensor readings are taken and published\nby the Raspberry Pi",
           ),
         ),
         Expanded(
@@ -784,7 +783,7 @@ class _SystemSettingsState extends State<_SystemSettings> {
 }
 
 class _AboutSection extends StatelessWidget {
-  const _AboutSection({super.key});
+  const _AboutSection();
 
   @override
   Widget build(BuildContext context) {
@@ -869,4 +868,143 @@ String parseIntToStatus(int status) {
     default:
       return "idle";
   }
+}
+
+Widget configurationHeader({
+  required BuildContext context,
+  required String title,
+  required String description,
+  required String buttonLabel,
+  VoidCallback? optionalButtonBehavior,
+  required VoidCallback buttonBehavior,
+}) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            description,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface.withAlpha(186),
+            ),
+          ),
+        ],
+      ),
+      Row(
+        children: [
+          OutlinedButton(
+            onPressed: optionalButtonBehavior,
+            style: OutlinedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              side: BorderSide(
+                  width: 1,
+                  color: Theme.of(context).colorScheme.surfaceContainerHigh),
+              padding: EdgeInsets.zero,
+              // remove internal padding
+              minimumSize: const Size(36, 36),
+            ),
+            child: Icon(
+              FluentIcons.history_24_filled,
+              size: 20,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            onPressed: buttonBehavior,
+            child: Text(
+              buttonLabel,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+Widget sectionHeader({
+  required BuildContext context,
+  required String title,
+  required String description,
+  Widget? optionalWidget,
+}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      const SizedBox(height: 4),
+      Text(
+        description,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
+        ),
+      ),
+      const SizedBox(height: 8),
+      if (optionalWidget != null) optionalWidget,
+    ],
+  );
+}
+
+Widget sectionContent({
+  required BuildContext context,
+  String? header,
+  Widget? content,
+  String? description,
+}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.end,
+    children: [
+      if (header != null)
+        Text(
+          header,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      if (header != null) const SizedBox(height: 8),
+      if (content != null) content,
+      if (description != null) const SizedBox(height: 24),
+      Text(
+        description ?? "",
+        style: TextStyle(
+          fontSize: 12,
+          color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
+        ),
+        softWrap: true,
+        maxLines: 2,
+      ),
+    ],
+  );
 }

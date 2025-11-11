@@ -67,6 +67,7 @@ dependencies:
   flutter_launcher_icons: ^0.14.4
   animated_text_kit: ^4.2.3
   step_progress_indicator: ^1.0.2
+  skeletonizer: ^2.1.0+1
 
 dev_dependencies:
   flutter_test:

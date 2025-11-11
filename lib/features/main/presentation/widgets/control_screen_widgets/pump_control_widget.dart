@@ -85,7 +85,6 @@ class _PumpControlWidgetState extends State<PumpControlWidget> {
 
     return Row(
       children: pumpControlList.asMap().entries.map((entry) {
-        final i = entry.key;
         final item = entry.value;
         return Expanded(
           child: Padding(

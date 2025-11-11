@@ -38,7 +38,7 @@ class _CalibrationWidgetState extends State<CalibrationWidget> {
     final double deviceWidth = MediaQuery.of(context).size.width;
 
     final double horizontalPadding = deviceWidth * 0.05;
-    final double verticalPadding = deviceHeight * 0.03;
+    final double verticalPadding = deviceHeight * 0.1;
 
     Widget scaleSelectionDropdown = SizedBox(
       width: deviceWidth * 0.135,
@@ -78,8 +78,9 @@ class _CalibrationWidgetState extends State<CalibrationWidget> {
               "Tare complete. Place a known mass on the container or platform connected to the load cell",
           imageSrc: "assets/images/calibrate_and_tare.png",
           childWidget: _setKnownMassWidget(),
-          buttonOnPressed: () =>
-              _publishCommand(_knownWeightController.text.trim())),
+          buttonOnPressed: () => _publishCommand(
+                "SETMASS:${_knownWeightController.text.trim()}",
+              )),
       CalibrationCardData(
           label: "Save Calibration",
           description:
@@ -98,6 +99,7 @@ class _CalibrationWidgetState extends State<CalibrationWidget> {
     return Scaffold(
       extendBody: true,
       extendBodyBehindAppBar: true,
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         iconTheme: IconThemeData(
           color: Theme.of(context).colorScheme.onSurface,
@@ -105,9 +107,8 @@ class _CalibrationWidgetState extends State<CalibrationWidget> {
         backgroundColor: Colors.transparent,
         elevation: 0.0,
       ),
-      body: SafeArea(
+      body: SingleChildScrollView(
         child: Container(
-          height: deviceHeight,
           width: deviceWidth,
           padding: EdgeInsets.symmetric(
             vertical: verticalPadding,

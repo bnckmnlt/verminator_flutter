@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/status_badge.dart';
@@ -23,8 +21,6 @@ class ConveyorControlWidget extends StatefulWidget {
 }
 
 class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
-  late StreamSubscription<String> _conveyorFeedbackSubscription;
-
   late bool _conveyorState;
 
   double _speedValue = 1000;
@@ -35,8 +31,7 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
 
     _conveyorState = false;
 
-    _conveyorFeedbackSubscription =
-        widget.mqttService.conveyorFeedbackStream.listen((value) {
+    widget.mqttService.conveyorFeedbackStream.listen((value) {
       setState(() {
         _conveyorState = value == 'active' ? true : false;
       });
