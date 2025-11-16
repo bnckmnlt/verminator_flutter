@@ -194,13 +194,14 @@ class _InitializationWaitingScreenState
                       retain: true,
                     );
                     _mqttService.publish(
-                        "control/monitoring/camera", "inactive",
-                        qos: MqttQos.atLeastOnce, retain: true);
+                      "control/monitoring/camera",
+                      "inactive",
+                      qos: MqttQos.atLeastOnce,
+                    );
                     _mqttService.publish(
                       "control/conveyor",
                       "Stop",
                       qos: MqttQos.atLeastOnce,
-                      retain: true,
                     );
 
                     Navigator.popUntil(context, (route) => route.isFirst);
@@ -280,13 +281,15 @@ class _InitializationWaitingScreenState
       qos: MqttQos.atLeastOnce,
       retain: true,
     );
-    _mqttService.publish("control/monitoring/camera", "active",
-        qos: MqttQos.atLeastOnce, retain: true);
+    _mqttService.publish(
+      "control/monitoring/camera",
+      "active",
+      qos: MqttQos.atLeastOnce,
+    );
     _mqttService.publish(
       "control/conveyor",
       "Continuous",
       qos: MqttQos.atLeastOnce,
-      retain: true,
     );
 
     final toastHelper = ToastHelper(context);
@@ -371,13 +374,15 @@ class _InitializationWaitingScreenState
                 qos: MqttQos.atLeastOnce,
                 retain: true,
               );
-              _mqttService.publish("control/monitoring/camera", "inactive",
-                  qos: MqttQos.atLeastOnce, retain: true);
+              _mqttService.publish(
+                "control/monitoring/camera",
+                "inactive",
+                qos: MqttQos.atLeastOnce,
+              );
               _mqttService.publish(
                 "control/conveyor",
                 "Stop",
                 qos: MqttQos.atLeastOnce,
-                retain: true,
               );
 
               Navigator.pushReplacement(
@@ -444,19 +449,20 @@ class _InitializationWaitingScreenState
                 qos: MqttQos.atLeastOnce,
                 retain: true,
               );
-              _mqttService.publish("control/monitoring/camera", "inactive",
-                  qos: MqttQos.atLeastOnce, retain: true);
+              _mqttService.publish(
+                "control/monitoring/camera",
+                "inactive",
+                qos: MqttQos.atLeastOnce,
+              );
               _mqttService.publish(
                 "control/conveyor",
                 "Stop",
                 qos: MqttQos.atLeastOnce,
-                retain: true,
               );
               _mqttService.publish(
                 "control/rake",
                 "Process:15",
                 qos: MqttQos.atLeastOnce,
-                retain: true,
               );
 
               Navigator.pushReplacement(

@@ -19,6 +19,7 @@ import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:markdown_widget/markdown_widget.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -69,10 +70,16 @@ class _SystemScheduleHeaderSectionState
   Widget build(BuildContext context) {
     _toaster = ToastHelper(context);
 
-    final String formattedDate = DateFormat("d MMM yyyy, hh:mm")
-        .format(DateTime.parse(widget.compostSchedule.createdAt));
+    final String formattedDate = DateFormat(
+      "d MMM yyyy, hh:mm",
+    ).format(DateTime.parse(widget.compostSchedule.createdAt));
 
     final toastHelper = ToastHelper(context);
+
+    final String insightData =
+        _responseLoaded && _scheduleSummaryResponse != null
+        ? _scheduleSummaryResponse!.insight
+        : "Preparing your summary... This may take a little longer than usual as the AI analyzes the data to generate insights.";
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,10 +94,7 @@ class _SystemScheduleHeaderSectionState
               children: [
                 Text(
                   widget.compostSchedule.scheduleName,
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 2),
                 Row(
@@ -113,7 +117,7 @@ class _SystemScheduleHeaderSectionState
                       ),
                     ),
                   ],
-                )
+                ),
               ],
             ),
             Row(
@@ -149,22 +153,26 @@ class _SystemScheduleHeaderSectionState
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     onPressed: () => _handleChangeScheduleName(toastHelper),
-                    icon: Icon(
-                      FluentIcons.edit_24_regular,
-                      size: 18,
-                    ),
+                    icon: Icon(FluentIcons.edit_24_regular, size: 18),
                   ),
                 ),
                 BlocListener<StatusRecordBloc, StatusRecordState>(
                   listener: (ctx, state) {
                     if (state is StatusRecordFailure) {
                     } else if (state is StatusRecordListSuccess) {
-                      final statusList = state.statusRecordList
-                          .where((status) =>
-                              status.scheduleId == widget.compostSchedule.id)
-                          .toList()
-                        ..sort((a, b) => DateTime.parse(b.createdAt)
-                            .compareTo(DateTime.parse(a.createdAt)));
+                      final statusList =
+                          state.statusRecordList
+                              .where(
+                                (status) =>
+                                    status.scheduleId ==
+                                    widget.compostSchedule.id,
+                              )
+                              .toList()
+                            ..sort(
+                              (a, b) => DateTime.parse(
+                                b.createdAt,
+                              ).compareTo(DateTime.parse(a.createdAt)),
+                            );
 
                       final firstStatus = statusList.first;
                       final isCompleted = firstStatus.isCompleted;
@@ -172,7 +180,7 @@ class _SystemScheduleHeaderSectionState
                       setState(() {
                         _isReadyToComplete =
                             firstStatus.status == CompostingStatus.released &&
-                                !isCompleted;
+                            !isCompleted;
                       });
                     }
                   },
@@ -183,8 +191,9 @@ class _SystemScheduleHeaderSectionState
                               borderRadius: BorderRadius.circular(6),
                             ),
                             side: BorderSide(
-                              color:
-                                  Theme.of(context).colorScheme.outlineVariant,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.outlineVariant,
                               width: 1,
                             ),
                             padding: const EdgeInsets.fromLTRB(14, 8.5, 12, 8),
@@ -199,17 +208,17 @@ class _SystemScheduleHeaderSectionState
                               Icon(
                                 FluentIcons
                                     .task_list_square_database_20_regular,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withOpacity(0.8),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withOpacity(0.8),
                                 size: 14,
                               ),
                               Text(
                                 "End Cycle",
                                 style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 12,
                                   letterSpacing: 0.025,
@@ -233,21 +242,14 @@ class _SystemScheduleHeaderSectionState
               children: [
                 Text(
                   "Summary",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
                   decoration: BoxDecoration(
                     color: Colors.lightBlue.withAlpha(64),
                     borderRadius: BorderRadius.circular(4),
-                    border: Border.all(
-                      color: Colors.lightBlue,
-                    ),
+                    border: Border.all(color: Colors.lightBlue),
                   ),
                   child: Text(
                     "AI",
@@ -258,7 +260,7 @@ class _SystemScheduleHeaderSectionState
                       letterSpacing: 0.025,
                     ),
                   ),
-                )
+                ),
               ],
             ),
             Skeletonizer(
@@ -268,13 +270,14 @@ class _SystemScheduleHeaderSectionState
                 opacity: 0.2,
                 child: Container(
                   width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 24,
+                    horizontal: 24,
+                  ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHigh
-                        .withOpacity(0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHigh.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: Theme.of(context).colorScheme.surfaceContainer,
@@ -290,23 +293,12 @@ class _SystemScheduleHeaderSectionState
                       end: Alignment.bottomLeft,
                     ),
                   ),
-                  child: Text(
-                    textAlign: TextAlign.justify,
-                    _responseLoaded && _scheduleSummaryResponse != null
-                        ? _scheduleSummaryResponse!.insight
-                        : "Preparing your summary... This may take a little longer than usual as the AI analyzes the data to generate insights.",
-                    style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withAlpha(212),
-                      fontSize: 16,
-                      letterSpacing: 0.025,
-                    ),
+                  child: SingleChildScrollView(
+                    child: MarkdownBlock(data: insightData),
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ],
@@ -317,12 +309,14 @@ class _SystemScheduleHeaderSectionState
     try {
       final response = await http.post(
         Uri.parse(
-            "${AppSecrets.domainURL}/summary/${widget.compostSchedule.id}"),
+          "${AppSecrets.domainURL}/summary/${widget.compostSchedule.id}",
+        ),
       );
 
       if (response.statusCode == 200) {
-        _scheduleSummaryResponse =
-            PromptBody.fromJson(jsonDecode(response.body));
+        _scheduleSummaryResponse = PromptBody.fromJson(
+          jsonDecode(response.body),
+        );
         setState(() {
           _responseLoaded = true;
         });
@@ -353,74 +347,81 @@ class _SystemScheduleHeaderSectionState
 
   void _handleChangeScheduleName(ToastHelper toastHelper) {
     showDialog(
-        context: context,
-        builder: (context) {
-          return GeneralDialog(
-            title: 'Change compost schedule name',
-            description: 'Modify your schedule name (e.g., Backyard Pile 1)',
-            confirmButtonLabel: 'Continue',
-            widget: Form(
-              key: formKey,
-              child: TextFormField(
-                controller: scheduleIdentifierController,
-                validator: (value) {
-                  if (value!.isEmpty || value.length <= 8) {
-                    return "Compost schedule name is invalid";
-                  }
-                  return null;
-                },
-              ),
+      context: context,
+      builder: (context) {
+        return GeneralDialog(
+          title: 'Change compost schedule name',
+          description: 'Modify your schedule name (e.g., Backyard Pile 1)',
+          confirmButtonLabel: 'Continue',
+          widget: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: scheduleIdentifierController,
+              validator: (value) {
+                if (value!.isEmpty || value.length <= 8) {
+                  return "Compost schedule name is invalid";
+                }
+                return null;
+              },
             ),
-            approvedFunction: () async {
-              if (formKey.currentState!.validate()) {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return GeneralDialog(
-                      title: 'Change schedule name?',
-                      description:
-                          'Would you change the schedule name to ${scheduleIdentifierController.text}?',
-                      confirmButtonLabel: 'Confirm',
-                      approvedFunction: () async {
-                        final response = await http.patch(
-                          Uri.parse(
-                              "https://verminator.thinkio.me/schedule/${widget.compostSchedule.id}"),
-                          headers: <String, String>{
-                            'Content-Type': 'application/json; charset=UTF-8',
-                          },
-                          body: jsonEncode(<String, dynamic>{
-                            'scheduleName':
-                                scheduleIdentifierController.text.trim(),
-                          }),
-                        );
+          ),
+          approvedFunction: () async {
+            if (formKey.currentState!.validate()) {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return GeneralDialog(
+                    title: 'Change schedule name?',
+                    description:
+                        'Would you change the schedule name to ${scheduleIdentifierController.text}?',
+                    confirmButtonLabel: 'Confirm',
+                    approvedFunction: () async {
+                      final response = await http.patch(
+                        Uri.parse(
+                          "https://verminator.thinkio.me/schedule/${widget.compostSchedule.id}",
+                        ),
+                        headers: <String, String>{
+                          'Content-Type': 'application/json; charset=UTF-8',
+                        },
+                        body: jsonEncode(<String, dynamic>{
+                          'scheduleName': scheduleIdentifierController.text
+                              .trim(),
+                        }),
+                      );
 
-                        if (response.statusCode == 200) {
-                          final compostSchedule = CompostScheduleModel.fromJson(
-                              jsonDecode(response.body));
-                          toastHelper.show(
-                              title: "Successfully updated",
-                              description:
-                                  "Successfully updated schedule name to ${compostSchedule.scheduleName}",
-                              isError: false);
-                          context
-                              .read<CompostScheduleBloc>()
-                              .add(CompostScheduleList());
-                          Navigator.of(context, rootNavigator: true)
-                              .popUntil((route) => route is PageRoute);
-                        } else {
-                          toastHelper.show(
-                              title: "An error has occurred",
-                              description: response.body.parseErrorMessage(),
-                              isError: true);
-                        }
-                      },
-                    );
-                  },
-                );
-              }
-            },
-          );
-        });
+                      if (response.statusCode == 200) {
+                        final compostSchedule = CompostScheduleModel.fromJson(
+                          jsonDecode(response.body),
+                        );
+                        toastHelper.show(
+                          title: "Successfully updated",
+                          description:
+                              "Successfully updated schedule name to ${compostSchedule.scheduleName}",
+                          isError: false,
+                        );
+                        context.read<CompostScheduleBloc>().add(
+                          CompostScheduleList(),
+                        );
+                        Navigator.of(
+                          context,
+                          rootNavigator: true,
+                        ).popUntil((route) => route is PageRoute);
+                      } else {
+                        toastHelper.show(
+                          title: "An error has occurred",
+                          description: response.body.parseErrorMessage(),
+                          isError: true,
+                        );
+                      }
+                    },
+                  );
+                },
+              );
+            }
+          },
+        );
+      },
+    );
   }
 
   void _handleEndSchedule(ToastHelper toastHelper) async {
@@ -476,16 +477,16 @@ class _SystemScheduleHeaderSectionState
               );
 
               if (scheduleResponse.statusCode != 200) {
-                await fail("Schedule update failed",
-                    scheduleResponse.body.parseErrorMessage());
+                await fail(
+                  "Schedule update failed",
+                  scheduleResponse.body.parseErrorMessage(),
+                );
                 return;
               }
 
               await supabase
                   .from("status_records")
-                  .update({
-                    "is_completed": true,
-                  })
+                  .update({"is_completed": true})
                   .eq('status_schedule_id', widget.compostSchedule.id)
                   .eq('status', 'released');
 
@@ -516,8 +517,10 @@ class _SystemScheduleHeaderSectionState
 
               await Future.delayed(const Duration(milliseconds: 100));
 
-              Navigator.of(rootContext, rootNavigator: true)
-                  .popUntil((route) => route is PageRoute);
+              Navigator.of(
+                rootContext,
+                rootNavigator: true,
+              ).popUntil((route) => route is PageRoute);
             } catch (e) {
               await fail("Unexpected Error", e.toString());
             }

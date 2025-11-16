@@ -9,7 +9,7 @@ class SplineAreaChartWidget {
   }) {
     return SplineAreaSeries<ChartData, String>(
       dataSource: chartDatasource.datasource,
-      sortingOrder: SortingOrder.ascending,
+      sortingOrder: SortingOrder.descending,
       color: Colors.white,
       borderWidth: 2,
       borderColor: Colors.white,

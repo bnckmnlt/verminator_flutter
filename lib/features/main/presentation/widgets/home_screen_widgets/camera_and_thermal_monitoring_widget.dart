@@ -69,12 +69,13 @@ class _CameraAndThermalMonitoringWidgetState
         "icon": FluentIcons.power_24_filled,
         "function": () {
           _mqttService.publish(
-              topic,
-              (visionCurrentTab == 0 ? cameraState : thermalCameraState)
-                  ? "inactive"
-                  : "active",
-              qos: MqttQos.atLeastOnce,
-              retain: true);
+            topic,
+            (visionCurrentTab == 0 ? cameraState : thermalCameraState)
+                ? "inactive"
+                : "active",
+            qos: MqttQos.atLeastOnce,
+            retain: true,
+          );
         }
       },
       {
