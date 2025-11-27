@@ -1,39 +1,56 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_vermicomposting/core/common/entities/layer_classes.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
-import 'package:flutter_vermicomposting/core/utils/extract_by_day.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
-import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
+import 'package:flutter_vermicomposting/features/food_waste/data/models/food_waste_model.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
 import 'package:flutter_vermicomposting/features/food_waste/presentation/bloc/food_waste_bloc.dart';
 import 'package:flutter_vermicomposting/features/logs/domain/entity/log_entity.dart';
 import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widget/schedule_data_table_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widget/schedule_hardware_profile_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widget/schedule_screen_header_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widget/schedule_substrate_charts_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widget/schedule_system_overview_widget.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/widgets/schedule_screen_widget/schedule_waste_and_metrics_widget.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/status/domain/entity/status_record.dart';
 import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/domain/entity/worm_activity.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
+import 'package:flutter_vermicomposting/mqtt_service.dart';
+import 'package:get_it/get_it.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tab_container/tab_container.dart';
 
 class ScheduleScreenTest extends StatefulWidget {
-  const ScheduleScreenTest({super.key});
+  final CompostSchedule compostSchedule;
+
+  const ScheduleScreenTest({
+    super.key,
+    required this.compostSchedule,
+  });
 
   @override
   State<ScheduleScreenTest> createState() => _ScheduleScreenTestState();
 }
 
-class _ScheduleScreenTestState extends State<ScheduleScreenTest> {
-  late List<CompostSchedule> compostScheduleList;
+class _ScheduleScreenTestState extends State<ScheduleScreenTest>
+    with TickerProviderStateMixin {
+  late SupabaseClient _supabaseClient;
+  late MqttService _mqttService;
+  late TabController _tabController;
+
+  late CompostSchedule compostSchedule;
   late List<FoodWaste> foodWasteList;
   late List<SensorReading> sensorReadingList;
   late List<WormActivity> wormActivityList;
   late List<StatusRecord> statusList;
   late List<LogEntity> logList;
 
-  bool _compostScheduleLoadingState = true;
   bool _foodWasteLoadingState = true;
   bool _sensorReadingLoadingState = true;
   bool _wormActivityLoadingState = true;
@@ -45,17 +62,37 @@ class _ScheduleScreenTestState extends State<ScheduleScreenTest> {
 
   List<String> _errorList = [];
 
+  List<TabData> _tabData = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    _mqttService = GetIt.I<MqttService>();
+    _supabaseClient = GetIt.I<SupabaseClient>();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _tabController.dispose();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
     if (!_hasInitialized) {
-      context.read<CompostScheduleBloc>().add(CompostScheduleList());
+      _tabController = TabController(length: _tabData.length, vsync: this);
+
       context.read<FoodWasteBloc>().add(FoodWasteList());
       context.read<SensorReadingBloc>().add(SensorReadingList());
       context.read<LogBloc>().add(LogList());
       context.read<WormActivityBloc>().add(WormActivityList());
       context.read<StatusRecordBloc>().add(StatusRecordList());
+
+      compostSchedule = widget.compostSchedule;
+
       _hasInitialized = true;
     }
   }
@@ -65,45 +102,99 @@ class _ScheduleScreenTestState extends State<ScheduleScreenTest> {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
 
-    double horizontalPadding = width * 0.075;
-    double verticalPadding = height * 0.1;
+    double horizontalPadding = width * 0.05;
+    double verticalPadding = height * 0.05;
 
-    bool mountedState = !_compostScheduleLoadingState &&
-        !_foodWasteLoadingState &&
+    bool mountedState = !_foodWasteLoadingState &&
         !_sensorReadingLoadingState &&
         !_wormActivityLoadingState &&
         !_statusLoadingState &&
         !_logLoadingState;
 
+    _tabData = [
+      TabData(
+        icon: FluentIcons.brain_circuit_24_filled,
+        tooltipMessage: "System Overview",
+        childWidget: Padding(
+          padding: const EdgeInsets.all(32),
+          child: ScheduleSystemOverviewWidget(
+            compostSchedule: widget.compostSchedule,
+          ),
+        ),
+      ),
+      TabData(
+        icon: FluentIcons.server_24_filled,
+        tooltipMessage: "Hardware Profile",
+        childWidget: Padding(
+          padding: const EdgeInsets.all(32),
+          child: ScheduleHardwareProfileWidget(
+            mqttService: _mqttService,
+          ),
+        ),
+      ),
+      TabData(
+        icon: FluentIcons.food_apple_24_filled,
+        tooltipMessage: "Feeding and Kitchen Waste",
+        childWidget: Padding(
+          padding: const EdgeInsets.all(32),
+          child: ScheduleWasteAndMetricsWidget(
+            compostSchedule: compostSchedule,
+            foodWasteList: mountedState ? foodWasteList : [],
+          ),
+        ),
+      ),
+      TabData(
+        icon: FluentIcons.data_area_24_filled,
+        tooltipMessage: "Substrate Metrics",
+        childWidget: ScheduleSubstrateChartsWidget(
+          sensorReadingList: mountedState ? sensorReadingList : [],
+        ),
+      ),
+      TabData(
+        icon: FluentIcons.document_table_24_filled,
+        tooltipMessage: "Schedule Data Table",
+        childWidget: ScheduleDataTableWidget(
+          compostSchedule: compostSchedule,
+          sensorReadingList: mountedState ? sensorReadingList : [],
+          wormActivityList: mountedState ? wormActivityList : [],
+        ),
+      ),
+    ];
+
+    _tabController = TabController(length: _tabData.length, vsync: this);
+
     return Scaffold(
         extendBody: true,
         extendBodyBehindAppBar: true,
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          iconTheme:
+              IconThemeData(color: Theme.of(context).colorScheme.onSurface),
+          backgroundColor: Colors.transparent,
+          elevation: 0.0,
+        ),
         body: MultiBlocListener(
           listeners: [
-            BlocListener<CompostScheduleBloc, CompostScheduleState>(
-                listener: (context, state) {
-              if (state is CompostScheduleLoading) {
-                _compostScheduleLoadingState = true;
-              } else if (state is CompostScheduleListSuccess) {
-                setState(() {
-                  _compostScheduleLoadingState = false;
-                  compostScheduleList = state.compostScheduleList;
-                });
-              } else if (state is CompostScheduleFailure) {
-                setState(() {
-                  _isError = true;
-                  _errorList.add(state.error);
-                });
-              }
-            }),
             BlocListener<FoodWasteBloc, FoodWasteState>(
                 listener: (context, state) {
               if (state is FoodWasteLoading) {
                 _foodWasteLoadingState = true;
               } else if (state is FoodWasteListSuccess) {
+                final List<FoodWasteModel> itemList = state.foodWaste
+                    .where((entry) =>
+                        entry.foodWasteScheduleId == widget.compostSchedule.id)
+                    .map((foodWaste) {
+                  final foodWasteModel = foodWaste as FoodWasteModel;
+                  final publicUrl = _supabaseClient.storage
+                      .from('image')
+                      .getPublicUrl(foodWasteModel.filePath);
+
+                  return foodWasteModel.copyWith(filePath: publicUrl);
+                }).toList();
+
                 setState(() {
                   _foodWasteLoadingState = false;
-                  foodWasteList = state.foodWaste;
+                  foodWasteList = itemList;
                 });
               } else if (state is FoodWasteFailure) {
                 setState(() {
@@ -119,8 +210,9 @@ class _ScheduleScreenTestState extends State<ScheduleScreenTest> {
               } else if (state is SensorReadingListSuccess) {
                 setState(() {
                   _sensorReadingLoadingState = false;
-                  sensorReadingList =
-                      state.list.where((r) => r.sensorScheduleId == 2).toList();
+                  sensorReadingList = state.list
+                      .where((r) => r.sensorScheduleId == compostSchedule.id)
+                      .toList();
                 });
               } else if (state is SensorReadingFailure) {
                 setState(() {
@@ -136,7 +228,10 @@ class _ScheduleScreenTestState extends State<ScheduleScreenTest> {
               } else if (state is WormActivityListSuccess) {
                 setState(() {
                   _wormActivityLoadingState = false;
-                  wormActivityList = state.list;
+                  wormActivityList = state.list
+                      .where((activity) =>
+                          activity.wormScheduleId == compostSchedule.id)
+                      .toList();
                 });
               } else if (state is WormActivityFailure) {
                 setState(() {
@@ -152,7 +247,10 @@ class _ScheduleScreenTestState extends State<ScheduleScreenTest> {
               } else if (state is StatusRecordListSuccess) {
                 setState(() {
                   _statusLoadingState = false;
-                  statusList = state.statusRecordList;
+                  statusList = state.statusRecordList
+                      .where(
+                          (status) => status.scheduleId == compostSchedule.id)
+                      .toList();
                 });
               } else if (state is StatusRecordFailure) {
                 setState(() {
@@ -182,22 +280,135 @@ class _ScheduleScreenTestState extends State<ScheduleScreenTest> {
                   onRefresh: () {
                     return Future.delayed(Duration(seconds: 1), () {});
                   },
-                  child: SafeArea(
-                    child: Container(
-                      height: height,
-                      width: width,
-                      padding: EdgeInsets.symmetric(
-                          vertical: verticalPadding,
-                          horizontal: horizontalPadding),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Hello"),
-                          _dailyRecordDataTable(
-                              sensorReadingList, wormActivityList)
-                        ],
-                      ),
+                  child: Container(
+                    height: height,
+                    width: width,
+                    padding: EdgeInsets.symmetric(
+                      vertical: verticalPadding,
+                      horizontal: horizontalPadding,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        ScheduleScreenHeaderWidget(
+                          mqttService: _mqttService,
+                          compostSchedule: compostSchedule,
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            spacing: 10,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AnimatedBuilder(
+                                animation: _tabController,
+                                builder: (BuildContext context, _) {
+                                  return Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    spacing: 12,
+                                    children: [
+                                      Text(
+                                        _tabData[_tabController.index]
+                                            .tooltipMessage,
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      if (_tabController.index == 0)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 6),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                Colors.lightBlue.withAlpha(64),
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                            border: Border.all(
+                                                color: Colors.lightBlue),
+                                          ),
+                                          child: Text(
+                                            "AI",
+                                            style: TextStyle(
+                                              color: Colors.lightBlue,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              letterSpacing: 0.025,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                },
+                              ),
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: _tabData.isNotEmpty
+                                          ? TabContainer(
+                                              enabled: true,
+                                              enableFeedback: true,
+                                              controller: _tabController,
+                                              tabsEnd: 0.8,
+                                              tabExtent: 74,
+                                              tabEdge: TabEdge.right,
+                                              curve: Curves.easeIn,
+                                              childCurve: Curves.easeIn,
+                                              tabBorderRadius:
+                                                  BorderRadius.circular(12),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .surfaceContainerHigh
+                                                  .withAlpha(124),
+                                              tabs: _tabData
+                                                  .asMap()
+                                                  .entries
+                                                  .map((tab) {
+                                                return AnimatedBuilder(
+                                                  animation: _tabController,
+                                                  builder: (context, _) {
+                                                    final isActive = tab.key ==
+                                                        _tabController.index;
+
+                                                    return Tooltip(
+                                                      message: tab
+                                                          .value.tooltipMessage,
+                                                      child: Icon(
+                                                        tab.value.icon,
+                                                        size: 32,
+                                                        color: isActive
+                                                            ? Theme.of(context)
+                                                                .colorScheme
+                                                                .onSurface
+                                                            : Theme.of(context)
+                                                                .colorScheme
+                                                                .onSurface
+                                                                .withAlpha(164),
+                                                      ),
+                                                    );
+                                                  },
+                                                );
+                                              }).toList(),
+                                              children: _tabData
+                                                  .map((tab) => tab.childWidget)
+                                                  .toList(),
+                                            )
+                                          : SizedBox.shrink(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 )
@@ -212,97 +423,16 @@ class _ScheduleScreenTestState extends State<ScheduleScreenTest> {
                     ),
         ));
   }
-
-  Widget _dailyRecordDataTable(
-    List<SensorReading> sensorReadingList,
-    List<WormActivity> wormActivityList,
-  ) {
-    List<Reading> readings = parseToAverage(
-      sensorReadingList,
-      wormActivityList,
-    );
-
-    return Container(
-      child: Column(
-        children: readings.map((element) {
-          return Text(element.date);
-        }).toList(),
-      ),
-    );
-  }
 }
 
-List<Reading> parseToAverage(
-    List<SensorReading> readings, List<WormActivity> wormActivities) {
-  final allDates = <String>{
-    ...readings.map((r) => extractDay(r.createdAt)),
-    ...wormActivities.map((w) => extractDay(w.createdAt)),
-  };
+class TabData {
+  final IconData icon;
+  final String tooltipMessage;
+  final Widget childWidget;
 
-  final readingsByDate = <String, List<SensorReading>>{};
-  for (final r in readings) {
-    final date = extractDay(r.createdAt);
-    readingsByDate.putIfAbsent(date, () => []).add(r);
-  }
-
-  final wormsByDate = <String, List<WormActivity>>{};
-  for (final w in wormActivities) {
-    final date = extractDay(w.createdAt);
-    wormsByDate.putIfAbsent(date, () => []).add(w);
-  }
-
-  double avg(List<double> values) =>
-      values.isEmpty ? 0 : values.reduce((a, b) => a + b) / values.length;
-
-  return allDates.map((date) {
-    final sensorList = readingsByDate[date] ?? [];
-    final wormList = wormsByDate[date] ?? [];
-
-    final rAvg = sensorList.isEmpty
-        ? Reading(date: date)
-        : Reading(
-            date: date,
-            temperature: avg(sensorList
-                .where((r) => r.layer == SystemLayer.bedding)
-                .map((r) =>
-                    r.asBeddingReading?.temperature.value.toDouble() ?? 0)
-                .toList()),
-            humidity: avg(sensorList
-                .where((r) => r.layer == SystemLayer.bedding)
-                .map((r) => r.asBeddingReading?.humidity.value.toDouble() ?? 0)
-                .toList()),
-            soilMoisture: avg(sensorList
-                .where((r) => r.layer == SystemLayer.bedding)
-                .map((r) =>
-                    r.asBeddingReading?.soilMoisture.value.toDouble() ?? 0)
-                .toList()),
-            nitrogen: avg(sensorList
-                .where((r) => r.layer == SystemLayer.compost)
-                .map((r) => r.asCompostReading?.npk.nitrogen.toDouble() ?? 0)
-                .toList()),
-            phosphorus: avg(sensorList
-                .where((r) => r.layer == SystemLayer.compost)
-                .map((r) => r.asCompostReading?.npk.phosphorus.toDouble() ?? 0)
-                .toList()),
-            potassium: avg(sensorList
-                .where((r) => r.layer == SystemLayer.compost)
-                .map((r) => r.asCompostReading?.npk.potassium.toDouble() ?? 0)
-                .toList()),
-          );
-
-    final activeZone =
-        wormList.isEmpty ? "Unknown" : wormList.first.getActiveZoneLabel();
-
-    return Reading(
-      date: rAvg.date,
-      temperature: rAvg.temperature,
-      humidity: rAvg.humidity,
-      soilMoisture: rAvg.soilMoisture,
-      nitrogen: rAvg.nitrogen,
-      phosphorus: rAvg.phosphorus,
-      potassium: rAvg.potassium,
-      activeZone: activeZone,
-    );
-  }).toList()
-    ..sort((a, b) => b.date.compareTo(a.date));
+  TabData({
+    required this.icon,
+    required this.tooltipMessage,
+    required this.childWidget,
+  });
 }
