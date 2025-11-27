@@ -39,9 +39,11 @@ class _ScheduleSystemOverviewWidgetState
   @override
   void initState() {
     super.initState();
+
     _compostSchedule = widget.compostSchedule;
     _toaster = ToastHelper(context);
-    // _getResponse();
+
+    _getResponse();
   }
 
   @override

@@ -14,7 +14,7 @@ import 'package:flutter_vermicomposting/features/compost_schedule/data/models/co
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_instruction_screen.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_screen.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_screen_test.dart';
 import 'package:flutter_vermicomposting/features/status/domain/entity/status_record.dart';
 import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
 import 'package:http/http.dart' as http;
@@ -292,7 +292,7 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
                     context,
                     MaterialPageRoute(
                         builder: (_) =>
-                            ScheduleScreen(scheduleId: schedule.id)));
+                            ScheduleScreenTest(compostSchedule: schedule)));
               },
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 28, horizontal: 24),

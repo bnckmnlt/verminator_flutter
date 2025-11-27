@@ -56,6 +56,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       return Scaffold(
         extendBody: true,
         extendBodyBehindAppBar: true,
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           iconTheme:
               IconThemeData(color: Theme.of(context).colorScheme.onSurface),

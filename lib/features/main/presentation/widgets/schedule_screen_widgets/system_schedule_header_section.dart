@@ -19,7 +19,6 @@ import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:markdown_widget/markdown_widget.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -58,7 +57,7 @@ class _SystemScheduleHeaderSectionState
   void initState() {
     super.initState();
 
-    _getResponse();
+    // _getResponse();
   }
 
   @override
@@ -76,9 +75,8 @@ class _SystemScheduleHeaderSectionState
 
     final toastHelper = ToastHelper(context);
 
-    final String insightData =
-        _responseLoaded && _scheduleSummaryResponse != null
-        ? _scheduleSummaryResponse!.insight
+    final String insightData = _responseLoaded
+        ? _scheduleSummaryResponse.insight
         : "Preparing your summary... This may take a little longer than usual as the AI analyzes the data to generate insights.";
 
     return Column(
@@ -160,19 +158,17 @@ class _SystemScheduleHeaderSectionState
                   listener: (ctx, state) {
                     if (state is StatusRecordFailure) {
                     } else if (state is StatusRecordListSuccess) {
-                      final statusList =
-                          state.statusRecordList
-                              .where(
-                                (status) =>
-                                    status.scheduleId ==
-                                    widget.compostSchedule.id,
-                              )
-                              .toList()
-                            ..sort(
-                              (a, b) => DateTime.parse(
-                                b.createdAt,
-                              ).compareTo(DateTime.parse(a.createdAt)),
-                            );
+                      final statusList = state.statusRecordList
+                          .where(
+                            (status) =>
+                                status.scheduleId == widget.compostSchedule.id,
+                          )
+                          .toList()
+                        ..sort(
+                          (a, b) => DateTime.parse(
+                            b.createdAt,
+                          ).compareTo(DateTime.parse(a.createdAt)),
+                        );
 
                       final firstStatus = statusList.first;
                       final isCompleted = firstStatus.isCompleted;
@@ -180,7 +176,7 @@ class _SystemScheduleHeaderSectionState
                       setState(() {
                         _isReadyToComplete =
                             firstStatus.status == CompostingStatus.released &&
-                            !isCompleted;
+                                !isCompleted;
                       });
                     }
                   },
@@ -293,8 +289,17 @@ class _SystemScheduleHeaderSectionState
                       end: Alignment.bottomLeft,
                     ),
                   ),
-                  child: SingleChildScrollView(
-                    child: MarkdownBlock(data: insightData),
+                  child: Text(
+                    textAlign: TextAlign.justify,
+                    insightData,
+                    style: TextStyle(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withAlpha(214),
+                      fontSize: 16,
+                      letterSpacing: 0.025,
+                    ),
                   ),
                 ),
               ),
@@ -384,8 +389,8 @@ class _SystemScheduleHeaderSectionState
                           'Content-Type': 'application/json; charset=UTF-8',
                         },
                         body: jsonEncode(<String, dynamic>{
-                          'scheduleName': scheduleIdentifierController.text
-                              .trim(),
+                          'scheduleName':
+                              scheduleIdentifierController.text.trim(),
                         }),
                       );
 
@@ -400,8 +405,8 @@ class _SystemScheduleHeaderSectionState
                           isError: false,
                         );
                         context.read<CompostScheduleBloc>().add(
-                          CompostScheduleList(),
-                        );
+                              CompostScheduleList(),
+                            );
                         Navigator.of(
                           context,
                           rootNavigator: true,

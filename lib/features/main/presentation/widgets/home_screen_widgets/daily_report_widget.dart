@@ -51,7 +51,7 @@ class _DailyReportWidgetState extends State<DailyReportWidget> {
 
     super.initState();
 
-    _getResponse();
+    // _getResponse();
   }
 
   @override

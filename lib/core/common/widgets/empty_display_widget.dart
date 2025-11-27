@@ -36,7 +36,6 @@ class EmptyDisplayWidget extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurface.withAlpha(124),
-            fontSize: 12,
             letterSpacing: 0.025,
             height: 1.2,
           ),

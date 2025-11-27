@@ -38,7 +38,7 @@ class _BackgroundPainter extends CustomPainter {
     _drawCircleGradient(canvas, bottomLeftRect);
   }
 
-  _drawCircleGradient(Canvas canvas, Rect rect) {
+  void _drawCircleGradient(Canvas canvas, Rect rect) {
     final paint = Paint();
 
     paint.shader = RadialGradient(

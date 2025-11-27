@@ -19,13 +19,14 @@ abstract interface class CompostScheduleRemoteDatasource {
     required String juiceProduced,
   });
 
-  Future<CompostSchedule> patchCompostSchedule(
-      {required int id,
-      String? scheduleName,
-      String? compostProduced,
-      String? juiceProduced,
-      bool? isCompleted,
-      String? dateReleased});
+  Future<CompostSchedule> patchCompostSchedule({
+    required int id,
+    String? scheduleName,
+    String? compostProduced,
+    String? juiceProduced,
+    bool? isCompleted,
+    String? dateReleased,
+  });
 
   Future<String> removeCompostSchedule({
     required int id,
