@@ -1,6 +1,7 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_vermicomposting/core/common/cubits/app_schedule/app_schedule_cubit.dart';
 import 'package:flutter_vermicomposting/core/common/cubits/app_settings/app_settings_cubit.dart';
+import 'package:flutter_vermicomposting/core/common/entities/notification_service.dart';
 import 'package:flutter_vermicomposting/core/network/connection_checker.dart';
 import 'package:flutter_vermicomposting/core/secrets/app_secrets.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/data/datasources/compost_schedule_remote_datasource.dart';
@@ -23,6 +24,12 @@ import 'package:flutter_vermicomposting/features/logs/data/repositories/logs_rep
 import 'package:flutter_vermicomposting/features/logs/domain/repositories/log_repository.dart';
 import 'package:flutter_vermicomposting/features/logs/domain/usecases/list_logs.dart';
 import 'package:flutter_vermicomposting/features/logs/presentation/bloc/log_bloc.dart';
+import 'package:flutter_vermicomposting/features/notification/data/datasources/notification_remote_datasource.dart';
+import 'package:flutter_vermicomposting/features/notification/data/repositories/notification_repository_impl.dart';
+import 'package:flutter_vermicomposting/features/notification/domain/repositories/notification_repository.dart';
+import 'package:flutter_vermicomposting/features/notification/domain/usecases/list_notification.dart';
+import 'package:flutter_vermicomposting/features/notification/domain/usecases/patch_notification.dart';
+import 'package:flutter_vermicomposting/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/data/datasources/sensor_reading_datasource.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/data/repositories/sensor_reading_repository_impl.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/repositories/sensor_reading_repository.dart';

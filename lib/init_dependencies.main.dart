@@ -9,6 +9,7 @@ Future<void> initDependencies() async {
   _initLogs();
   _initWormActivity();
   _initStatusRecord();
+  _initNotification();
 
   await dotenv.load(fileName: ".env");
 
@@ -20,6 +21,12 @@ Future<void> initDependencies() async {
   /**  **/
   sl.registerLazySingleton(() => supabase.client);
   sl.registerLazySingleton(() => MqttService());
+  sl.registerLazySingleton<NotificationService>(() {
+    final service = NotificationService();
+    service.initNotification();
+    return service;
+  });
+
   sl.registerFactory(() => InternetConnection());
 
   sl<MqttService>().connect();
@@ -205,6 +212,30 @@ void _initStatusRecord() {
       () => StatusRecordBloc(
         listStatusRecords: sl(),
         selectOneStatusRecord: sl(),
+      ),
+    );
+}
+
+void _initNotification() {
+  sl
+    ..registerFactory<NotificationRemoteDatasource>(
+      () => NotificationRemoteDatasourceImpl(
+        sl(),
+      ),
+    )
+    ..registerFactory<NotificationRepository>(
+      () => NotificationRepositoryImpl(sl(), sl()),
+    )
+    ..registerFactory(
+      () => ListNotification(sl()),
+    )
+    ..registerFactory(
+      () => PatchNotification(sl()),
+    )
+    ..registerLazySingleton(
+      () => NotificationBloc(
+        listNotification: sl(),
+        patchNotification: sl(),
       ),
     );
 }
