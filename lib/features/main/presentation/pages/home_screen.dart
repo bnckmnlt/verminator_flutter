@@ -8,6 +8,7 @@ import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/core/utils/format_to_local_time.dart';
+import 'package:flutter_vermicomposting/core/utils/sensor_reading_to_daily_avg.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
@@ -20,6 +21,8 @@ import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/environmental_metrics_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/notification_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/system_summary_widget.dart';
+import 'package:flutter_vermicomposting/features/notification/domain/entities/notification.dart';
+import 'package:flutter_vermicomposting/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/sensor_reading.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
@@ -39,12 +42,14 @@ class _HomeScreenState extends State<HomeScreen> {
   late List<CompostSchedule> compostScheduleList;
   late List<FoodWaste> foodWasteList;
   late List<SensorReading> sensorReadingList;
+  late List<NotificationEntity> notificationList;
 
   late List<SummaryCardItem> _summaryItems;
 
   bool _compostScheduleLoadingState = true;
   bool _foodWasteLoadingState = true;
   bool _sensorReadingLoadingState = true;
+  bool _notificationLoadingState = true;
 
   bool _hasInitialized = false;
   bool _isError = false;
@@ -65,15 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    context.read<SensorReadingBloc>().add(SensorReadingList());
-
     super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
     if (!_hasInitialized) {
       context.read<CompostScheduleBloc>().add(CompostScheduleList());
       context.read<FoodWasteBloc>().add(FoodWasteList());
@@ -81,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context.read<LogBloc>().add(LogList());
       context.read<WormActivityBloc>().add(WormActivityList());
       context.read<StatusRecordBloc>().add(StatusRecordList());
+      context.read<NotificationBloc>().add(NotificationList());
       _hasInitialized = true;
     }
   }
@@ -96,7 +94,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     bool mountedState = !_compostScheduleLoadingState &&
         !_foodWasteLoadingState &&
-        !_sensorReadingLoadingState;
+        !_sensorReadingLoadingState &&
+        !_notificationLoadingState;
 
     if (mountedState) {
       _summaryItems = [
@@ -186,6 +185,22 @@ class _HomeScreenState extends State<HomeScreen> {
               });
             }
           }),
+          BlocListener<NotificationBloc, NotificationState>(
+              listener: (context, state) {
+            if (state is SensorReadingLoading) {
+              _notificationLoadingState = true;
+            } else if (state is NotificationListSuccess) {
+              setState(() {
+                _notificationLoadingState = false;
+                notificationList = state.notificationList;
+              });
+            } else if (state is NotificationFailure) {
+              setState(() {
+                _isError = true;
+                _errorList.add(state.error);
+              });
+            }
+          }),
         ],
         child: mountedState
             ? RefreshIndicator(
@@ -202,6 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       context.read<LogBloc>().add(LogList());
                       context.read<WormActivityBloc>().add(WormActivityList());
                       context.read<StatusRecordBloc>().add(StatusRecordList());
+                      context.read<NotificationBloc>().add(NotificationList());
                     });
 
                     // showing snackbar
@@ -226,58 +242,56 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   });
                 },
-                child: SafeArea(
-                  child: Container(
-                    height: deviceHeight,
-                    width: deviceWidth,
-                    padding: const EdgeInsets.fromLTRB(44, 54, 44, 28),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        spacing: 44,
-                        children: [
-                          _homeScreenHeaderSection(
-                            formattedDate: formattedDate,
-                            formattedTime: formattedTime,
-                          ),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            spacing: 20,
-                            children: [
-                              Expanded(
-                                child: DailyReportWidget(
-                                    sensorValues: sensorValues),
+                child: Container(
+                  height: deviceHeight,
+                  width: deviceWidth,
+                  padding: const EdgeInsets.fromLTRB(44, 54, 44, 28),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 44,
+                      children: [
+                        _homeScreenHeaderSection(
+                          formattedDate: formattedDate,
+                          formattedTime: formattedTime,
+                        ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 20,
+                          children: [
+                            Expanded(
+                              child:
+                                  DailyReportWidget(sensorValues: sensorValues),
+                            ),
+                            Expanded(
+                              child: SystemSummaryWidget(
+                                summaryItems: _summaryItems,
                               ),
-                              Expanded(
-                                child: SystemSummaryWidget(
-                                  summaryItems: _summaryItems,
-                                ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: CompostingPerformanceOverviewWidget(
+                                sensorReadingList: sensorReadingList,
+                                foodWasteList: foodWasteList,
                               ),
-                              Expanded(
-                                flex: 2,
-                                child: CompostingPerformanceOverviewWidget(
-                                  sensorReadingList: sensorReadingList,
-                                  foodWasteList: foodWasteList,
-                                ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          spacing: 20,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CameraAndThermalMonitoringWidget(),
+                            Expanded(
+                              flex: 2,
+                              child: EnvironmentalMetricsWidget(
+                                sensorReadingList: sensorReadingList,
                               ),
-                            ],
-                          ),
-                          Row(
-                            spacing: 20,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CameraAndThermalMonitoringWidget(),
-                              Expanded(
-                                flex: 2,
-                                child: EnvironmentalMetricsWidget(
-                                  sensorReadingList: sensorReadingList,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -369,7 +383,9 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 spacing: 8,
                 children: [
-                  NotificationWidget(),
+                  NotificationWidget(
+                    notificationList: notificationList,
+                  ),
                   ...buttonList.asMap().entries.map((entry) {
                     final item = entry.value;
                     return OutlinedButton(
@@ -435,15 +451,15 @@ class ButtonList {
   });
 }
 
-int getDateRange(int selectedRange) {
+TimeGrouping getDateRange(int selectedRange) {
   switch (selectedRange) {
     case 1:
-      return 7;
+      return TimeGrouping.last7Days;
     case 2:
-      return 30;
+      return TimeGrouping.last30Days;
     case 3:
-      return 365;
+      return TimeGrouping.annual;
     default:
-      return 24;
+      return TimeGrouping.last24Hours;
   }
 }

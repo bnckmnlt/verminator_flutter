@@ -99,7 +99,7 @@ class _EnvironmentalMetricsWidgetState
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            "Composting Conditions",
+            "Substrate and Container Conditions",
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w600,
@@ -125,10 +125,11 @@ class _EnvironmentalMetricsWidgetState
                     ),
                     itemBuilder: (BuildContext context, int index) {
                       final List<ChartData> readingList = (_sensorReadingList
-                          .where((reading) =>
-                              reading.layer ==
-                              Constants.parametersToMonitorList[index]['layer'])
-                          .map((reading) {
+                              .where((reading) =>
+                                  reading.layer ==
+                                  Constants.parametersToMonitorList[index]
+                                      ['layer'])
+                              .map((reading) {
                         return ChartData(
                           reading.createdAt,
                           (convertToReading(
@@ -137,7 +138,8 @@ class _EnvironmentalMetricsWidgetState
                                   reading) ??
                               0),
                         );
-                      }).toList());
+                      }).toList())
+                          .sublist(0, 7);
 
                       return SensorReadingCard(
                         key: Key(index.toString()),

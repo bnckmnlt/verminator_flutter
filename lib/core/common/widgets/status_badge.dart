@@ -26,6 +26,7 @@ class _StatusBadgeState extends State<StatusBadge> {
         ),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             height: 6,

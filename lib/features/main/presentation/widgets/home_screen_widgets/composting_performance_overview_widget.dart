@@ -38,7 +38,7 @@ class _CompostingPerformanceOverviewWidgetState
 
   int chartOverviewCurrentTab = 0;
   int selectedChart = 0;
-  int selectedDateRange = 1;
+  int selectedDateRange = 0;
 
   @override
   void initState() {
@@ -63,20 +63,22 @@ class _CompostingPerformanceOverviewWidgetState
     ];
 
     final beddingConditionCharts = beddingMetrics
-        .map((m) => _makeDatasource<BeddingReading>(
+        .map((m) => makeDatasource<BeddingReading>(
               SystemLayer.bedding,
               m.selector,
               getDateRange(selectedDateRange),
               m.color,
+              _sensorReadingList,
             ))
         .toList();
 
     final compostConditionCharts = compostMetrics
-        .map((m) => _makeDatasource<CompostReading>(
+        .map((m) => makeDatasource<CompostReading>(
               SystemLayer.compost,
               m.selector,
               getDateRange(selectedDateRange),
               m.color,
+              _sensorReadingList,
             ))
         .toList();
 
@@ -514,23 +516,24 @@ class _CompostingPerformanceOverviewWidgetState
       animationKey = UniqueKey();
     });
   }
+}
 
-  ChartDatasource _makeDatasource<T>(
-    SystemLayer layer,
-    num Function(T) selector,
-    int limit,
-    int color,
-  ) {
-    return ChartDatasource(
-      datasource: sensorReadingToDailyAvg<T>(
-        _sensorReadingList,
-        layer,
-        selector,
-        limit: limit,
-      ),
-      chartColor: Color(color),
-    );
-  }
+ChartDatasource makeDatasource<T>(
+  SystemLayer layer,
+  num Function(T) selector,
+  TimeGrouping grouping,
+  int color,
+  List<SensorReading> sensorReadingList,
+) {
+  return ChartDatasource(
+    datasource: sensorReadingToWindowedAvg(
+      sensorReadingList,
+      layer,
+      grouping,
+      selector,
+    ),
+    chartColor: Color(color),
+  );
 }
 
 class ChartOverview {
