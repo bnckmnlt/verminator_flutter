@@ -400,10 +400,12 @@ class _SystemSettingsState extends State<_SystemSettings> {
   late StreamSubscription<Map<String, String>> _systemSettingsSubscription;
 
   static const List<ReminderInterval> _thermalReadingIntervals = [
+    ReminderInterval(label: '5', days: 5),
+    ReminderInterval(label: '10 ', days: 10),
     ReminderInterval(label: '30', days: 30),
     ReminderInterval(label: '60', days: 60),
-    ReminderInterval(label: '5', days: 300),
-    ReminderInterval(label: '10', days: 600),
+    ReminderInterval(label: '5 min', days: 300),
+    ReminderInterval(label: '10 min', days: 600),
   ];
   static const ReminderInterval _defaultThermalReadingInterval =
       ReminderInterval(label: 'Default', days: 15);
