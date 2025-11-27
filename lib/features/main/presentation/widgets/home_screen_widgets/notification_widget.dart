@@ -1,21 +1,29 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_vermicomposting/core/common/entities/notification_service.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/notification_tile.dart';
-import 'package:flutter_vermicomposting/features/notification/data/models/notification_model.dart';
 import 'package:flutter_vermicomposting/features/notification/domain/entities/notification.dart';
+import 'package:flutter_vermicomposting/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NotificationWidget extends StatefulWidget {
-  const NotificationWidget({super.key});
+  final List<NotificationEntity> notificationList;
+
+  const NotificationWidget({
+    super.key,
+    required this.notificationList,
+  });
 
   @override
   State<NotificationWidget> createState() => _NotificationWidgetState();
 }
 
 class _NotificationWidgetState extends State<NotificationWidget> {
+  late NotificationService _notification;
   late SupabaseClient _supabaseClient;
   List<NotificationEntity> notificationList = [];
 
@@ -29,35 +37,25 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   void initState() {
     super.initState();
 
+    _notification = GetIt.I<NotificationService>();
     _supabaseClient = GetIt.I<SupabaseClient>();
-
-    _supabaseClient
-        .from("notification")
-        .stream(primaryKey: ['id'])
-        .order('created_at')
-        .listen((rawData) {
-          setState(() {
-            notificationList = rawData
-                .map((data) => NotificationModel.fromJsonSupabase(data))
-                .toList();
-          });
-        });
-  }
-
-  Future<void> _refreshNotificationList() async {
-    final data =
-        await _supabaseClient.from("notification").select().order('created_at');
-
-    setState(() {
-      notificationList = data
-          .map<NotificationEntity>(
-              (item) => NotificationModel.fromJsonSupabase(item))
-          .toList();
-    });
+    notificationList = widget.notificationList;
   }
 
   @override
   Widget build(BuildContext context) {
+    if (notificationList.isNotEmpty) {
+      final List<NotificationEntity> unreadList =
+          notificationList.where((n) => !n.read).toList();
+
+      for (var notification in unreadList) {
+        _notification.showNotifications(
+            id: notification.id,
+            title: notification.subject,
+            body: notification.description);
+      }
+    }
+
     return IconButton(
       key: _buttonKey,
       onPressed: () {
@@ -148,7 +146,9 @@ class _NotificationWidgetState extends State<NotificationWidget> {
                           child: NotificationTile(
                             notification: dataToDisplay[index],
                             supabaseClient: _supabaseClient,
-                            onRefresh: _refreshNotificationList,
+                            onRefresh: () => context
+                                .read<NotificationBloc>()
+                                .add(NotificationList()),
                           ),
                         );
                       },
@@ -176,22 +176,14 @@ class _NotificationWidgetState extends State<NotificationWidget> {
           ),
           InkWell(
             onTap: () async {
-              final data = await _supabaseClient
+              await _supabaseClient
                   .from("notification")
                   .update({'read': true})
                   .eq('read', false)
                   .select()
                   .order('created_at');
 
-              setState(() {
-                notificationList = data
-                    .map<NotificationEntity>(
-                      (item) => NotificationModel.fromJsonSupabase(item),
-                    )
-                    .toList();
-              });
-
-              await _refreshNotificationList();
+              context.read<NotificationBloc>().add(NotificationList());
             },
             child: Row(
               children: [
@@ -356,7 +348,5 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   void _removePopover() {
     _popoverEntry?.remove();
     _popoverEntry = null;
-
-    _refreshNotificationList();
   }
 }

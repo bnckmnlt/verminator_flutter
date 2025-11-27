@@ -3,7 +3,7 @@ import 'package:flutter_vermicomposting/features/notification/domain/entities/no
 import 'package:fpdart/fpdart.dart';
 
 abstract interface class NotificationRepository {
-  Future<Either<Failure, List<NotificationEntity>>> listNotification();
+  Future<Either<Failure, Stream<List<NotificationEntity>>>> listNotification();
 
   Future<Either<Failure, NotificationEntity>> selectOneNotification({
     required int id,
@@ -15,6 +15,6 @@ abstract interface class NotificationRepository {
 
   Future<Either<Failure, NotificationEntity>> patchNotification({
     required int id,
-    required bool read,
+    bool read,
   });
 }
