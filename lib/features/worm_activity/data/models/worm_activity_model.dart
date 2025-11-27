@@ -12,6 +12,7 @@ class WormActivityModel extends WormActivity {
     required super.activityLevel,
     required super.hotspot,
     required super.zones,
+    required super.filePath,
     required super.createdAt,
   });
 
@@ -28,6 +29,7 @@ class WormActivityModel extends WormActivity {
       hotspot: json['hotspot'] != null ? Point.fromJson(json['hotspot']) : null,
       zones: json['zones'] as Map<String, dynamic>,
       createdAt: formatToLocalTime(json['createdAt']),
+      filePath: json['filePath'] as String,
     );
   }
 
@@ -42,6 +44,7 @@ class WormActivityModel extends WormActivity {
       'activityLevel': activityLevel,
       'hotspot': hotspot?.toJson(),
       'zones': zones,
+      'filePath': filePath,
       'createdAt': createdAt,
     };
   }
