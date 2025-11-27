@@ -26,6 +26,20 @@ class SensorReadingModel extends SensorReading {
     );
   }
 
+  factory SensorReadingModel.fromSupabaseJson(Map<String, dynamic> json) {
+    return SensorReadingModel(
+      id: json["id"] is int ? json["id"] : int.parse(json["id"].toString()),
+      sensorScheduleId: json["sensor_schedule_id"] is int
+          ? json["sensor_schedule_id"]
+          : int.parse(json["sensor_schedule_id"].toString()),
+      layer: SystemLayer.values.byName(json["layer"] as String),
+      readings: json["readings"] is String
+          ? Map<String, dynamic>.from(jsonDecode(json["readings"]))
+          : Map<String, dynamic>.from(json["readings"]),
+      createdAt: formatToLocalTime(json['created_at']),
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       "id": id,

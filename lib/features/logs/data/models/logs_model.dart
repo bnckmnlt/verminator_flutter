@@ -26,4 +26,13 @@ class LogModel extends LogEntity {
       createdAt: formatToLocalTime(json['createdAt']),
     );
   }
+
+  factory LogModel.fromSupabaseJson(Map<String, dynamic> json) {
+    return LogModel(
+      id: json["id"] as int,
+      logSeverity: LogSeverity.values.byName(json["log_severity"] as String),
+      message: json["event_message"],
+      createdAt: formatToLocalTime(json['created_at']),
+    );
+  }
 }

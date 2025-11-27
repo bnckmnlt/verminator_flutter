@@ -8,6 +8,7 @@ class WormActivity {
   final ActivityLevel activityLevel;
   final Point? hotspot;
   final Map<String, dynamic> zones;
+  final String filePath;
   final String createdAt;
 
   WormActivity({
@@ -20,6 +21,7 @@ class WormActivity {
     required this.activityLevel,
     this.hotspot,
     required this.zones,
+    required this.filePath,
     required this.createdAt,
   });
 

@@ -81,6 +81,7 @@ class Npk {
 
 class Reading {
   final String date;
+  final String status;
   final double temperature;
   final double humidity;
   final double soilMoisture;
@@ -88,8 +89,10 @@ class Reading {
   final double phosphorus;
   final double potassium;
   final String activeZone;
+  final String imgSrc;
 
   Reading({
+    this.status = "Unhealthy",
     required this.date,
     this.temperature = 0,
     this.humidity = 0,
@@ -98,5 +101,6 @@ class Reading {
     this.phosphorus = 0,
     this.potassium = 0,
     this.activeZone = "Unknown",
+    this.imgSrc = "",
   });
 }
