@@ -239,7 +239,7 @@ class _ScheduleSubstrateChartsWidgetState
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _currentChartLabel,
+                      _getChartLabel(_selectedChart),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: parameterTextStyle(),
@@ -419,9 +419,9 @@ class _ScheduleSubstrateChartsWidgetState
       {'label': 'Temperature', 'min': 20.0, 'max': 35.0, 'unit': '°C'},
       {'label': 'Humidity', 'min': 50.0, 'max': 100.0, 'unit': '%'},
       {'label': 'Soil Moisture', 'min': 50.0, 'max': 100.0, 'unit': '%'},
-      {'label': 'Nitrogen', 'min': 0.0, 'max': 10.0, 'unit': '%'},
-      {'label': 'Phosphorus', 'min': 0.0, 'max': 10.0, 'unit': '%'},
-      {'label': 'Potassium', 'min': 0.0, 'max': 10.0, 'unit': '%'},
+      {'label': 'Nitrogen', 'min': 0.0, 'max': 30.0, 'unit': '%'},
+      {'label': 'Phosphorus', 'min': 0.0, 'max': 30.0, 'unit': '%'},
+      {'label': 'Potassium', 'min': 0.0, 'max': 30.0, 'unit': '%'},
     ];
 
     final config = chartConfigs[selectedIndex];
