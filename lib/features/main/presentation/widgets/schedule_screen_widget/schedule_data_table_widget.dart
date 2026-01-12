@@ -39,6 +39,7 @@ class _ScheduleDataTableWidgetState extends State<ScheduleDataTableWidget> {
   String _selectedDate = "";
   List<Reading> datasource = [];
   bool _isAscending = true;
+  int compostingDays = 0;
 
   final List<DataTableColumn> columns = [
     DataTableColumn(label: "Date"),
@@ -92,84 +93,117 @@ class _ScheduleDataTableWidgetState extends State<ScheduleDataTableWidget> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
-            flex: 3,
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 32),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          padding: EdgeInsets.symmetric(horizontal: 32),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                spacing: 14,
                 children: [
-                  Row(
-                    spacing: 14,
-                    children: [
-                      if (_isHourlyView)
-                        IconButton(
-                          key: ValueKey(
-                              'back_btn_${DateTime.now().millisecondsSinceEpoch}'),
-                          onPressed: () => setState(() {
-                            _isHourlyView = false;
-                          }),
-                          icon: Icon(FluentIcons.arrow_left_24_filled),
+                  if (_isHourlyView)
+                    IconButton(
+                      key: ValueKey(
+                          'back_btn_${DateTime.now().millisecondsSinceEpoch}'),
+                      onPressed: () => setState(() {
+                        _isHourlyView = false;
+                      }),
+                      icon: Icon(FluentIcons.arrow_left_24_filled),
+                    )
+                        .animate()
+                        .fadeIn(duration: 250.ms)
+                        .slideX(
+                          duration: 350.ms,
+                          begin: -0.5,
+                          end: 0,
+                          curve: Curves.easeOutBack,
                         )
-                            .animate()
-                            .fadeIn(duration: 250.ms)
-                            .slideX(
-                              duration: 350.ms,
-                              begin: -0.5,
-                              end: 0,
-                              curve: Curves.easeOutBack,
-                            )
-                            .scale(
-                              duration: 350.ms,
-                              begin: Offset(0.8, 0.8),
-                              end: Offset(1.0, 1.0),
-                              curve: Curves.easeOutBack,
-                            ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Composting Data Table",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            _isHourlyView
-                                ? "Showing hourly averages for $_selectedDate"
-                                : "Showing daily averages for the current month",
-                            style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withAlpha(164),
-                              fontSize: 16,
-                            ),
-                          )
-                        ],
+                        .scale(
+                          duration: 350.ms,
+                          begin: Offset(0.8, 0.8),
+                          end: Offset(1.0, 1.0),
+                          curve: Curves.easeOutBack,
+                        ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Composting Data Table",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
+                      Text(
+                        _isHourlyView
+                            ? "Showing hourly averages for $_selectedDate"
+                            : "Showing daily averages for the current month",
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withAlpha(164),
+                          fontSize: 16,
+                        ),
+                      )
                     ],
-                  ),
-                  IconButton(
-                    onPressed: () => setState(() {
-                      _isAscending = !_isAscending;
-                      _refreshDatasource();
-                    }),
-                    icon: Icon(_isAscending
-                        ? FluentIcons.text_sort_ascending_24_filled
-                        : FluentIcons.text_sort_descending_24_filled),
                   ),
                 ],
               ),
-            )),
+              IconButton(
+                onPressed: () => setState(() {
+                  _isAscending = !_isAscending;
+                  _refreshDatasource();
+                }),
+                icon: Icon(_isAscending
+                    ? FluentIcons.text_sort_ascending_24_filled
+                    : FluentIcons.text_sort_descending_24_filled),
+              ),
+            ],
+          ),
+        )),
         Flexible(
-          flex: 2,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 24,
+                    horizontal: 44,
+                  ),
+                  decoration: BoxDecoration(
+                      border: Border(
+                    left: BorderSide(
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    ),
+                  )),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Soil Produced",
+                          style: mutedTextStyle(),
+                        ),
+                        Text(
+                          "${_compostSchedule.compostProduced} Kilogram",
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               Expanded(
                 child: Container(
                   padding: EdgeInsets.symmetric(
@@ -192,14 +226,14 @@ class _ScheduleDataTableWidgetState extends State<ScheduleDataTableWidget> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Text(
-                          "Soil Produced",
+                          "Tea Produced",
                           style: mutedTextStyle(),
                         ),
                         Text(
-                          "${_compostSchedule.juiceProduced} Kilogram",
+                          "${_compostSchedule.juiceProduced} Liter",
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 28,
+                            fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -221,13 +255,14 @@ class _ScheduleDataTableWidgetState extends State<ScheduleDataTableWidget> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Text(
-                          "Vermitea Produced",
+                          "Days composting",
                           style: mutedTextStyle(),
                         ),
                         Text(
-                          "${_compostSchedule.juiceProduced} Liter",
+                          "${compostingDays} days",
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 28,
+                            fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -533,6 +568,12 @@ class _ScheduleDataTableWidgetState extends State<ScheduleDataTableWidget> {
         : parseToAverage(
             _supabaseClient, widget.sensorReadingList, widget.wormActivityList,
             ascending: _isAscending);
+
+    if (!_isHourlyView) {
+      setState(() {
+        compostingDays = datasource.length;
+      });
+    }
   }
 }
 
@@ -547,8 +588,8 @@ List<Reading> parseToAverage(
   final allDates = <String>{};
   final readingsByDate = <String, List<SensorReading>>{};
   final wormsByDate = <String, List<WormActivity>>{};
+  final dateMapping = <String, DateTime>{};
 
-  // Filter data if hourly view
   final filteredReadings = isHourly
       ? readings
           .where(
@@ -568,15 +609,19 @@ List<Reading> parseToAverage(
       : extractDay(createdAt, format: "MMMM d");
 
   for (final r in filteredReadings) {
+    final dt = DateTime.parse(r.createdAt);
     final key = dateKey(r.createdAt);
     allDates.add(key);
     readingsByDate.putIfAbsent(key, () => []).add(r);
+    dateMapping.putIfAbsent(key, () => dt);
   }
 
   for (final w in filteredWorms) {
+    final dt = DateTime.parse(w.createdAt);
     final key = dateKey(w.createdAt);
     allDates.add(key);
     wormsByDate.putIfAbsent(key, () => []).add(w);
+    dateMapping.putIfAbsent(key, () => dt);
   }
 
   double avg(List<double> values) =>
@@ -638,8 +683,9 @@ List<Reading> parseToAverage(
   }).toList();
 
   results.sort((a, b) {
-    final comparison =
-        isHourly ? _compareHours(a.date, b.date) : a.date.compareTo(b.date);
+    final comparison = isHourly
+        ? _compareHours(a.date, b.date)
+        : dateMapping[a.date]!.compareTo(dateMapping[b.date]!);
     return ascending ? comparison : -comparison;
   });
 
