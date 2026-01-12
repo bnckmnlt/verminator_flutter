@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
@@ -14,6 +15,7 @@ import 'package:flutter_vermicomposting/features/compost_schedule/presentation/b
 import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -101,28 +103,68 @@ class _ScheduleScreenHeaderWidgetState
                       ),
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Row(
+                    spacing: 20,
                     children: [
-                      Text(
-                        _compostSchedule.scheduleName,
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                          height: 1.1,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _compostSchedule.scheduleName,
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                              height: 1.1,
+                            ),
+                          ),
+                          Text(
+                            "Vermicomposting - Schedule",
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withAlpha(164),
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        "Vermicomposting - Schedule",
-                        style: TextStyle(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withAlpha(164),
-                          fontSize: 18,
-                        ),
-                      ),
+                      if (_compostSchedule.isCompleted)
+                        Container(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.greenAccent.shade100.withAlpha(24),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            spacing: 4,
+                            children: [
+                              Icon(
+                                FluentIcons.checkmark_24_filled,
+                                size: 20,
+                                color: Colors.greenAccent,
+                              ),
+                              Text(
+                                "COMPLETED",
+                                style: GoogleFonts.spaceMono(
+                                  color: Colors.greenAccent,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.025,
+                                ),
+                              ),
+                            ],
+                          )
+                              .animate(delay: Duration(milliseconds: 1 * 50))
+                              .fadeIn(duration: 500.ms, curve: Curves.easeOut)
+                              .slideX(
+                                duration: 700.ms,
+                                begin: 0.1,
+                                end: 0,
+                                curve: Curves.easeOutCubic,
+                              ),
+                        )
                     ],
                   ),
                 ],
@@ -161,14 +203,19 @@ class _ScheduleScreenHeaderWidgetState
                             ).compareTo(DateTime.parse(a.createdAt)),
                           );
 
-                        final firstStatus = statusList.first;
-                        final isCompleted = firstStatus.isCompleted;
+                        if (statusList.isNotEmpty) {
+                          final firstStatus = statusList.first;
 
-                        setState(() {
-                          _isReadyToComplete =
-                              firstStatus.status == CompostingStatus.released &&
-                                  !isCompleted;
-                        });
+                          setState(() {
+                            _isReadyToComplete =
+                                firstStatus.status == CompostingStatus.ready &&
+                                    firstStatus.isCompleted == true;
+                          });
+                        } else {
+                          setState(() {
+                            _isReadyToComplete = false;
+                          });
+                        }
                       }
                     },
                     child: _isReadyToComplete
@@ -229,7 +276,7 @@ class _ScheduleScreenHeaderWidgetState
 
   Widget _startEndDateHeader(TextStyle textStyle) {
     final startDate = DateTime.parse(_compostSchedule.createdAt).toLocal();
-    final expectedEndDate = startDate.add(const Duration(days: 14));
+    final expectedEndDate = startDate.add(const Duration(days: 45));
 
     Widget _buildIconText({required IconData icon, required String text}) {
       return Row(
