@@ -89,13 +89,9 @@ class _ScheduleWasteAndMetricsWidgetState
                       child: SingleChildScrollView(
                         child: Column(
                           spacing: 24,
-                          mainAxisSize: MainAxisSize.max,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
-                              spacing: 24,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
                                   flex: 4,
@@ -179,32 +175,39 @@ class _ScheduleWasteAndMetricsWidgetState
                                     divider: Icon(Icons.chevron_right),
                                   ),
                                 ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Align(
-                                    alignment: Alignment.centerRight,
-                                    child: Container(),
-                                  ),
-                                ),
                               ],
                             ),
-                            !_isRecordSelectionActive
-                                ? _buildFeedingListSection(
-                                    feedingRecords,
-                                    (entry) => setState(() {
-                                          _isRecordSelectionActive = true;
-                                          _activeRecordSelected = {
-                                            entry.key: entry.value
-                                          };
-                                        }))
-                                : _buildImageGallerySection(),
+                            if (feedingRecords.isEmpty)
+                              Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 128.0),
+                                  child: EmptyDisplayWidget(
+                                    title: "No data to show",
+                                    description:
+                                        "It may take up to 24 hours for data to refresh. Please try again later.",
+                                  ),
+                                ),
+                              )
+                            else if (!_isRecordSelectionActive)
+                              _buildFeedingListSection(
+                                feedingRecords,
+                                (entry) => setState(() {
+                                  _isRecordSelectionActive = true;
+                                  _activeRecordSelected = {
+                                    entry.key: entry.value
+                                  };
+                                }),
+                              )
+                            else
+                              _buildImageGallerySection(),
                           ],
                         ),
                       ),
                     ),
                   ),
-                  if (!_isImageSelected) Divider(),
-                  if (!_isImageSelected)
+                  if (!_isImageSelected && feedingRecords.isNotEmpty) Divider(),
+                  if (!_isImageSelected && feedingRecords.isNotEmpty)
                     Column(
                       spacing: 14,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -296,6 +299,7 @@ class _ScheduleWasteAndMetricsWidgetState
         }
       },
       child: Wrap(
+        spacing: 16,
         children: feedingRecords.entries.map((item) {
           String date = item.key;
           List<FoodWaste> records = item.value;
@@ -315,22 +319,29 @@ class _ScheduleWasteAndMetricsWidgetState
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: Image.network(
-                        widget.foodWasteList.first.filePath,
-                        fit: BoxFit.cover,
+                      child: ColorFiltered(
+                        colorFilter: ColorFilter.mode(
+                          Colors.black.withOpacity(0.5),
+                          BlendMode.darken,
+                        ),
+                        child: Image.network(
+                          records.last.filePath,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     Positioned.fill(
                       child: Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            begin: Alignment.bottomRight,
-                            end: Alignment.topLeft,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                             colors: [
-                              Colors.black,
-                              Colors.black.withOpacity(0.55),
+                              Colors.black.withOpacity(0.60),
+                              Colors.black.withOpacity(0.50),
                               Colors.transparent,
                             ],
+                            stops: [0.0, 0.5, 1.0],
                           ),
                         ),
                       ),
