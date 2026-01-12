@@ -1,23 +1,21 @@
-import 'dart:convert';
-
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
-import 'package:flutter_vermicomposting/core/error/exception.dart';
-import 'package:flutter_vermicomposting/core/secrets/app_secrets.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/widgets/home_screen_widgets/daily_report_widget.dart';
-import 'package:http/http.dart' as http;
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 class ScheduleSystemOverviewWidget extends StatefulWidget {
   final CompostSchedule compostSchedule;
+  final PromptBody scheduleSummaryResponse;
+  final bool responseLoaded;
 
   const ScheduleSystemOverviewWidget({
     super.key,
     required this.compostSchedule,
+    required this.scheduleSummaryResponse,
+    required this.responseLoaded,
   });
 
   @override
@@ -26,37 +24,33 @@ class ScheduleSystemOverviewWidget extends StatefulWidget {
 }
 
 class _ScheduleSystemOverviewWidgetState
-    extends State<ScheduleSystemOverviewWidget> {
-  late CompostSchedule _compostSchedule;
-  late ToastHelper _toaster;
-
-  late PromptBody _scheduleSummaryResponse;
-
-  bool _responseLoaded = false;
-  bool _responseError = false;
+    extends State<ScheduleSystemOverviewWidget>
+    with AutomaticKeepAliveClientMixin {
   bool _toggledSuggestion = false;
 
   @override
-  void initState() {
-    super.initState();
-
-    _compostSchedule = widget.compostSchedule;
-    _toaster = ToastHelper(context);
-
-    _getResponse();
-  }
+  bool get wantKeepAlive => true;
 
   @override
-  void dispose() {
-    super.dispose();
+  void didUpdateWidget(ScheduleSystemOverviewWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.responseLoaded != oldWidget.responseLoaded &&
+        widget.responseLoaded) {
+      setState(() {
+        _toggledSuggestion = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final String responseData = _responseLoaded
+    super.build(context);
+
+    final String responseData = widget.responseLoaded
         ? _toggledSuggestion
-            ? _scheduleSummaryResponse.recommendation
-            : _scheduleSummaryResponse.insight
+            ? widget.scheduleSummaryResponse.recommendation
+            : widget.scheduleSummaryResponse.insight
         : "Preparing your summary... This may take a little longer than usual as the AI analyzes the data to generate insights.";
 
     TextStyle responseTextStyle(BuildContext context) {
@@ -79,28 +73,6 @@ class _ScheduleSystemOverviewWidgetState
         side: BorderSide(
           color: Theme.of(context).colorScheme.outlineVariant.withAlpha(96),
         ),
-      );
-    }
-
-    InputDecoration transparentInput(BuildContext context) {
-      return InputDecoration(
-        filled: true,
-        fillColor: Colors.transparent,
-        hintText: "Search, or ask anything",
-        hintStyle: TextStyle(
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-          fontSize: 15,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.transparent),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(
-            color: Colors.transparent,
-          ),
-        ),
-        border: OutlineInputBorder(borderSide: BorderSide.none),
-        contentPadding: EdgeInsets.zero,
       );
     }
 
@@ -127,7 +99,7 @@ class _ScheduleSystemOverviewWidgetState
                                     _toggledSuggestion = !_toggledSuggestion;
                                   }),
                               child: Icon(FluentIcons.chevron_left_24_filled)),
-                        _responseLoaded
+                        widget.responseLoaded
                             ? Text(
                                 "SCHEDULE SUMMARY ${_toggledSuggestion ? "SUGGESTIONS" : "INSIGHTS"}",
                                 style: TextStyle(
@@ -175,16 +147,26 @@ class _ScheduleSystemOverviewWidgetState
                       ],
                     ),
                     SizedBox(
+                      key: ValueKey(
+                          '${widget.responseLoaded}_$_toggledSuggestion'),
                       child: Skeletonizer(
-                        enabled: !_responseLoaded,
+                        enabled: !widget.responseLoaded,
                         child: MarkdownBlock(
                           data: responseData,
-                        ),
+                        )
+                            .animate(delay: Duration(milliseconds: 2 * 50))
+                            .fadeIn(duration: 500.ms, curve: Curves.easeOut)
+                            .slideX(
+                              duration: 700.ms,
+                              begin: 0.1,
+                              end: 0,
+                              curve: Curves.easeOutCubic,
+                            ),
                       ),
                     ),
                   ],
                 ),
-                if (_responseLoaded && !_toggledSuggestion)
+                if (widget.responseLoaded && !_toggledSuggestion)
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IntrinsicWidth(
@@ -217,96 +199,7 @@ class _ScheduleSystemOverviewWidgetState
             ),
           ),
         ),
-        VerticalDivider(),
-        Expanded(
-          child: Column(
-            children: [
-              Expanded(flex: 2, child: Container()),
-              Container(
-                padding: EdgeInsets.fromLTRB(12, 12, 12, 8),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest),
-                ),
-                child: Column(
-                  children: [
-                    TextFormField(
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      decoration: transparentInput(context),
-                    ),
-                    Align(
-                      alignment: AlignmentGeometry.centerRight,
-                      child: IconButton(
-                          onPressed: () {},
-                          style: IconButton.styleFrom(
-                            minimumSize: Size.zero,
-                            backgroundColor: Colors.white,
-                            shape: CircleBorder(),
-                          ),
-                          icon: Icon(
-                            FluentIcons.arrow_up_24_filled,
-                            size: 20,
-                            color: Colors.grey.shade900,
-                          )),
-                    )
-                  ],
-                ),
-              ),
-            ],
-          ),
-        )
       ],
     );
-  }
-
-  Future<void> _getResponse() async {
-    try {
-      final response = await http.post(
-        Uri.parse("${AppSecrets.domainURL}/summary/${_compostSchedule.id}"),
-      );
-
-      if (response.statusCode == 200) {
-        _scheduleSummaryResponse =
-            PromptBody.fromJson(jsonDecode(response.body));
-
-        if (!mounted) return;
-
-        setState(() {
-          _responseLoaded = true;
-          _responseError = false;
-        });
-      }
-    } on ServerException catch (e) {
-      if (!mounted) return;
-
-      ToastHelper(context).show(
-        title: "Something went wrong",
-        description: e.toString(),
-        isError: true,
-      );
-
-      setState(() {
-        _responseError = true;
-      });
-    } catch (e) {
-      if (!mounted) return;
-
-      ToastHelper(context).show(
-        title: "Unexpected error has occurred",
-        description: e.toString(),
-        isError: true,
-      );
-
-      setState(() {
-        _responseError = true;
-      });
-    }
   }
 }
