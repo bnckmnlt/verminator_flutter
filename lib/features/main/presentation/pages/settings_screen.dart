@@ -220,12 +220,14 @@ class _AppSettingsState extends State<_AppSettings> {
   final AppSettingsCubit _appSettingsCubit = GetIt.I<AppSettingsCubit>();
 
   int _selectedFeedingTimer = 120;
+  bool _inDevMode = false;
 
   @override
   void initState() {
     super.initState();
 
     _selectedFeedingTimer = _appSettingsCubit.state.feedingTimer;
+    _inDevMode = _appSettingsCubit.state.devMode;
   }
 
   void restoreSettings() {
@@ -241,7 +243,7 @@ class _AppSettingsState extends State<_AppSettings> {
                 Navigator.pop(context);
 
                 _appSettingsCubit.updateAppSettings(
-                  AppSettingsModel(feedingTimer: 120),
+                  AppSettingsModel(feedingTimer: 120, devMode: false),
                 );
 
                 setState(() {
@@ -261,7 +263,10 @@ class _AppSettingsState extends State<_AppSettings> {
     final toastHelper = ToastHelper(context);
 
     _appSettingsCubit.updateAppSettings(
-      AppSettingsModel(feedingTimer: _selectedFeedingTimer),
+      AppSettingsModel(
+        feedingTimer: _selectedFeedingTimer,
+        devMode: _inDevMode,
+      ),
     );
 
     toastHelper.show(
@@ -379,6 +384,29 @@ class _AppSettingsState extends State<_AppSettings> {
               const Padding(
                 padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
                 child: Divider(),
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  sectionHeader(
+                    context: context,
+                    title: "Development Mode",
+                    description: "Configure the app to be in development mode",
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 18, 0),
+                      child: sectionContent(
+                          context: context,
+                          description: "Toggle application to development mode",
+                          content: Switch(
+                              value: _inDevMode,
+                              onChanged: (state) => setState(() {
+                                    _inDevMode = state;
+                                  }))),
+                    ),
+                  )
+                ],
               ),
             ],
           ),
