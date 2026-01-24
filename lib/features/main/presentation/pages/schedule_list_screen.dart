@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/custom_searchbar_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/get_progress_value.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
@@ -35,23 +36,12 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
 
   String _searchQuery = '';
 
-  bool _hasInitialized = false;
-
-  bool _loading = true;
-  bool _hasError = false;
-
-  final List<String> _errors = [];
   List<CompostSchedule> _compostSchedules = [];
   List<StatusRecord> _statusRecords = [];
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_hasInitialized) {
-      context.read<CompostScheduleBloc>().add(CompostScheduleList());
-      context.read<StatusRecordBloc>().add(StatusRecordList());
-      _hasInitialized = true;
-    }
+  void initState() {
+    super.initState();
   }
 
   @override
@@ -79,71 +69,78 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: MultiBlocListener(
-        listeners: [
-          BlocListener<CompostScheduleBloc, CompostScheduleState>(
-            listener: (context, state) {
-              if (state is CompostScheduleLoading) {
-                setState(() => _loading = true);
-              } else if (state is CompostScheduleListSuccess) {
-                setState(() {
-                  _compostSchedules = state.compostScheduleList;
-                  _loading = _statusRecords.isEmpty;
-                });
-              } else if (state is CompostScheduleFailure) {
-                setState(() {
-                  _hasError = true;
-                  _errors.add(state.error);
-                  _loading = false;
-                });
-              }
-            },
-          ),
-          BlocListener<StatusRecordBloc, StatusRecordState>(
-            listener: (context, state) {
-              if (state is StatusRecordLoading) {
-                setState(() => _loading = true);
-              } else if (state is StatusRecordListSuccess) {
-                setState(() {
-                  _statusRecords = state.statusRecordList;
-                  _loading = _compostSchedules.isEmpty;
-                });
-              } else if (state is StatusRecordFailure) {
-                setState(() {
-                  _hasError = true;
-                  _errors.add(state.error);
-                  _loading = false;
-                });
-              }
-            },
-          ),
-        ],
-        child: SafeArea(
-          child: Container(
-            height: deviceHeight,
-            width: deviceWidth,
-            padding: EdgeInsets.symmetric(
-              vertical: verticalPadding,
-              horizontal: horizontalPadding,
-            ),
-            child: _loading
-                ? Center(child: const Loader())
-                : _hasError
-                    ? _buildError()
-                    : SingleChildScrollView(child: _buildContent()),
-          ),
-        ),
-      ),
+      body: BlocBuilder<CompostScheduleBloc, CompostScheduleState>(
+          builder: (context, scheduleState) {
+        return BlocBuilder<StatusRecordBloc, StatusRecordState>(
+            builder: (context, statusState) {
+          final isCompostLoading = scheduleState is CompostScheduleLoading;
+          final isStatusLoading = statusState is StatusRecordLoading;
+
+          if (isCompostLoading || isStatusLoading) {
+            return Loader();
+          }
+
+          final compostError = scheduleState is CompostScheduleFailure
+              ? scheduleState.error
+              : null;
+          final statusError =
+              statusState is StatusRecordFailure ? statusState.error : null;
+
+          if (compostError != null || statusError != null) {
+            return _buildErrorState(
+              compostError: compostError,
+              statusError: statusError,
+            );
+          }
+
+          if (scheduleState is CompostScheduleListSuccess &&
+              statusState is StatusRecordListSuccess) {
+            _compostSchedules = scheduleState.compostScheduleList;
+            _statusRecords = statusState.statusRecordList;
+
+            return SafeArea(
+              child: Container(
+                height: deviceHeight,
+                width: deviceWidth,
+                padding: EdgeInsets.symmetric(
+                  vertical: verticalPadding,
+                  horizontal: horizontalPadding,
+                ),
+                child: SingleChildScrollView(child: _buildContent()),
+              ),
+            );
+          }
+
+          return EmptyDisplayWidget(
+            title: "Initializing",
+            description: "Data fetching. It will take a few seconds to load.",
+          );
+        });
+      }),
     );
   }
 
-  Widget _buildError() => Center(
-        child: Text(
-          _errors.join('\n'),
-          style: const TextStyle(color: Colors.red),
-          textAlign: TextAlign.center,
-        ),
-      );
+  Widget _buildErrorState({
+    String? compostError,
+    String? statusError,
+  }) {
+    final errors = <String>[
+      if (compostError != null) compostError,
+      if (statusError != null) statusError,
+    ];
+
+    return Center(
+      child: EmptyDisplayWidget(
+        icon: FluentIcons.document_error_24_regular,
+        title: "Error loading data",
+        description: errors.map((error) => "$error\n").toString(),
+        action: () {
+          context.read<CompostScheduleBloc>().add(CompostScheduleList());
+          context.read<StatusRecordBloc>().add(StatusRecordList());
+        },
+      ),
+    );
+  }
 
   Widget _scheduleListControls() {
     final toastHelper = ToastHelper(context);
