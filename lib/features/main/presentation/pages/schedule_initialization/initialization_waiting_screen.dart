@@ -24,7 +24,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../widgets/home_screen_widgets/video_feed_widget.dart';
 import 'initialization_success_screen.dart';
 
 // TODO: [✅] DONEEEEEE
@@ -52,6 +54,8 @@ class InitializationWaitingScreen extends StatefulWidget {
 
 class _InitializationWaitingScreenState
     extends State<InitializationWaitingScreen> {
+  WebViewController? cameraFeedController;
+
   final AppSettingsCubit _appSettingsCubit = GetIt.I<AppSettingsCubit>();
   late final FlutterTts flutterTts;
 
@@ -102,7 +106,7 @@ class _InitializationWaitingScreenState
           .order('created_at')
           .listen((rawData) {
             final newEntries =
-                rawData.map(FoodWasteModel.fromJsonRealtime).where((item) {
+                rawData.map(FoodWasteModel.fromSupabaseJson).where((item) {
               final created = DateTime.tryParse(item.createdAt);
               return item.foodWasteScheduleId == widget.scheduleId &&
                   created != null &&
@@ -162,8 +166,8 @@ class _InitializationWaitingScreenState
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      final deviceHeight = MediaQuery.of(context).size.height;
-      final deviceWidth = MediaQuery.of(context).size.width;
+      final deviceHeight = MediaQuery.sizeOf(context).height;
+      final deviceWidth = MediaQuery.sizeOf(context).width;
 
       return PopScope(
         canPop: false,
@@ -181,10 +185,12 @@ class _InitializationWaitingScreenState
                   confirmButtonLabel: "Cancel Process",
                   approvedFunction: () {
                     final settingsPayload = {
-                      "status": "idle",
+                      "status": currentSchedule.isCompleted ? "active" : "idle",
                       "id": widget.scheduleId.toString(),
-                      "reading_interval": "15",
-                      "refresh_rate": "2",
+                      "reading_interval":
+                          _mqttService.lastSystemSettings!['reading_interval'],
+                      "refresh_rate":
+                          _mqttService.lastSystemSettings!['refresh_rate'],
                     };
 
                     _mqttService.publish(
@@ -203,6 +209,11 @@ class _InitializationWaitingScreenState
                       "Stop",
                       qos: MqttQos.atLeastOnce,
                     );
+                    _mqttService.publish(
+                      "control/rake",
+                      "Stop",
+                      qos: MqttQos.atLeastOnce,
+                    );
 
                     Navigator.popUntil(context, (route) => route.isFirst);
                   },
@@ -215,51 +226,72 @@ class _InitializationWaitingScreenState
           body: Glassmorphism(
             blur: 64,
             opacity: 0.3,
-            child: AppBackground(
-              child: Padding(
-                padding: EdgeInsets.all(deviceHeight * 0.10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _scheduleDetailsSection(
-                      deviceWidth: deviceWidth,
-                      scheduleIdentifier: currentSchedule.scheduleName,
-                      response: "Awaiting food waste to be loaded...",
-                    ),
-                    !isProcessing
-                        ? Text(
-                            '${(_start ~/ 60).toString().padLeft(1, '0')}:${(_start % 60).toString().padLeft(2, '0')}',
-                            style: const TextStyle(
-                              fontSize: 164,
-                              fontWeight: FontWeight.w700,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          )
-                        : Column(
-                            spacing: 24,
-                            children: [
-                              SizedBox(
-                                  height: 248,
-                                  width: 248,
-                                  child: Lottie.asset(
-                                      "assets/animations/processing.json")),
-                              Text(
-                                "PROCESSING RECORDS...",
-                                style: GoogleFonts.openSans(
-                                  fontSize: 16,
+            child: Stack(
+              children: [
+                AppBackground(
+                  child: Padding(
+                    padding: EdgeInsets.all(deviceHeight * 0.10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _scheduleDetailsSection(
+                          deviceWidth: deviceWidth,
+                          scheduleIdentifier: currentSchedule.scheduleName,
+                          response: "Awaiting food waste to be loaded...",
+                        ),
+                        !isProcessing
+                            ? Text(
+                                '${(_start ~/ 60).toString().padLeft(1, '0')}:${(_start % 60).toString().padLeft(2, '0')}',
+                                style: const TextStyle(
+                                  fontSize: 164,
                                   fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.025,
+                                  fontStyle: FontStyle.italic,
                                 ),
                               )
-                            ],
-                          ),
-                    !isProcessing
-                        ? _bottomInformationSection()
-                        : const SizedBox(),
-                  ],
+                            : Column(
+                                spacing: 24,
+                                children: [
+                                  SizedBox(
+                                      height: 248,
+                                      width: 248,
+                                      child: Lottie.asset(
+                                          "assets/animations/processing.json")),
+                                  Text(
+                                    "PROCESSING RECORDS...",
+                                    style: GoogleFonts.openSans(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.025,
+                                    ),
+                                  )
+                                ],
+                              ),
+                        !isProcessing
+                            ? _bottomInformationSection()
+                            : const SizedBox(),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+                Positioned(
+                  bottom: 74,
+                  left: 74,
+                  child: OutlinedButton(
+                    onPressed: _showCameraFeed,
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      side: const BorderSide(color: Colors.white24),
+                      padding: const EdgeInsets.all(12),
+                      minimumSize: Size.zero,
+                    ),
+                    child: const Icon(Icons.videocam_outlined,
+                        color: Colors.white),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -271,8 +303,8 @@ class _InitializationWaitingScreenState
     final settingsPayload = {
       "status": "feeding",
       "id": widget.scheduleId.toString(),
-      "reading_interval": "15",
-      "refresh_rate": "2",
+      "reading_interval": _mqttService.lastSystemSettings!['reading_interval'],
+      "refresh_rate": _mqttService.lastSystemSettings!['refresh_rate'],
     };
 
     _mqttService.publish(
@@ -289,6 +321,11 @@ class _InitializationWaitingScreenState
     _mqttService.publish(
       "control/conveyor",
       "Continuous",
+      qos: MqttQos.atLeastOnce,
+    );
+    _mqttService.publish(
+      "control/rake",
+      "Process:60",
       qos: MqttQos.atLeastOnce,
     );
 
@@ -323,7 +360,7 @@ class _InitializationWaitingScreenState
                     (waste) => waste.foodWasteScheduleId == widget.scheduleId)
                 .toList();
 
-            if (wasteList.isEmpty) {
+            if (wasteList.isEmpty || wasteList.length <= 10) {
               errorList[1] = true;
             }
 
@@ -364,8 +401,10 @@ class _InitializationWaitingScreenState
               final settingsPayload = {
                 "status": "idle",
                 "id": widget.scheduleId.toString(),
-                "reading_interval": "15",
-                "refresh_rate": "2",
+                "reading_interval":
+                    _mqttService.lastSystemSettings!['reading_interval'],
+                "refresh_rate":
+                    _mqttService.lastSystemSettings!['refresh_rate'],
               };
 
               _mqttService.publish(
@@ -439,8 +478,10 @@ class _InitializationWaitingScreenState
               final settingsPayload = {
                 "status": "active",
                 "id": widget.scheduleId.toString(),
-                "reading_interval": "15",
-                "refresh_rate": "2",
+                "reading_interval":
+                    _mqttService.lastSystemSettings!['reading_interval'],
+                "refresh_rate":
+                    _mqttService.lastSystemSettings!['refresh_rate'],
               };
 
               _mqttService.publish(
@@ -457,11 +498,6 @@ class _InitializationWaitingScreenState
               _mqttService.publish(
                 "control/conveyor",
                 "Stop",
-                qos: MqttQos.atLeastOnce,
-              );
-              _mqttService.publish(
-                "control/rake",
-                "Process:15",
                 qos: MqttQos.atLeastOnce,
               );
 
@@ -535,12 +571,17 @@ class _InitializationWaitingScreenState
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Badge(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                backgroundColor: Colors.amberAccent,
-                label: Text(
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                decoration: BoxDecoration(
+                  color: Colors.amberAccent,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
                   "TIP",
                   style: GoogleFonts.notoSans(
+                    color: Colors.black87,
                     fontWeight: FontWeight.w800,
                     fontSize: 12,
                   ),
@@ -591,5 +632,31 @@ class _InitializationWaitingScreenState
 
   Future<void> pause() async {
     await flutterTts.pause();
+  }
+
+  void _showCameraFeed() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          height: 521,
+          width: 640,
+          decoration: BoxDecoration(
+            color: Colors.black,
+            border: Border.all(color: Colors.white24),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: VideoFeedWidget(
+            key: const ValueKey('video_camera'),
+            onWebViewCreated: (controller) {
+              cameraFeedController = controller;
+            },
+            cameraChannel: 'http://192.168.100.137:8080/video_feed',
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/core/secrets/app_secrets.dart';
 import 'package:flutter_vermicomposting/core/utils/extract_by_day.dart';
 import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/data/models/compost_schedule_model.dart';
@@ -186,83 +187,74 @@ class _ScheduleScreenHeaderWidgetState
                     onPressed: () => _handleChangeScheduleName(_toaster),
                     icon: Icon(FluentIcons.edit_24_regular),
                   ),
-                  BlocListener<StatusRecordBloc, StatusRecordState>(
-                    listener: (ctx, state) {
-                      if (state is StatusRecordFailure) {
-                      } else if (state is StatusRecordListSuccess) {
+                  BlocBuilder<StatusRecordBloc, StatusRecordState>(
+                    builder: (ctx, state) {
+                      if (state is StatusRecordListSuccess) {
                         final statusList = state.statusRecordList
                             .where(
                               (status) =>
                                   status.scheduleId ==
                                   widget.compostSchedule.id,
                             )
-                            .toList()
-                          ..sort(
-                            (a, b) => DateTime.parse(
-                              b.createdAt,
-                            ).compareTo(DateTime.parse(a.createdAt)),
-                          );
+                            .toList();
 
                         if (statusList.isNotEmpty) {
                           final firstStatus = statusList.first;
 
-                          setState(() {
-                            _isReadyToComplete =
-                                firstStatus.status == CompostingStatus.ready &&
-                                    firstStatus.isCompleted == true;
-                          });
-                        } else {
-                          setState(() {
-                            _isReadyToComplete = false;
-                          });
+                          _isReadyToComplete =
+                              firstStatus.status == CompostingStatus.released &&
+                                  firstStatus.isCompleted == false;
                         }
                       }
-                    },
-                    child: _isReadyToComplete
-                        ? OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              side: BorderSide(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.outlineVariant,
-                                width: 1,
-                              ),
-                              padding:
-                                  const EdgeInsets.fromLTRB(14, 8.5, 12, 8),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            onPressed: () => _handleEndSchedule(_toaster),
-                            child: Row(
-                              spacing: 6,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  FluentIcons
-                                      .task_list_square_database_20_regular,
+
+                      return _isReadyToComplete
+                          ? OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                side: BorderSide(
                                   color: Theme.of(
                                     context,
-                                  ).colorScheme.onSurface.withOpacity(0.8),
-                                  size: 14,
+                                  ).colorScheme.outlineVariant,
+                                  width: 1,
                                 ),
-                                Text(
-                                  "End Cycle",
-                                  style: TextStyle(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 11,
+                                  horizontal: 14,
+                                ),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              onPressed: () => _handleEndSchedule(_toaster),
+                              child: Row(
+                                spacing: 6,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    FluentIcons
+                                        .task_list_square_database_20_regular,
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.onSurface,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 12,
-                                    letterSpacing: 0.025,
+                                    ).colorScheme.onSurface.withOpacity(0.8),
+                                    size: 14,
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : const SizedBox.shrink(),
+                                  Text(
+                                    "End Schedule",
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 12,
+                                      letterSpacing: 0.025,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : const SizedBox.shrink();
+                    },
                   ),
                 ],
               )
@@ -278,7 +270,7 @@ class _ScheduleScreenHeaderWidgetState
     final startDate = DateTime.parse(_compostSchedule.createdAt).toLocal();
     final expectedEndDate = startDate.add(const Duration(days: 45));
 
-    Widget _buildIconText({required IconData icon, required String text}) {
+    Widget buildIconText({required IconData icon, required String text}) {
       return Row(
         spacing: 6,
         children: [
@@ -297,12 +289,12 @@ class _ScheduleScreenHeaderWidgetState
         mainAxisAlignment: MainAxisAlignment.end,
         spacing: 14,
         children: [
-          _buildIconText(
+          buildIconText(
             icon: FluentIcons.calendar_empty_24_regular,
             text:
                 "Start: ${extractDay(startDate.toString(), format: "MMM d, y")}",
           ),
-          _buildIconText(
+          buildIconText(
             icon: FluentIcons.target_arrow_24_regular,
             text:
                 "Expected End: ${extractDay(expectedEndDate.toString(), format: "MMM d, y")}",
@@ -345,7 +337,7 @@ class _ScheduleScreenHeaderWidgetState
                     approvedFunction: () async {
                       final response = await http.patch(
                         Uri.parse(
-                          "https://verminator.thinkio.me/schedule/${_compostSchedule.id}",
+                          "${AppSecrets.domainURL}/schedule/${_compostSchedule.id}",
                         ),
                         headers: <String, String>{
                           'Content-Type': 'application/json; charset=UTF-8',
@@ -427,12 +419,22 @@ class _ScheduleScreenHeaderWidgetState
 
             try {
               final scheduleUri = Uri.parse(
-                "https://verminator.thinkio.me/schedule/${widget.compostSchedule.id}",
+                "${AppSecrets.domainURL}/schedule/${widget.compostSchedule.id}",
               );
 
+              final compostWeight = mqttService
+                      .lastBeddingLayer?["compost_weight"]?["value"]
+                      ?.toString() ??
+                  '0';
+
+              final juiceWeight = mqttService.lastFluidLayer?["juice_weight"]
+                          ?["value"]
+                      ?.toString() ??
+                  '0';
+
               final schedulePayload = {
-                'compostProduced': "4",
-                'juiceProduced': "2",
+                'compostProduced': compostWeight,
+                'juiceProduced': juiceWeight,
                 'isCompleted': true,
                 'dateReleased': now,
               };
@@ -456,6 +458,17 @@ class _ScheduleScreenHeaderWidgetState
                   .update({"is_completed": true})
                   .eq('status_schedule_id', widget.compostSchedule.id)
                   .eq('status', 'released');
+
+              final notificationPayload = {
+                "schedule_id": widget.compostSchedule.id,
+                "notification_type": "completion",
+                "subject": "Compost finished",
+                "description":
+                    "${widget.compostSchedule.scheduleName} has been completed with ${juiceWeight}L of vermitea and ${compostWeight}kg of compost produced.",
+                "path": null,
+              };
+
+              await supabase.from("notification").insert(notificationPayload);
 
               final settingsPayload = {
                 "status": "idle",
@@ -481,6 +494,7 @@ class _ScheduleScreenHeaderWidgetState
               );
 
               context.read<CompostScheduleBloc>().add(CompostScheduleList());
+              context.read<StatusRecordBloc>().add(StatusRecordList());
 
               await Future.delayed(const Duration(milliseconds: 100));
 

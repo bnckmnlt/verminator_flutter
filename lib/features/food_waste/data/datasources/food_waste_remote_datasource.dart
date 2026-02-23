@@ -1,9 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter_vermicomposting/core/error/exception.dart';
-import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/features/food_waste/data/models/food_waste_model.dart';
-import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract interface class FoodWasteRemoteDatasource {
   Future<List<FoodWasteModel>> listFoodWaste();
@@ -14,24 +11,23 @@ abstract interface class FoodWasteRemoteDatasource {
 }
 
 class FoodWasteRemoteDatasourceImpl implements FoodWasteRemoteDatasource {
+  final SupabaseClient supabaseClient;
+
+  FoodWasteRemoteDatasourceImpl({
+    required this.supabaseClient,
+  });
+
   @override
   Future<List<FoodWasteModel>> listFoodWaste() async {
     try {
-      final response = await http.get(
-        Uri.parse("https://verminator.thinkio.me/food-waste"),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      );
+      final response = await supabaseClient
+          .from('food_waste')
+          .select()
+          .order('created_at', ascending: false);
 
-      if (response.statusCode == 200) {
-        return (jsonDecode(response.body) as List)
-            .map((compostSchedule) => FoodWasteModel.fromJson(compostSchedule))
-            .toList()
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      } else {
-        throw ServerException(response.body.parseErrorMessage());
-      }
+      return (response as List)
+          .map((foodWaste) => FoodWasteModel.fromSupabaseJson(foodWaste))
+          .toList();
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -42,18 +38,13 @@ class FoodWasteRemoteDatasourceImpl implements FoodWasteRemoteDatasource {
     required int id,
   }) async {
     try {
-      final response = await http.get(
-        Uri.parse("https://verminator.thinkio.me/food-waste/$id"),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      );
+      final response = await supabaseClient
+          .from('food_waste')
+          .select()
+          .eq('id', id)
+          .single();
 
-      if (response.statusCode == 200) {
-        return FoodWasteModel.fromJson(jsonDecode(response.body));
-      } else {
-        throw ServerException(response.body.parseErrorMessage());
-      }
+      return FoodWasteModel.fromSupabaseJson(response);
     } catch (e) {
       throw ServerException(e.toString());
     }

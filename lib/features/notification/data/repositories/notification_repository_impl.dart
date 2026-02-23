@@ -5,7 +5,7 @@ import 'package:flutter_vermicomposting/core/network/connection_checker.dart';
 import 'package:flutter_vermicomposting/features/notification/data/datasources/notification_remote_datasource.dart';
 import 'package:flutter_vermicomposting/features/notification/domain/entities/notification.dart';
 import 'package:flutter_vermicomposting/features/notification/domain/repositories/notification_repository.dart';
-import 'package:fpdart/src/either.dart';
+import 'package:fpdart/fpdart.dart';
 
 class NotificationRepositoryImpl implements NotificationRepository {
   final NotificationRemoteDatasource remoteDatasource;
@@ -20,7 +20,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
   Future<Either<Failure, Stream<List<NotificationEntity>>>>
       listNotification() async {
     try {
-      final list = await remoteDatasource.listNotification();
+      final list = remoteDatasource.listNotification();
 
       return right(list);
     } on ServerException catch (e) {

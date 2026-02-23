@@ -1,8 +1,8 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_vermicomposting/core/common/cubits/app_settings/app_settings_cubit.dart';
 import 'package:flutter_vermicomposting/core/common/entities/app_settings_model.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/animation.dart';
@@ -29,7 +29,7 @@ class SettingsScreen extends StatefulWidget {
       "icon": FluentIcons.info_24_regular,
     },
     {
-      "label": "Exit",
+      "label": "Restart",
       "icon": FluentIcons.arrow_exit_20_regular,
     },
   ];
@@ -51,7 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double deviceHeight = MediaQuery.of(context).size.height;
+    final double deviceHeight = MediaQuery.sizeOf(context).height;
 
     return Scaffold(
       extendBody: true,
@@ -143,11 +143,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 context: context,
                                 builder: (context) {
                                   return GeneralDialog(
-                                    title: "Confirm Application Exit",
+                                    title: "Confirm restart application",
                                     description:
-                                        "Are you sure you want to exit the application? All unsaved changes will be lost.",
-                                    confirmButtonLabel: "Exit",
-                                    approvedFunction: () {},
+                                        "Are you sure you want to restart the application? All unsaved changes will be lost.",
+                                    confirmButtonLabel: "Restart",
+                                    approvedFunction: () =>
+                                        Phoenix.rebirth(context),
                                   );
                                 });
                           },
@@ -408,6 +409,10 @@ class _AppSettingsState extends State<_AppSettings> {
                   )
                 ],
               ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
+                child: Divider(),
+              ),
             ],
           ),
         ],
@@ -425,7 +430,6 @@ class _SystemSettings extends StatefulWidget {
 
 class _SystemSettingsState extends State<_SystemSettings> {
   late MqttService _mqttService;
-  late StreamSubscription<Map<String, String>> _systemSettingsSubscription;
 
   static const List<ReminderInterval> _thermalReadingIntervals = [
     ReminderInterval(label: '5', days: 5),
@@ -443,22 +447,44 @@ class _SystemSettingsState extends State<_SystemSettings> {
   int selectedThermalReadingInterval = 15;
   int refreshRate = 2;
 
+  // Flag to track if we've loaded initial settings
+  bool _hasLoadedInitialSettings = false;
+
   @override
   void initState() {
     super.initState();
-    _mqttService = GetIt.I<MqttService>();
-    _mqttService.connect();
+    _mqttService = GetIt.instance<MqttService>();
+    _loadInitialSettings();
+  }
 
-    _systemSettingsSubscription =
-        _mqttService.systemSettingsStream.listen((settings) {
+  void _loadInitialSettings() {
+    final lastSettings = _mqttService.lastSystemSettings;
+
+    if (lastSettings != null) {
+      setState(() {
+        currentSystemStatus = parseStatusToInt(lastSettings["status"] ?? '');
+        _scheduleIdController.text = (lastSettings["id"] ?? "1").toString();
+        selectedThermalReadingInterval =
+            int.tryParse(lastSettings["reading_interval"] ?? '') ?? 15;
+        refreshRate = int.tryParse(lastSettings["refresh_rate"] ?? '') ?? 2;
+        _hasLoadedInitialSettings = true;
+      });
+    }
+  }
+
+  void _updateSettingsFromStream(Map<String, String> settings) {
+    // Only update from stream if we haven't loaded initial settings yet
+    // This prevents the stream from overriding user changes
+    if (!_hasLoadedInitialSettings) {
       setState(() {
         currentSystemStatus = parseStatusToInt(settings["status"] ?? '');
         _scheduleIdController.text = (settings["id"] ?? "1").toString();
         selectedThermalReadingInterval =
             int.tryParse(settings["reading_interval"] ?? '') ?? 15;
         refreshRate = int.tryParse(settings["refresh_rate"] ?? '') ?? 2;
+        _hasLoadedInitialSettings = true;
       });
-    });
+    }
   }
 
   void restoreSettings() {
@@ -479,6 +505,14 @@ class _SystemSettingsState extends State<_SystemSettings> {
                   'reading_interval': 15.toString(),
                   'refresh_rate': 2.toString(),
                 };
+
+                // Update local state immediately
+                setState(() {
+                  currentSystemStatus = 3; // idle
+                  _scheduleIdController.text = "1";
+                  selectedThermalReadingInterval = 15;
+                  refreshRate = 2;
+                });
 
                 _mqttService.publish("system/settings", jsonEncode(payload),
                     retain: true, qos: MqttQos.atLeastOnce);
@@ -515,52 +549,66 @@ class _SystemSettingsState extends State<_SystemSettings> {
 
   @override
   void dispose() {
-    _systemSettingsSubscription.cancel();
     _scheduleIdController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(32, 86, 32, 44),
-      child: Column(
-        spacing: 64,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          _buildConfigurationHeader(context),
-          Column(
+    return StreamBuilder<Map<String, String>>(
+      stream: _mqttService.systemSettingsStream,
+      initialData: _mqttService.lastSystemSettings,
+      builder: (context, snapshot) {
+        // Only update from stream on initial load
+        if (snapshot.hasData && snapshot.data != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _updateSettingsFromStream(snapshot.data!);
+            }
+          });
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(32, 86, 32, 44),
+          child: Column(
+            spacing: 64,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              _buildSystemStatusSection(context),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
-                child: Divider(),
-              ),
-              _buildScheduleIdSection(context),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
-                child: Divider(),
-              ),
-              _buildThermalReadingIntervalSection(context),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
-                child: Divider(),
-              ),
-              _buildRefreshRateSection(context),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
-                child: Divider(),
-              ),
-              _buildCalibrateContainers(context),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
-                child: Divider(),
-              ),
+              _buildConfigurationHeader(context),
+              Column(
+                children: [
+                  _buildSystemStatusSection(context),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
+                    child: Divider(),
+                  ),
+                  _buildScheduleIdSection(context),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
+                    child: Divider(),
+                  ),
+                  _buildThermalReadingIntervalSection(context),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
+                    child: Divider(),
+                  ),
+                  _buildRefreshRateSection(context),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
+                    child: Divider(),
+                  ),
+                  _buildCalibrateContainers(context),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(0, 16, 0, 24),
+                    child: Divider(),
+                  ),
+                ],
+              )
             ],
-          )
-        ],
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -632,7 +680,7 @@ class _SystemSettingsState extends State<_SystemSettings> {
               context: context,
               header: "Schedule ID",
               content: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.10,
+                width: MediaQuery.sizeOf(context).width * 0.10,
                 child: TextFormField(
                   controller: _scheduleIdController,
                   maxLength: 2,
@@ -793,7 +841,7 @@ class _SystemSettingsState extends State<_SystemSettings> {
                 },
                 style: ElevatedButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadiusGeometry.circular(8),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   side: BorderSide(
                     color: Theme.of(context).colorScheme.primary,
@@ -943,7 +991,6 @@ Widget configurationHeader({
                   width: 1,
                   color: Theme.of(context).colorScheme.surfaceContainerHigh),
               padding: EdgeInsets.zero,
-              // remove internal padding
               minimumSize: const Size(36, 36),
             ),
             child: Icon(

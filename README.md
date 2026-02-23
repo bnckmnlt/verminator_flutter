@@ -7,7 +7,7 @@ It integrates with **Supabase** for persistent data storage and **HiveMQ MQTT** 
 ## Features
 
 - **Real-Time Monitoring**
-    - Live sensor readings (**temperature**, **humidity**, **NPK**, **load cells**, **thermal camera** **reservoir** and **vermitea** levels).
+    - Live sensor readings (**temperature**, **humidity**, **NPK**, **load cells**, **thermal camera**, **reservoir** and **vermitea** levels).
     - Dynamic dashboards and visual analytics.
 
 - **System Control**

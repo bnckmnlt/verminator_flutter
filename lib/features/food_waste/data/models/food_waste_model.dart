@@ -25,7 +25,7 @@ class FoodWasteModel extends FoodWaste {
     );
   }
 
-  factory FoodWasteModel.fromJsonRealtime(Map<String, dynamic> json) {
+  factory FoodWasteModel.fromSupabaseJson(Map<String, dynamic> json) {
     return FoodWasteModel(
       id: json['id'] as int,
       foodWasteScheduleId: json['food_waste_schedule_id'] as int,

@@ -19,7 +19,7 @@ class CustomIndicator extends ShapePainter {
 
   @override
   bool shouldRepaint(covariant LinePainter oldDelegate) {
-    return oldDelegate.lineWidth != this.lineWidth;
+    return oldDelegate.lineWidth != lineWidth;
   }
 
   /*This helps to paint anything before the active and inactive indicators are painted,

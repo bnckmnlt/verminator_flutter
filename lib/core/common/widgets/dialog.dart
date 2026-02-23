@@ -73,16 +73,6 @@ class _GeneralDialogState extends State<GeneralDialog> {
                           )
                         ],
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Icon(
-                          FluentIcons.dismiss_24_regular,
-                          size: 20,
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                      ),
                     ],
                   ),
                 ),

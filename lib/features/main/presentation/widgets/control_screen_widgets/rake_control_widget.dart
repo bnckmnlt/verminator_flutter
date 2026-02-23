@@ -5,8 +5,6 @@ import 'package:flutter_vermicomposting/features/main/presentation/pages/control
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
-// TODO: [✅] DONEEEEE
-
 class RakeControlWidget extends StatefulWidget {
   final MqttService mqttService;
 
@@ -20,22 +18,25 @@ class RakeControlWidget extends StatefulWidget {
 }
 
 class _RakeControlWidgetState extends State<RakeControlWidget> {
-  late bool _rakeState;
-
-  int _currentCycle = 1;
-  double _speedValue = 1000;
+  final ValueNotifier<bool> _rakeStateNotifier = ValueNotifier(false);
+  final ValueNotifier<int> _currentCycleNotifier = ValueNotifier(25);
+  final ValueNotifier<double> _speedValueNotifier = ValueNotifier(1000);
 
   @override
   void initState() {
     super.initState();
 
-    _rakeState = false;
-
     widget.mqttService.rakeFeedbackStream.listen((value) {
-      setState(() {
-        _rakeState = value == 'active' ? true : false;
-      });
+      _rakeStateNotifier.value = value == 'active';
     });
+  }
+
+  @override
+  void dispose() {
+    _rakeStateNotifier.dispose();
+    _currentCycleNotifier.dispose();
+    _speedValueNotifier.dispose();
+    super.dispose();
   }
 
   void publishRakeCommand(String command) {
@@ -80,19 +81,25 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
                 spacing: 14,
                 children: [
                   _rakeCycleSection(),
-                  _rakeSpeedControlSection(widget.mqttService),
+                  _rakeSpeedControlSection(),
                   _rakeCommandSection(rakeCommands: rakeCommands),
                 ],
               ),
             ),
-            sensorCardHeader(
-              context: context,
-              label: "Bedding Rake",
-              device: "NEMA17 Stepper",
-              optionalWidget: StatusBadge(
-                  color: _rakeState ? Colors.greenAccent : Colors.redAccent,
-                  state: _rakeState ? "Active" : "Inactive"),
-            )
+            ValueListenableBuilder<bool>(
+              valueListenable: _rakeStateNotifier,
+              builder: (context, rakeState, child) {
+                return sensorCardHeader(
+                  context: context,
+                  label: "Bedding Rake",
+                  device: "NEMA17 Stepper",
+                  optionalWidget: StatusBadge(
+                    color: rakeState ? Colors.greenAccent : Colors.redAccent,
+                    state: rakeState ? "Active" : "Inactive",
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -100,141 +107,155 @@ class _RakeControlWidgetState extends State<RakeControlWidget> {
   }
 
   Widget _rakeCycleSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Text(
-          "Number of Cycles",
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.025,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+    return ValueListenableBuilder<int>(
+      valueListenable: _currentCycleNotifier,
+      builder: (context, currentCycle, child) {
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: List.generate(4, (int index) => index * 3 + 1,
-                        growable: false)
-                    .map((item) {
-                  return Padding(
-                    padding: EdgeInsets.fromLTRB(item == 0 ? 0 : 6, 0, 0, 0),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _currentCycle = item;
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 4, horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: item == _currentCycle
-                              ? Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHigh
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: item == _currentCycle
-                                ? Color(0xFF27272a)
-                                : Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHigh,
-                          ),
-                        ),
-                        child: Text(
-                          "$item",
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList()),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 0, 6, 0),
-              child: SizedBox(
-                height: 30,
-                child: VerticalDivider(
-                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  thickness: 1,
-                ),
+            const Text(
+              "Number of Cycles",
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.025,
               ),
             ),
-            ElevatedButton(
-              onPressed: () => publishRakeCommand("Process:${_currentCycle}"),
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6)),
-                backgroundColor: Theme.of(context).colorScheme.onSurface,
-                disabledBackgroundColor: const Color(0xFF27272a).withAlpha(124),
-                disabledForegroundColor:
-                    Theme.of(context).colorScheme.onSurface.withAlpha(0),
-                padding: const EdgeInsets.symmetric(
-                  vertical: 6,
-                  horizontal: 24,
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: List.generate(4, (int index) => index * 3 + 1,
+                            growable: false)
+                        .map((item) {
+                      return Padding(
+                        padding:
+                            EdgeInsets.fromLTRB(item == 0 ? 0 : 6, 0, 0, 0),
+                        child: GestureDetector(
+                          onTap: () {
+                            _currentCycleNotifier.value = item;
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 4, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: item == currentCycle
+                                  ? Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHigh
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: item == currentCycle
+                                    ? Color(0xFF27272a)
+                                    : Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHigh,
+                              ),
+                            ),
+                            child: Text(
+                              "$item",
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList()),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 0, 6, 0),
+                  child: SizedBox(
+                    height: 30,
+                    child: VerticalDivider(
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                      thickness: 1,
+                    ),
+                  ),
                 ),
-                side: BorderSide(
-                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                ElevatedButton(
+                  onPressed: () => publishRakeCommand("Process: $currentCycle"),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6)),
+                    backgroundColor: Theme.of(context).colorScheme.onSurface,
+                    disabledBackgroundColor:
+                        const Color(0xFF27272a).withAlpha(124),
+                    disabledForegroundColor:
+                        Theme.of(context).colorScheme.onSurface.withAlpha(0),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 6,
+                      horizontal: 24,
+                    ),
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    ),
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
+                    minimumSize: const Size(0, 0),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    overlayColor: Colors.black87,
+                  ),
+                  child: Text(
+                    "Start Rake",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.surface,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.025,
+                    ),
+                  ),
                 ),
-                foregroundColor: Theme.of(context).colorScheme.onSurface,
-                minimumSize: const Size(0, 0),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                overlayColor: Colors.black87, // <-- splash color
-              ),
-              child: Text(
-                "Start Rake",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.surface,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.025,
-                ),
-              ),
+              ],
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
-  Widget _rakeSpeedControlSection(MqttService mqttClient) {
-    return Column(
-      spacing: 6,
-      children: [
-        const Text(
-          "Speed Control",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.025,
-          ),
-        ),
-        SizedBox(
-          height: 32,
-          child: Slider(
-            activeColor: Theme.of(context).colorScheme.tertiary,
-            inactiveColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-            value: _speedValue,
-            min: 1000,
-            max: 5000,
-            divisions: 10,
-            onChanged: (double newValue) => setState(() {
-              _speedValue = newValue;
-              mqttClient.publish("control/rake", "Acceleration:$_speedValue");
-            }),
-          ),
-        ),
-      ],
+  Widget _rakeSpeedControlSection() {
+    return ValueListenableBuilder<double>(
+      valueListenable: _speedValueNotifier,
+      builder: (context, speedValue, child) {
+        return Column(
+          spacing: 6,
+          children: [
+            const Text(
+              "Speed Control",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.025,
+              ),
+            ),
+            SizedBox(
+              height: 32,
+              child: Slider(
+                activeColor: Theme.of(context).colorScheme.tertiary,
+                inactiveColor:
+                    Theme.of(context).colorScheme.surfaceContainerHigh,
+                value: speedValue,
+                min: 1000,
+                max: 4000,
+                divisions: 4,
+                onChanged: (double newValue) {
+                  _speedValueNotifier.value = newValue;
+                  widget.mqttService.publish(
+                    "control/rake",
+                    "Acceleration:$newValue",
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

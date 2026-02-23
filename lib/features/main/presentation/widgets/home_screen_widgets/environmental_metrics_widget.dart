@@ -28,162 +28,201 @@ class EnvironmentalMetricsWidget extends StatefulWidget {
 class _EnvironmentalMetricsWidgetState
     extends State<EnvironmentalMetricsWidget> {
   late MqttService _mqttService;
-
   late List<SensorReading> _sensorReadingList;
 
-  Map<String, dynamic> _collectedData = {};
-
-  SensorValues sensorValues = SensorValues(
-    temperature: "0",
-    humidity: "0",
-    soilMoisture: "0",
-    nitrogen: "0",
-    phosphorus: "0",
-    potassium: "0",
-    compost: "0",
-    vermijuice: "0",
-    reservoir: "0",
+  final ValueNotifier<SensorValues> _sensorValuesNotifier = ValueNotifier(
+    SensorValues(
+      temperature: "0",
+      humidity: "0",
+      soilMoisture: "0",
+      nitrogen: "0",
+      phosphorus: "0",
+      potassium: "0",
+      compost: "0",
+      vermijuice: "0",
+      reservoir: "0",
+    ),
   );
+
+  final Map<String, dynamic> _collectedData = {};
 
   @override
   void initState() {
+    super.initState();
     _mqttService = GetIt.instance<MqttService>();
+    _sensorReadingList = widget.sensorReadingList;
+
+    _loadInitialValues();
 
     _mqttService.beddingLayerStream.listen(_onData);
     _mqttService.compostLayerStream.listen(_onData);
+    _mqttService.fluidLayerStream.listen(_onData);
+  }
 
-    _sensorReadingList = widget.sensorReadingList;
+  void _loadInitialValues() {
+    if (_mqttService.lastBeddingLayer != null) {
+      _collectedData.addAll(_mqttService.lastBeddingLayer!);
+    }
+    if (_mqttService.lastCompostLayer != null) {
+      _collectedData.addAll(_mqttService.lastCompostLayer!);
+    }
+    if (_mqttService.lastFluidLayer != null) {
+      _collectedData.addAll(_mqttService.lastFluidLayer!);
+    }
 
-    super.initState();
+    if (_collectedData.isNotEmpty) {
+      _sensorValuesNotifier.value = SensorValuesModel.fromJson(_collectedData);
+    }
+  }
+
+  @override
+  void dispose() {
+    _sensorValuesNotifier.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    List<int> realtimeMetricsValues = [
-      int.parse(sensorValues.temperature ?? "0"),
-      int.parse(sensorValues.humidity ?? "0"),
-      int.parse(sensorValues.soilMoisture ?? "0"),
-      int.parse(sensorValues.nitrogen ?? "0"),
-      int.parse(sensorValues.phosphorus ?? "0"),
-      int.parse(sensorValues.potassium ?? "0"),
-    ];
+    return ValueListenableBuilder<SensorValues>(
+      valueListenable: _sensorValuesNotifier,
+      builder: (context, sensorValues, child) {
+        List<int> realtimeMetricsValues = [
+          int.parse(sensorValues.temperature ?? "0"),
+          int.parse(sensorValues.humidity ?? "0"),
+          int.parse(sensorValues.soilMoisture ?? "0"),
+          int.parse(sensorValues.nitrogen ?? "0"),
+          int.parse(sensorValues.phosphorus ?? "0"),
+          int.parse(sensorValues.potassium ?? "0"),
+        ];
 
-    final List<ContainerLevel> containerItems = [
-      ContainerLevel(
-        label: "Compost",
-        color: Colors.brown,
-        value: sensorValues.compost ?? "0",
-        unit: "kg",
-        capacity: 48,
-      ),
-      ContainerLevel(
-        label: "Vermitea",
-        color: Colors.amberAccent,
-        value: sensorValues.vermijuice ?? "0",
-        unit: "L",
-        capacity: 28,
-      ),
-      ContainerLevel(
-        label: "Reservoir",
-        color: Colors.lightBlueAccent,
-        value: sensorValues.reservoir ?? "0",
-        unit: "L",
-        capacity: 28,
-      ),
-    ];
-
-    return SizedBox(
-      child: Column(
-        spacing: 20,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            "Substrate and Container Conditions",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-            ),
+        final List<ContainerLevel> containerItems = [
+          ContainerLevel(
+            label: "Compost",
+            color: Colors.brown,
+            value: (double.tryParse(sensorValues.compost ?? "0") ?? 0)
+                .toStringAsFixed(1),
+            unit: "kg",
+            capacity: 48,
           ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              spacing: 12,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.537,
-                  child: GridView.builder(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    itemCount: 6,
-                    physics: NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
-                    itemBuilder: (BuildContext context, int index) {
-                      final List<ChartData> readingList = (_sensorReadingList
-                              .where((reading) =>
-                                  reading.layer ==
-                                  Constants.parametersToMonitorList[index]
-                                      ['layer'])
-                              .map((reading) {
-                        return ChartData(
-                          reading.createdAt,
-                          (convertToReading(
-                                  Constants.parametersToMonitorList[index]
-                                      ['reading_key'],
-                                  reading) ??
-                              0),
-                        );
-                      }).toList())
-                          .sublist(0, 7);
+          ContainerLevel(
+            label: "Vermitea",
+            color: Colors.amberAccent,
+            value: (double.tryParse(sensorValues.vermijuice ?? "0") ?? 0)
+                .toStringAsFixed(1),
+            unit: "L",
+            capacity: 28,
+          ),
+          ContainerLevel(
+            label: "Reservoir",
+            color: Colors.lightBlueAccent,
+            value: (double.tryParse(sensorValues.reservoir ?? "0") ?? 0)
+                .toStringAsFixed(1),
+            unit: "L",
+            capacity: 28,
+          ),
+        ];
 
-                      return SensorReadingCard(
-                        key: Key(index.toString()),
-                        item: Constants.parametersToMonitorList[index],
-                        readingValueList: readingList,
-                        realtimeValue: realtimeMetricsValues[index],
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(
-                  height: 516,
-                  width: 364,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 12,
-                    children: [
-                      Expanded(
-                          child:
-                              _buildContainerLevelIndicator(containerItems[0])),
-                      Expanded(
-                        child: Row(
-                          spacing: 12,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: containerItems
-                              .asMap()
-                              .entries
-                              .where((entry) => entry.key != 0)
-                              .map((entry) {
-                            final ContainerLevel data = entry.value;
-
-                            return Expanded(
-                                child: _buildContainerLevelIndicator(data));
-                          }).toList(),
+        return SizedBox(
+          child: Column(
+            spacing: 20,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Substrate and Container Conditions",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+              ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  spacing: 12,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: MediaQuery.sizeOf(context).width * 0.537,
+                      child: GridView.builder(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemCount: 6,
+                        physics: NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
                         ),
+                        itemBuilder: (BuildContext context, int index) {
+                          final List<ChartData> readingList = _sensorReadingList
+                              .where(
+                                (reading) =>
+                                    reading.layer ==
+                                    Constants
+                                        .parametersToMonitorList[index]['layer'],
+                              )
+                              .take(7)
+                              .map((reading) {
+                                return ChartData(
+                                  reading.createdAt,
+                                  convertToReading(
+                                        Constants
+                                            .parametersToMonitorList[index]['reading_key'],
+                                        reading,
+                                      ) ??
+                                      0,
+                                );
+                              })
+                              .toList();
+
+                          return SensorReadingCard(
+                            key: Key(index.toString()),
+                            item: Constants.parametersToMonitorList[index],
+                            readingValueList: readingList,
+                            realtimeValue: realtimeMetricsValues[index],
+                          );
+                        },
                       ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(
+                      height: 516,
+                      width: 364,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        spacing: 12,
+                        children: [
+                          Expanded(
+                            child: _buildContainerLevelIndicator(
+                              containerItems[0],
+                            ),
+                          ),
+                          Expanded(
+                            child: Row(
+                              spacing: 12,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: containerItems
+                                  .asMap()
+                                  .entries
+                                  .where((entry) => entry.key != 0)
+                                  .map((entry) {
+                                    final ContainerLevel data = entry.value;
+
+                                    return Expanded(
+                                      child: _buildContainerLevelIndicator(
+                                        data,
+                                      ),
+                                    );
+                                  })
+                                  .toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -191,8 +230,9 @@ class _EnvironmentalMetricsWidgetState
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color:
-            Theme.of(context).colorScheme.surfaceContainerHigh.withOpacity(0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHigh.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: Theme.of(context).colorScheme.surfaceContainer,
@@ -200,7 +240,11 @@ class _EnvironmentalMetricsWidgetState
         ),
       ),
       child: LiquidLinearProgressIndicator(
-        value: ((safeParseDouble(containerData.value) ?? 0).clamp(0, 28)) /
+        value:
+            ((safeParseDouble(containerData.value) ?? 0).clamp(
+              0,
+              containerData.capacity.toDouble(),
+            )) /
             containerData.capacity,
         valueColor: AlwaysStoppedAnimation(containerData.color.withAlpha(24)),
         backgroundColor: Colors.transparent,
@@ -215,45 +259,52 @@ class _EnvironmentalMetricsWidgetState
             children: [
               Align(
                 alignment: Alignment.topLeft,
-                child: Text(containerData.label.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontFamily: "Zenbones Mono",
-                      fontWeight: FontWeight.bold,
-                    )),
+                child: Text(
+                  containerData.label.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontFamily: "Zenbones Mono",
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisAlignment: MainAxisAlignment.end,
                 spacing: 6,
                 children: [
-                  Text("Capacity",
-                      style: TextStyle(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withAlpha(164),
-                        fontSize: 16,
-                        fontFamily: "Zenbones Mono",
-                      )),
+                  Text(
+                    "Capacity",
+                    style: TextStyle(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withAlpha(164),
+                      fontSize: 16,
+                      fontFamily: "Zenbones Mono",
+                    ),
+                  ),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisAlignment: MainAxisAlignment.end,
                     spacing: 2.5,
                     children: [
-                      Text("${containerData.value}${containerData.unit}",
-                          style: TextStyle(
-                            fontSize: 38,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.025,
-                            height: 0.99,
-                          )),
-                      Text("/${containerData.capacity}${containerData.unit}",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.025,
-                          )),
+                      Text(
+                        "${containerData.value}${containerData.unit}",
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.025,
+                          height: 0.99,
+                        ),
+                      ),
+                      Text(
+                        "/${containerData.capacity}${containerData.unit}",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.025,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -270,10 +321,12 @@ class _EnvironmentalMetricsWidgetState
     try {
       final map = jsonDecode(data) as Map<String, dynamic>;
       _collectedData.addAll(map);
-      setState(() {
-        sensorValues = SensorValuesModel.fromJson(_collectedData);
-      });
+      _sensorValuesNotifier.value = SensorValuesModel.fromJson(_collectedData);
     } catch (_) {}
+  }
+
+  SensorValues getCurrentValues() {
+    return _sensorValuesNotifier.value;
   }
 }
 

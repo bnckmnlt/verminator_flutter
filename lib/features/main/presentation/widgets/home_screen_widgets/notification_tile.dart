@@ -3,8 +3,14 @@ import 'dart:convert';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
+import 'package:flutter_vermicomposting/core/secrets/app_secrets.dart';
+import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
+import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_instruction_screen.dart';
 import 'package:flutter_vermicomposting/features/notification/domain/entities/notification.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
@@ -18,12 +24,14 @@ class NotificationTile extends StatefulWidget {
   final NotificationEntity notification;
   final SupabaseClient supabaseClient;
   final void Function() onRefresh;
+  final VoidCallback? onNavigate;
 
   const NotificationTile({
     super.key,
     required this.notification,
     required this.supabaseClient,
     required this.onRefresh,
+    this.onNavigate,
   });
 
   @override
@@ -50,16 +58,16 @@ class _NotificationTileState extends State<NotificationTile> {
   void runSifter(ToastHelper toast) async {
     try {
       final statusUri = Uri.parse(
-        "https://verminator.thinkio.me/status",
+        "${AppSecrets.domainURL}/status",
       );
 
-      _mqttService.publish("control/sifter", "Process:15",
+      _mqttService.publish("control/sifter", "Process:50",
           qos: MqttQos.atLeastOnce);
 
       final statusPayload = {
         'statusScheduleId': notification.scheduleId,
         'status': CompostingStatus.released.name,
-        'remarks': null,
+        'remarks': "none",
         'isCompleted': false,
       };
 
@@ -232,58 +240,106 @@ class _NotificationTileState extends State<NotificationTile> {
 
   Widget _buildExpandedSection(
       ThemeData theme, List<Map<String, dynamic>> actionButtonList) {
-    return Column(
-      children: [
-        const SizedBox(height: 6),
-        Text(
-          notification.description,
-          style: TextStyle(
-            color: theme.colorScheme.onSurface.withAlpha(164),
-            fontSize: 12,
-          ),
-        ),
-        notification.path == "SIFTER"
-            ? Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Row(
-                  spacing: 10,
-                  children: actionButtonList.map((item) {
-                    return ElevatedButton(
-                      onPressed: item['behavior'],
+    return BlocBuilder<CompostScheduleBloc, CompostScheduleState>(
+      builder: (ctx, state) {
+        if (state is CompostScheduleLoading) {
+          return const Loader();
+        } else if (state is CompostScheduleListSuccess) {
+          final CompostSchedule schedule = state.compostScheduleList
+              .where((schedule) => schedule.id == notification.scheduleId)
+              .first;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 6),
+              Text(
+                notification.description,
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface.withAlpha(164),
+                  fontSize: 12,
+                ),
+              ),
+              notification.path == "FEED" && schedule.isCompleted == false
+                  ? ElevatedButton(
+                      onPressed: () {
+                        widget.onNavigate?.call();
+                        Navigator.push(
+                          context,
+                          InitializationInstructionScreen.route(
+                            notification.scheduleId,
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         side: BorderSide(
-                          color: item['label'] == "Accept"
-                              ? Colors.transparent
-                              : Colors.white30,
+                          color: Colors.transparent,
                         ),
-                        backgroundColor: item['label'] == "Accept"
-                            ? Colors.amberAccent.shade200
-                            : Color(0xFFFFF4F2).withAlpha(64),
+                        backgroundColor: Colors.indigoAccent.shade200,
                         padding:
                             EdgeInsets.symmetric(vertical: 6, horizontal: 20),
                         minimumSize: Size.zero,
                         shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(6), // Adjust as needed
+                          borderRadius: BorderRadius.circular(6),
                         ),
                       ),
                       child: Text(
-                        item['label'],
+                        "Start feeding",
                         style: TextStyle(
-                          color: item["label"] == "Accept"
-                              ? Colors.black87
-                              : Colors.white,
+                          color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.012,
                         ),
                       ),
-                    );
-                  }).toList(),
-                ),
-              )
-            : const SizedBox.shrink()
-      ],
+                    )
+                  : const SizedBox.shrink(),
+              notification.path == "SIFTER" && schedule.isCompleted == false
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Row(
+                        spacing: 10,
+                        children: actionButtonList.map((item) {
+                          return ElevatedButton(
+                            onPressed: item['behavior'],
+                            style: ElevatedButton.styleFrom(
+                              side: BorderSide(
+                                color: item['label'] == "Accept"
+                                    ? Colors.transparent
+                                    : Colors.white30,
+                              ),
+                              backgroundColor: item['label'] == "Accept"
+                                  ? Colors.amberAccent.shade200
+                                  : Color(0xFFFFF4F2).withAlpha(64),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 6, horizontal: 20),
+                              minimumSize: Size.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                            child: Text(
+                              item['label'],
+                              style: TextStyle(
+                                color: item["label"] == "Accept"
+                                    ? Colors.black87
+                                    : Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.012,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    )
+                  : const SizedBox.shrink()
+            ],
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
     );
   }
 }

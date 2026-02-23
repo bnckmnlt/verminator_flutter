@@ -43,6 +43,12 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   }
 
   @override
+  void dispose() {
+    _removePopover();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (notificationList.isNotEmpty) {
       final List<NotificationEntity> unreadList =
@@ -149,6 +155,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
                             onRefresh: () => context
                                 .read<NotificationBloc>()
                                 .add(NotificationList()),
+                            onNavigate: _removePopover,
                           ),
                         );
                       },
@@ -315,7 +322,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
     final Offset position = buttonBox.localToGlobal(Offset.zero);
     final Size buttonSize = buttonBox.size;
     final double popoverWidth =
-        MediaQuery.of(context).size.width * _popoverWidthRatio;
+        MediaQuery.sizeOf(context).width * _popoverWidthRatio;
 
     _popoverEntry = OverlayEntry(
       builder: (context) {

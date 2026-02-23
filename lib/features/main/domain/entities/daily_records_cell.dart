@@ -33,20 +33,20 @@ class DailyRecordsCell {
 
   Map<String, dynamic> toJson() {
     return {
-      "day": this.day,
-      "temperature": this.temperature,
-      "minTemp": this.minTemp,
-      "maxTemp": this.maxTemp,
-      "humidity": this.humidity,
-      "minHumidity": this.minHumidity,
-      "maxHumidity": this.maxHumidity,
-      "soilMoisture": this.soilMoisture,
-      "minSoilMoisture": this.minSoilMoisture,
-      "maxSoilMoisture": this.maxSoilMoisture,
-      "nitrogen": this.nitrogen,
-      "phosphorus": this.phosphorus,
-      "potassium": this.potassium,
-      "wormActivity": this.wormActivity,
+      "day": day,
+      "temperature": temperature,
+      "minTemp": minTemp,
+      "maxTemp": maxTemp,
+      "humidity": humidity,
+      "minHumidity": minHumidity,
+      "maxHumidity": maxHumidity,
+      "soilMoisture": soilMoisture,
+      "minSoilMoisture": minSoilMoisture,
+      "maxSoilMoisture": maxSoilMoisture,
+      "nitrogen": nitrogen,
+      "phosphorus": phosphorus,
+      "potassium": potassium,
+      "wormActivity": wormActivity,
     };
   }
 }

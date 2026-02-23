@@ -38,7 +38,7 @@ class _CompostingPerformanceOverviewWidgetState
 
   int chartOverviewCurrentTab = 0;
   int selectedChart = 0;
-  int selectedDateRange = 0;
+  int selectedDateRange = 2;
 
   @override
   void initState() {
@@ -260,7 +260,7 @@ class _CompostingPerformanceOverviewWidgetState
                               ],
                             ),
                             SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.4,
+                              width: MediaQuery.sizeOf(context).width * 0.4,
                               child: Wrap(
                                 spacing: 14,
                                 runSpacing: 8,

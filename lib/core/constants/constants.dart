@@ -204,8 +204,8 @@ class ReminderInterval {
 
 class ProcessInformation {
   final IconData icon;
-  final title;
-  final message;
+  final String title;
+  final String message;
   final bool currentError;
 
   const ProcessInformation({

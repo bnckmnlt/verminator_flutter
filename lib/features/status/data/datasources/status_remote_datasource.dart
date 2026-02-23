@@ -1,9 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter_vermicomposting/core/error/exception.dart';
-import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/features/status/data/models/status_record_model.dart';
-import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract interface class StatusRemoteDatasource {
   Future<List<StatusRecordModel>> listStatusRecords();
@@ -12,24 +9,24 @@ abstract interface class StatusRemoteDatasource {
 }
 
 class StatusRemoteDatasourceImpl implements StatusRemoteDatasource {
+  final SupabaseClient supabaseClient;
+
+  StatusRemoteDatasourceImpl({
+    required this.supabaseClient,
+  });
+
   @override
   Future<List<StatusRecordModel>> listStatusRecords() async {
     try {
-      final response = await http.get(
-        Uri.parse("https://verminator.thinkio.me/status"),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      );
+      final response = await supabaseClient
+          .from('status_records')
+          .select()
+          .order('created_at', ascending: false);
 
-      if (response.statusCode == 200) {
-        return (jsonDecode(response.body) as List)
-            .map((statusRecord) => StatusRecordModel.fromJson(statusRecord))
-            .toList()
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      } else {
-        throw ServerException(response.body.parseErrorMessage());
-      }
+      return (response as List)
+          .map((statusRecord) =>
+              StatusRecordModel.fromJsonSupabase(statusRecord))
+          .toList();
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -38,18 +35,10 @@ class StatusRemoteDatasourceImpl implements StatusRemoteDatasource {
   @override
   Future<StatusRecordModel> selectOneStatusRecord({required int id}) async {
     try {
-      final response = await http.get(
-        Uri.parse("https://verminator.thinkio.me/status/$id"),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      );
+      final response =
+          await supabaseClient.from('status').select().eq('id', id).single();
 
-      if (response.statusCode == 200) {
-        return StatusRecordModel.fromJson(jsonDecode(response.body));
-      } else {
-        throw ServerException(response.body.parseErrorMessage());
-      }
+      return StatusRecordModel.fromJsonSupabase(response);
     } catch (e) {
       throw ServerException(e.toString());
     }

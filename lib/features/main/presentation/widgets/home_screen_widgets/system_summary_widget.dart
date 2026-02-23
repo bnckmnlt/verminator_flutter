@@ -47,56 +47,70 @@ class _SystemSummaryWidgetState extends State<SystemSummaryWidget> {
               ..._summaryItems.map((item) {
                 return Expanded(
                   child: Glassmorphism(
-                    blur: 32,
+                    blur: 12,
                     opacity: 0.2,
-                    child: Container(
+                    child: AnimatedContainer(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 24,
                       ),
+                      curve: Curves.easeInOut,
+                      duration: const Duration(milliseconds: 500),
                       decoration: BoxDecoration(
                           color: Theme.of(context)
                               .colorScheme
                               .surfaceContainerHigh
-                              .withOpacity(0.3),
+                              .withAlpha(64),
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withAlpha(64),
-                              blurRadius: 4,
-                              offset: const Offset(0, 4),
-                            ),
-                          ]),
+                          border: Border.all(
+                            color: Colors.white.withAlpha(10),
+                            width: 1.5,
+                          ),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.transparent,
+                              Colors.white.withAlpha(28),
+                              Colors.white.withAlpha(24),
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          )),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Column(
-                            spacing: 2.5,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                textHeightBehavior: TextHeightBehavior(
-                                  applyHeightToLastDescent: false,
-                                  applyHeightToFirstAscent: true,
+                          Expanded(
+                            child: Column(
+                              spacing: 4,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  textHeightBehavior: TextHeightBehavior(
+                                    applyHeightToLastDescent: false,
+                                    applyHeightToFirstAscent: true,
+                                  ),
+                                  "${item.value}${item.unit}",
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontFamily: "Zenbones Mono",
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                                "${item.value}${item.unit}",
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  fontFamily: "Zenbones Mono",
-                                  fontWeight: FontWeight.bold,
+                                Text(
+                                  overflow: TextOverflow.ellipsis,
+                                  item.label,
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withAlpha(164),
+                                    fontSize: 14,
+                                    height: 0.75,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                item.label,
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withAlpha(164),
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           Container(
                             padding: const EdgeInsets.all(8),

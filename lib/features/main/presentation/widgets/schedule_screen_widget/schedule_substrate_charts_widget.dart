@@ -182,7 +182,7 @@ class _ScheduleSubstrateChartsWidgetState
       );
     }
 
-    String _getChartLabel(int index) {
+    String getChartLabel(int index) {
       const labels = [
         'Temperature',
         'Humidity',
@@ -239,7 +239,7 @@ class _ScheduleSubstrateChartsWidgetState
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _getChartLabel(_selectedChart),
+                      getChartLabel(_selectedChart),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: parameterTextStyle(),
@@ -290,7 +290,7 @@ class _ScheduleSubstrateChartsWidgetState
                         (index) => DropdownMenuItem(
                           value: index,
                           child: Text(
-                            _getChartLabel(index),
+                            getChartLabel(index),
                             style: dropdownButtonTextStyle(),
                           ),
                         ),

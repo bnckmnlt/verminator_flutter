@@ -4,7 +4,7 @@ import 'package:flutter_vermicomposting/core/network/connection_checker.dart';
 import 'package:flutter_vermicomposting/features/food_waste/data/datasources/food_waste_remote_datasource.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/entities/food_waste.dart';
 import 'package:flutter_vermicomposting/features/food_waste/domain/repositories/food_waste_repository.dart';
-import 'package:fpdart/src/either.dart';
+import 'package:fpdart/fpdart.dart';
 
 class FoodWasteRepositoryImpl implements FoodWasteRepository {
   final FoodWasteRemoteDatasource remoteDatasource;

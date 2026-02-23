@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_vermicomposting/core/common/cubits/app_settings/app_settings_cubit.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/glassmorphism.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
@@ -27,6 +28,8 @@ import 'package:flutter_vermicomposting/features/sensor_reading/domain/entity/se
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/presentation/bloc/worm_activity_bloc.dart';
+import 'package:flutter_vermicomposting/main.dart';
+import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -85,8 +88,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final double deviceHeight = MediaQuery.of(context).size.height;
-    final double deviceWidth = MediaQuery.of(context).size.width;
+    final double deviceHeight = MediaQuery.sizeOf(context).height;
+    final double deviceWidth = MediaQuery.sizeOf(context).width;
 
     final formattedDate = DateFormat('d MMMM y').format(now);
     final formattedTime = DateFormat('h:mm a')
@@ -108,24 +111,34 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         SummaryCardItem(
           label: "Total Vermicast Produced",
-          value:
-              "${compostScheduleList.fold(0, (prev, next) => prev + int.parse(next.compostProduced as String))}",
+          value: compostScheduleList
+              .fold<double>(
+                  0.0,
+                  (prev, next) =>
+                      prev +
+                      (double.tryParse(next.compostProduced ?? '0') ?? 0.0))
+              .toStringAsFixed(2),
           unit: "kg of soil",
           icon: Icons.eco_rounded,
           color: Colors.lightBlueAccent,
         ),
         SummaryCardItem(
           label: "Total Vermitea Collected",
-          value:
-              "${compostScheduleList.fold(0, (prev, next) => prev + int.parse(next.juiceProduced as String))}",
+          value: compostScheduleList
+              .fold<double>(
+                  0.0,
+                  (prev, next) =>
+                      prev +
+                      (double.tryParse(next.juiceProduced ?? '0') ?? 0.0))
+              .toStringAsFixed(2),
           unit: "L of vermitea",
           icon: FluentIcons.drink_bottle_20_filled,
           color: Colors.lightBlueAccent,
         ),
         SummaryCardItem(
-          label: "Total Cycles Completed",
+          label: "Total Process Completed",
           value: compostScheduleList.length.toString(),
-          unit: " cycles",
+          unit: " process",
           icon: FluentIcons.recycle_20_filled,
           color: Colors.lightBlueAccent,
         ),
@@ -151,6 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _isError = true;
                 _errorList.add(state.error);
               });
+              log.severe("schedule ${state.error}");
             }
           }),
           BlocListener<FoodWasteBloc, FoodWasteState>(
@@ -167,6 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _isError = true;
                 _errorList.add(state.error);
               });
+              log.severe("food waste ${state.error}");
             }
           }),
           BlocListener<SensorReadingBloc, SensorReadingState>(
@@ -177,12 +192,14 @@ class _HomeScreenState extends State<HomeScreen> {
               setState(() {
                 _sensorReadingLoadingState = false;
                 sensorReadingList = state.list;
+                log.warning(sensorReadingList.length);
               });
             } else if (state is SensorReadingFailure) {
               setState(() {
                 _isError = true;
                 _errorList.add(state.error);
               });
+              log.severe("sensor reading ${state.error}");
             }
           }),
           BlocListener<NotificationBloc, NotificationState>(
@@ -199,6 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _isError = true;
                 _errorList.add(state.error);
               });
+              log.severe("notification ${state.error}");
             }
           }),
         ],
@@ -220,7 +238,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       context.read<NotificationBloc>().add(NotificationList());
                     });
 
-                    // showing snackbar
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
@@ -313,6 +330,8 @@ class _HomeScreenState extends State<HomeScreen> {
     required String formattedDate,
     required String formattedTime,
   }) {
+    final AppSettingsCubit appSettingsCubit = GetIt.I<AppSettingsCubit>();
+
     String getGreeting() {
       final hour = DateTime.now().hour;
       if (hour < 12) {
@@ -340,6 +359,12 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressedFunction: () {
             Navigator.pushNamed(context, '/logs');
           }),
+      if (appSettingsCubit.state.devMode)
+        ButtonList(
+            icon: FluentIcons.table_settings_24_regular,
+            onPressedFunction: () {
+              Navigator.pushNamed(context, '/dev');
+            }),
       ButtonList(
           icon: FluentIcons.settings_24_regular,
           onPressedFunction: () {
@@ -427,7 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Text(
-                "The following summary reflects system conditions as of ${formattedDate} at ${formattedTime}",
+                "The following summary reflects system conditions as of $formattedDate at $formattedTime",
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurface.withAlpha(186),
                   fontSize: 18,

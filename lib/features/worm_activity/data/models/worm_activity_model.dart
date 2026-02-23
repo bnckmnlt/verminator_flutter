@@ -33,6 +33,23 @@ class WormActivityModel extends WormActivity {
     );
   }
 
+  factory WormActivityModel.fromSupabaseJson(Map<String, dynamic> json) {
+    return WormActivityModel(
+      id: json['id'] as int,
+      wormScheduleId: json['worm_schedule_id'] as int,
+      avgTemp: (json['avg_temp'] as num).toDouble(),
+      minTemp: (json['min_temp'] as num).toDouble(),
+      maxTemp: (json['max_temp'] as num).toDouble(),
+      thermalSpread: (json['thermal_spread'] as num).toDouble(),
+      activityLevel:
+          ActivityLevel.values.byName(json['activity_level'] as String),
+      hotspot: json['hotspot'] != null ? Point.fromJson(json['hotspot']) : null,
+      zones: json['zones'] as Map<String, dynamic>,
+      createdAt: formatToLocalTime(json['created_at']),
+      filePath: json['file_path'] as String,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

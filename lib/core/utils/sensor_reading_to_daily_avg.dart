@@ -15,14 +15,21 @@ List<ChartData> sensorReadingToWindowedAvg<T>(
       : (SensorReading r) => r.asCompostReading as T?;
 
   final buckets = <String, List<T>>{};
+  final bucketDates = <String, DateTime>{};
 
   for (final r in filtered) {
     final dt = DateTime.parse(r.createdAt);
     final key = buildBucketKey(dt, grouping);
-    final value = converter(r);
 
-    if (value != null) {
-      buckets.putIfAbsent(key, () => []).add(value);
+    try {
+      final value = converter(r);
+
+      if (value != null) {
+        buckets.putIfAbsent(key, () => []).add(value);
+        bucketDates.putIfAbsent(key, () => dt);
+      }
+    } catch (e) {
+      continue;
     }
   }
 
@@ -32,7 +39,12 @@ List<ChartData> sensorReadingToWindowedAvg<T>(
     return ChartData(e.key, avg.toDouble());
   }).toList();
 
-  data.sort((a, b) => a.x.compareTo(b.x));
+  data.sort((a, b) {
+    final dateA = bucketDates[a.x]!;
+    final dateB = bucketDates[b.x]!;
+    return dateA.compareTo(dateB);
+  });
+
   return data;
 }
 
@@ -40,17 +52,22 @@ List<SensorReading> filterByMode(
   List<SensorReading> readings,
   TimeGrouping grouping,
 ) {
-  if (grouping == TimeGrouping.all) return readings;
+  if (grouping == TimeGrouping.all || readings.isEmpty) return readings;
 
-  final now = DateTime.now();
+  final latestDate = readings
+      .map((r) => DateTime.parse(r.createdAt))
+      .reduce((a, b) => a.isAfter(b) ? a : b);
 
   return readings.where((r) {
     final dt = DateTime.parse(r.createdAt);
     return switch (grouping) {
-      TimeGrouping.last24Hours => dt.isAfter(now.subtract(Duration(hours: 24))),
-      TimeGrouping.last7Days => dt.isAfter(now.subtract(Duration(days: 7))),
-      TimeGrouping.last30Days => dt.isAfter(now.subtract(Duration(days: 30))),
-      TimeGrouping.annual => dt.year == now.year,
+      TimeGrouping.last24Hours =>
+        dt.isAfter(latestDate.subtract(Duration(hours: 24))),
+      TimeGrouping.last7Days =>
+        dt.isAfter(latestDate.subtract(Duration(days: 7))),
+      TimeGrouping.last30Days =>
+        dt.isAfter(latestDate.subtract(Duration(days: 30))),
+      TimeGrouping.annual => dt.year == latestDate.year,
       TimeGrouping.all => true,
     };
   }).toList();

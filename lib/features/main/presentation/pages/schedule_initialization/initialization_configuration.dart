@@ -141,7 +141,7 @@ class _InitializationConfigurationState
                               ),
                             ),
                             child: Text(
-                              '${_targetTemperatureValue}°C',
+                              '$_targetTemperatureValue°C',
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
@@ -191,7 +191,7 @@ class _InitializationConfigurationState
                               ),
                             ),
                             child: Text(
-                              '${_targetHumidityValue}%',
+                              '$_targetHumidityValue%',
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,

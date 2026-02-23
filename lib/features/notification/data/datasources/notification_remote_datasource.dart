@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_vermicomposting/core/error/exception.dart';
+import 'package:flutter_vermicomposting/core/secrets/app_secrets.dart';
 import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/features/notification/data/models/notification_model.dart';
 import 'package:http/http.dart' as http;
@@ -59,7 +60,7 @@ class NotificationRemoteDatasourceImpl implements NotificationRemoteDatasource {
   }) async {
     try {
       final response = await http.get(
-        Uri.parse("https://verminator.thinkio.me/notification/$id"),
+        Uri.parse("${AppSecrets.domainURL}/notification/$id"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -82,7 +83,7 @@ class NotificationRemoteDatasourceImpl implements NotificationRemoteDatasource {
   }) async {
     try {
       final response = await http.patch(
-        Uri.parse("https://verminator.thinkio.me/notification/$id"),
+        Uri.parse("${AppSecrets.domainURL}/notification/$id"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -108,7 +109,7 @@ class NotificationRemoteDatasourceImpl implements NotificationRemoteDatasource {
   }) async {
     try {
       final response = await http.delete(
-        Uri.parse("https://verminator.thinkio.me/notification/$id"),
+        Uri.parse("${AppSecrets.domainURL}/notification/$id"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

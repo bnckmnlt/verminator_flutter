@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -9,16 +10,20 @@ import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget
 import 'package:flutter_vermicomposting/core/common/widgets/get_progress_value.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/loader.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
+import 'package:flutter_vermicomposting/core/secrets/app_secrets.dart';
 import 'package:flutter_vermicomposting/core/utils/extract_by_day.dart';
 import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/data/models/compost_schedule_model.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_initialization/initialization_instruction_screen.dart';
-import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_screen_test.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_screen.dart';
 import 'package:flutter_vermicomposting/features/status/domain/entity/status_record.dart';
 import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
+import 'package:flutter_vermicomposting/mqtt_service.dart';
+import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
+import 'package:mqtt_client/mqtt_client.dart';
 import 'package:step_progress_indicator/step_progress_indicator.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -30,11 +35,15 @@ class ScheduleListScreen extends StatefulWidget {
 }
 
 class _ScheduleListScreenState extends State<ScheduleListScreen> {
+  late MqttService _mqttService;
+
   final formKey = GlobalKey<FormState>();
   final TextEditingController _scheduleIdentifierController =
       TextEditingController();
 
-  String _searchQuery = '';
+  final ValueNotifier<String> _searchQuery = ValueNotifier('');
+
+  Timer? _debounce;
 
   List<CompostSchedule> _compostSchedules = [];
   List<StatusRecord> _statusRecords = [];
@@ -42,20 +51,22 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
   @override
   void initState() {
     super.initState();
+
+    _mqttService = GetIt.I<MqttService>();
   }
 
   @override
   void dispose() {
-    _searchQuery = '';
-    _scheduleIdentifierController.clear();
-
+    _debounce?.cancel();
+    _searchQuery.dispose();
+    _scheduleIdentifierController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final double deviceHeight = MediaQuery.of(context).size.height;
-    final double deviceWidth = MediaQuery.of(context).size.width;
+    final double deviceHeight = MediaQuery.sizeOf(context).height;
+    final double deviceWidth = MediaQuery.sizeOf(context).width;
 
     final double verticalPadding = deviceHeight * 0.05;
     final double horizontalPadding = deviceWidth * 0.05;
@@ -153,27 +164,27 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
           spacing: 8,
           children: [
             SizedBox(
-              height: MediaQuery.of(context).size.width * 0.0275,
-              width: MediaQuery.of(context).size.width * 0.23,
+              height: MediaQuery.sizeOf(context).width * 0.0275,
+              width: MediaQuery.sizeOf(context).width * 0.23,
               child: CustomSearchBarWidget.build(
-                  context: context,
-                  onChangedFunction: (value) => setState(() {
-                        _searchQuery = value;
-                      }),
-                  label: "Search schedule name",
-                  leadingIcon: Icon(
-                    FluentIcons.search_24_regular,
-                    size: 20,
-                  )),
+                context: context,
+                onChangedFunction: (value) {
+                  if (_debounce?.isActive ?? false) _debounce!.cancel();
+                  _debounce = Timer(const Duration(milliseconds: 300), () {
+                    _searchQuery.value = value;
+                  });
+                },
+                label: "Search schedule name",
+                leadingIcon: Icon(
+                  FluentIcons.search_24_regular,
+                  size: 20,
+                ),
+              ),
             ),
             TextButton(
               onPressed: () {
-                setState(() {
-                  context
-                      .read<CompostScheduleBloc>()
-                      .add(CompostScheduleList());
-                  context.read<StatusRecordBloc>().add(StatusRecordList());
-                });
+                context.read<CompostScheduleBloc>().add(CompostScheduleList());
+                context.read<StatusRecordBloc>().add(StatusRecordList());
               },
               style: TextButton.styleFrom(
                 foregroundColor:
@@ -203,9 +214,10 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
           ],
         ),
         ElevatedButton(
-          onPressed: !_compostSchedules.first.isCompleted
-              ? null
-              : () => _handleScheduleCreation(context, toastHelper),
+          onPressed:
+              _compostSchedules.isEmpty || !_compostSchedules.first.isCompleted
+                  ? null
+                  : () => _handleScheduleCreation(context, toastHelper),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blueAccent,
             foregroundColor: Colors.white,
@@ -258,212 +270,217 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
             _scheduleListControls(),
           ],
         ),
-        Column(
-          children: _compostSchedules.where((item) {
-            final bool matchesSearch = _searchQuery.isEmpty
-                ? true
-                : item.scheduleName
-                    .toLowerCase()
-                    .contains(_searchQuery.toLowerCase());
-            return matchesSearch;
-          }).map((schedule) {
-            final timeCreated = DateTime.parse(schedule.updatedAt);
-            final String ago = timeago.format(timeCreated);
+        ValueListenableBuilder<String>(
+          valueListenable: _searchQuery,
+          builder: (context, searchQuery, _) {
+            final filteredSchedules = _compostSchedules.where((item) {
+              final bool matchesSearch = searchQuery.isEmpty
+                  ? true
+                  : item.scheduleName
+                      .toLowerCase()
+                      .contains(searchQuery.toLowerCase());
+              return matchesSearch;
+            }).toList();
 
-            final StatusRecord statusRecord = _statusRecords
-                .where((record) => record.scheduleId == schedule.id)
-                .toList()
-                .first;
+            return Column(
+              children: filteredSchedules.map((schedule) {
+                return _buildScheduleCard(schedule);
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
 
-            final bool scheduleCompleted = schedule.isCompleted;
-            final scheduleStatus = scheduleCompleted ? "COMPLETED" : "RUNNING";
-            final statusCompleted = statusRecord.isCompleted;
-            final statusColor =
-                statusCompleted ? Colors.greenAccent : Colors.blueAccent;
-            final Color color =
-                scheduleCompleted ? Colors.greenAccent : Colors.amber;
+  Widget _buildScheduleCard(CompostSchedule schedule) {
+    final StatusRecord statusRecord = _statusRecords
+        .where((record) => record.scheduleId == schedule.id)
+        .toList()
+        .first;
 
-            return InkWell(
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) =>
-                            ScheduleScreenTest(compostSchedule: schedule)));
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 28, horizontal: 24),
-                decoration: BoxDecoration(
-                  border: Border(
-                      bottom: BorderSide(
-                    color:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                    width: 1,
-                  )),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    final timeCreated = DateTime.parse(statusRecord.createdAt);
+    final String ago = timeago.format(timeCreated);
+
+    final bool scheduleCompleted = schedule.isCompleted;
+    final scheduleStatus = scheduleCompleted ? "COMPLETED" : "RUNNING";
+    final statusCompleted = statusRecord.isCompleted;
+    final statusColor =
+        statusCompleted ? Colors.greenAccent : Colors.blueAccent;
+    final Color color = scheduleCompleted ? Colors.greenAccent : Colors.amber;
+
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => ScheduleScreen(compostSchedule: schedule)));
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 28, horizontal: 24),
+        decoration: BoxDecoration(
+          border: Border(
+              bottom: BorderSide(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            width: 1,
+          )),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              spacing: 12,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      spacing: 12,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Text(
+                      extractDay(
+                          format: "EEE, MMM d y · h:mm a", schedule.createdAt),
+                      style: TextStyle(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withAlpha(164),
+                        fontSize: 16,
+                        fontFamily: "Zenbones Mono",
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 12,
+                      ),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: color,
+                          )),
+                      child: Text(
+                        scheduleStatus,
+                        style: TextStyle(
+                          color: color,
+                          fontFamily: "Zenbones Mono",
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.025,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  schedule.scheduleName,
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontFamily: "Zenbones Mono",
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              spacing: 18,
+              children: [
+                Column(
+                  spacing: 16,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              extractDay(
-                                  format: "EEE, MMM d y · h:mm a",
-                                  schedule.createdAt),
+                              "Composting Status: ",
                               style: TextStyle(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withAlpha(164),
-                                fontSize: 16,
                                 fontFamily: "Zenbones Mono",
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                vertical: 4,
-                                horizontal: 12,
+                                vertical: 5,
+                                horizontal: 14,
                               ),
                               decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                    color: color,
-                                  )),
+                                color: statusColor.withAlpha(24),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
                               child: Text(
-                                scheduleStatus,
+                                statusRecord.status.name.toUpperCase(),
                                 style: TextStyle(
-                                  color: color,
+                                  color: statusColor,
+                                  fontSize: 12,
                                   fontFamily: "Zenbones Mono",
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.025,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
                           ],
                         ),
                         Text(
-                          schedule.scheduleName,
+                          "${(getProgressValue(statusRecord.status) * 100).toInt()}%",
                           style: TextStyle(
-                            fontSize: 32,
+                            fontSize: 64,
                             fontFamily: "Zenbones Mono",
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.025,
+                            height: 0.75,
                           ),
                         ),
                       ],
                     ),
-                    Column(
-                      spacing: 18,
+                    StepProgressIndicator(
+                      totalSteps: 50,
+                      currentStep:
+                          (getProgressValue(statusRecord.status) * 50).toInt(),
+                      size: 24,
+                      selectedColor: statusColor,
+                      unselectedColor:
+                          Theme.of(context).colorScheme.surfaceContainerHigh,
+                    ),
+                  ],
+                ),
+                Row(
+                  spacing: 10,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      spacing: 8,
                       children: [
-                        Column(
-                          spacing: 16,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      "Composting Status: ",
-                                      style: TextStyle(
-                                        fontFamily: "Zenbones Mono",
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 5,
-                                        horizontal: 14,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: statusColor.withAlpha(24),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        statusRecord.status.name.toUpperCase(),
-                                        style: TextStyle(
-                                          color: statusColor,
-                                          fontSize: 12,
-                                          fontFamily: "Zenbones Mono",
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  "${(getProgressValue(statusRecord.status) * 100).toInt()}%",
-                                  style: TextStyle(
-                                    fontSize: 64,
-                                    fontFamily: "Zenbones Mono",
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.025,
-                                    height: 0.75,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            StepProgressIndicator(
-                              totalSteps: 50,
-                              currentStep:
-                                  (getProgressValue(statusRecord.status) * 50)
-                                      .toInt(),
-                              size: 24,
-                              selectedColor: statusColor,
-                              unselectedColor: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHigh,
-                            ),
-                          ],
-                        ),
-                        Row(
-                          spacing: 10,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              spacing: 8,
-                              children: [
-                                _toStatusWidget<CompostSchedule>(
-                                    item: schedule,
-                                    selector: (r) => "${r.compostProduced}kg",
-                                    icon: Icon(
-                                      FluentIcons.plant_grass_24_regular,
-                                      size: 20,
-                                    )),
-                                _toStatusWidget<CompostSchedule>(
-                                    item: schedule,
-                                    selector: (r) => "${r.juiceProduced}L",
-                                    icon: Icon(
-                                      FluentIcons.drop_24_regular,
-                                      size: 20,
-                                    )),
-                              ],
-                            ),
-                            Text(
-                              "last updated $ago",
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withAlpha(124),
-                              ),
-                            )
-                          ],
-                        ),
+                        _toStatusWidget<CompostSchedule>(
+                            item: schedule,
+                            selector: (r) => "${r.compostProduced}kg",
+                            icon: Icon(
+                              FluentIcons.plant_grass_24_regular,
+                              size: 20,
+                            )),
+                        _toStatusWidget<CompostSchedule>(
+                            item: schedule,
+                            selector: (r) => "${r.juiceProduced}L",
+                            icon: Icon(
+                              FluentIcons.drop_24_regular,
+                              size: 20,
+                            )),
                       ],
+                    ),
+                    Text(
+                      "last updated $ago",
+                      style: TextStyle(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withAlpha(124),
+                      ),
                     )
                   ],
                 ),
-              ),
-            );
-          }).toList(),
-        )
-      ],
+              ],
+            )
+          ],
+        ),
+      ),
     );
   }
 
@@ -503,7 +520,7 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
 
           try {
             final scheduleResp = await http.post(
-              Uri.parse("https://verminator.thinkio.me/schedule"),
+              Uri.parse("${AppSecrets.domainURL}/schedule"),
               headers: {'Content-Type': 'application/json; charset=UTF-8'},
               body: jsonEncode({
                 "scheduleName": name,
@@ -528,6 +545,24 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
               description: "Tracking for $name is now ready.",
               isError: false,
             );
+
+            final settingsPayload = {
+              "status": "idle",
+              "id": inserted.id.toString(),
+              "reading_interval":
+                  _mqttService.lastSystemSettings!['reading_interval'],
+              "refresh_rate": _mqttService.lastSystemSettings!['refresh_rate'],
+            };
+
+            _mqttService.publish(
+              "system/settings",
+              jsonEncode(settingsPayload),
+              qos: MqttQos.atLeastOnce,
+              retain: true,
+            );
+
+            context.read<CompostScheduleBloc>().add(CompostScheduleList());
+            context.read<StatusRecordBloc>().add(StatusRecordList());
 
             showDialog(
               context: context,
@@ -560,22 +595,20 @@ class _ScheduleListScreenState extends State<ScheduleListScreen> {
     required String Function(T) selector,
     Icon? icon,
   }) {
-    return Container(
-      child: Row(
-        spacing: 4,
-        children: [
-          icon ?? SizedBox.shrink(),
-          Text(
-            selector(item),
-            style: TextStyle(
-              fontSize: 16,
-              fontFamily: "Zenbones Mono",
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.025,
-            ),
+    return Row(
+      spacing: 4,
+      children: [
+        icon ?? SizedBox.shrink(),
+        Text(
+          selector(item),
+          style: TextStyle(
+            fontSize: 16,
+            fontFamily: "Zenbones Mono",
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.025,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

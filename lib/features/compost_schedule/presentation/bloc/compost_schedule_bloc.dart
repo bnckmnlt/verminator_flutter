@@ -78,7 +78,7 @@ class CompostScheduleBloc
 
     res.fold(
       (l) => emit(CompostScheduleFailure(l.message)),
-      (r) => _emitCurrentSchedule(r, emit),
+      (r) => emit(CompostScheduleSuccess(r)),
     );
   }
 

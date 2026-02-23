@@ -30,12 +30,25 @@ class CompostScheduleModel extends CompostSchedule {
     return CompostScheduleModel(
       id: json['id'] as int,
       scheduleName: json['scheduleName'] as String,
-      compostProduced: json['compostProduced'] as String?,
-      juiceProduced: json['juiceProduced'] as String?,
+      compostProduced: json['compostProduced']?.toString(),
+      juiceProduced: json['juiceProduced']?.toString(),
       isCompleted: json['isCompleted'] as bool,
       dateReleased: json['dateReleased'] as String?,
       createdAt: formatToLocalTime(json['createdAt']),
       updatedAt: formatToLocalTime(json['updatedAt']),
+    );
+  }
+
+  factory CompostScheduleModel.fromSupabaseJson(Map<String, dynamic> json) {
+    return CompostScheduleModel(
+      id: json['id'] as int,
+      scheduleName: json['schedule_name'] as String,
+      compostProduced: json['compost_produced']?.toString(),
+      juiceProduced: json['juice_produced']?.toString(),
+      isCompleted: json['is_completed'] as bool,
+      dateReleased: json['date_released'] as String?,
+      createdAt: formatToLocalTime(json['created_at']),
+      updatedAt: formatToLocalTime(json['updated_at']),
     );
   }
 }

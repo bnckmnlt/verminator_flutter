@@ -26,22 +26,16 @@ Map<String, dynamic> evaluateSoilHealth({
     };
   }
 
-  double npkToPercent(double value) => (value / 1999) * 100;
-
-  final nPercent = npkToPercent(nitrogen!);
-  final pPercent = npkToPercent(phosphorus!);
-  final kPercent = npkToPercent(potassium!);
-
   final conditions = [
-    (temperature!, 15.0, 25.0),
-    (humidity!, 60.0, 85.0),
-    (soilMoisture!, 70.0, 85.0),
-    (nPercent, 15.0, 40.0),
-    (pPercent, 10.0, 30.0),
-    (kPercent, 20.0, 50.0),
+    (temperature!, 25.0, 30.0),
+    (humidity!, 70.0, 90.0),
+    (soilMoisture!, 60.0, 80.0),
+    (nitrogen!, 1.0, 5.0),
+    (phosphorus!, 5.0, 10.0),
+    (potassium!, 5.0, 10.0),
   ];
 
-  final weights = [2.0, 1.5, 2.0, 1.0, 1.0, 1.0];
+  final weights = [2.5, 2.0, 3.0, 1.0, 1.0, 1.0];
 
   double weightedScore = 0;
   double totalWeight = 0;
@@ -75,33 +69,33 @@ Map<String, dynamic> evaluateSoilHealth({
     'details': {
       'temperature': {
         'value': temperature,
-        'optimal': temperature >= 15 && temperature <= 25,
-        'range': '15-25°C',
+        'optimal': temperature >= 25 && temperature <= 30,
+        'range': '25-30°C',
       },
       'humidity': {
         'value': humidity,
-        'optimal': humidity >= 60 && humidity <= 85,
-        'range': '60-85%',
+        'optimal': humidity >= 70 && humidity <= 90,
+        'range': '70-90%',
       },
       'moisture': {
         'value': soilMoisture,
-        'optimal': soilMoisture >= 70 && soilMoisture <= 85,
-        'range': '70-85%',
+        'optimal': soilMoisture >= 60 && soilMoisture <= 80,
+        'range': '60-80%',
       },
       'nitrogen': {
         'value': nitrogen,
-        'optimal': nitrogen >= 300 && nitrogen <= 800,
-        'range': '300-800 mg/kg',
+        'optimal': nitrogen >= 1.0 && nitrogen <= 5.0,
+        'range': '1.0-5.0%',
       },
       'phosphorus': {
         'value': phosphorus,
-        'optimal': phosphorus >= 200 && phosphorus <= 600,
-        'range': '200-600 mg/kg',
+        'optimal': phosphorus >= 5.0 && phosphorus <= 10.0,
+        'range': '5.0-10.0%',
       },
       'potassium': {
         'value': potassium,
-        'optimal': potassium >= 400 && potassium <= 1000,
-        'range': '400-1000 mg/kg',
+        'optimal': potassium >= 5.0 && potassium <= 10.0,
+        'range': '5.0-10.0%',
       },
     },
   };

@@ -1,32 +1,47 @@
-import 'dart:convert';
-
 import 'package:flutter_vermicomposting/core/error/exception.dart';
-import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/features/logs/data/models/logs_model.dart';
-import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract interface class LogRemoteDatasource {
   Future<List<LogModel>> listLogs();
 }
 
 class LogRemoteDatasourceImpl implements LogRemoteDatasource {
+  final SupabaseClient supabaseClient;
+
+  LogRemoteDatasourceImpl({
+    required this.supabaseClient,
+  });
+
   @override
   Future<List<LogModel>> listLogs() async {
     try {
-      final response = await http.get(
-        Uri.parse("https://verminator.thinkio.me/logs"),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      );
+      final allLogs = <LogModel>[];
+      const int pageSize = 1000;
+      int currentOffset = 0;
+      bool hasMore = true;
 
-      if (response.statusCode == 200) {
-        return (jsonDecode(response.body) as List)
-            .map((logs) => LogModel.fromJson(logs))
+      while (hasMore) {
+        final response = await supabaseClient
+            .from('reading_log')
+            .select()
+            .order('created_at', ascending: false)
+            .range(currentOffset, currentOffset + pageSize - 1);
+
+        final logs = (response as List)
+            .map((log) => LogModel.fromSupabaseJson(log))
             .toList();
-      } else {
-        throw ServerException(response.body.parseErrorMessage());
+
+        allLogs.addAll(logs);
+        hasMore = logs.length == pageSize;
+        currentOffset += pageSize;
+
+        if (hasMore) {
+          await Future.delayed(Duration(milliseconds: 100));
+        }
       }
+
+      return allLogs;
     } catch (e) {
       throw ServerException(e.toString());
     }

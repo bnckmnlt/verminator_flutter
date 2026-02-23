@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_vermicomposting/core/common/entities/layer_classes.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
-import 'package:flutter_vermicomposting/core/utils/evaluate_soil_health.dart';
 import 'package:flutter_vermicomposting/core/utils/extract_by_day.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/main/domain/entities/data_table_column.dart';
@@ -38,19 +37,18 @@ class _ScheduleDataTableWidgetState extends State<ScheduleDataTableWidget> {
   bool _isHourlyView = false;
   String _selectedDate = "";
   List<Reading> datasource = [];
-  bool _isAscending = true;
+  bool _isAscending = false;
   int compostingDays = 0;
 
   final List<DataTableColumn> columns = [
     DataTableColumn(label: "Date"),
-    DataTableColumn(label: "Status"),
     DataTableColumn(label: "Temperature"),
     DataTableColumn(label: "Humidity"),
     DataTableColumn(label: "Soil Moisture"),
     DataTableColumn(label: "Nitrogen"),
     DataTableColumn(label: "Phosphorus"),
     DataTableColumn(label: "Potassium"),
-    DataTableColumn(label: "Activity Region"),
+    DataTableColumn(label: "Worm Activity"),
     DataTableColumn(label: "Activity Snapshot"),
   ];
 
@@ -259,7 +257,7 @@ class _ScheduleDataTableWidgetState extends State<ScheduleDataTableWidget> {
                           style: mutedTextStyle(),
                         ),
                         Text(
-                          "${compostingDays} days",
+                          "$compostingDays days",
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 24,
@@ -279,7 +277,7 @@ class _ScheduleDataTableWidgetState extends State<ScheduleDataTableWidget> {
   }
 
   DataTable2 _buildDataTable() {
-    double tableWidth = MediaQuery.of(context).size.width * 1.10;
+    double tableWidth = MediaQuery.sizeOf(context).width * 1.10;
 
     TextStyle columnTextStyle() {
       return TextStyle(
@@ -351,32 +349,6 @@ class _ScheduleDataTableWidgetState extends State<ScheduleDataTableWidget> {
       );
     }
 
-    Widget beddingConditionBadge({IconData? icon, required String status}) {
-      return Container(
-        padding: EdgeInsets.symmetric(vertical: 1.5, horizontal: 8),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) Icon(icon),
-            Text(
-              status,
-              style: rowTextStyle().copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(164),
-                fontSize: 14,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     String extractZone(String input) {
       if (input.toLowerCase().startsWith("zone ")) {
         return input.substring(5).trim();
@@ -414,7 +386,6 @@ class _ScheduleDataTableWidgetState extends State<ScheduleDataTableWidget> {
                   curve: Curves.easeOutCubic,
                 ),
           ),
-          DataCell(beddingConditionBadge(status: item.status)),
           DataCell(Text(
             "${item.temperature.toStringAsFixed(0)}°C",
             style: rowTextStyle(),
@@ -459,7 +430,7 @@ class _ScheduleDataTableWidgetState extends State<ScheduleDataTableWidget> {
           )),
           DataCell(
             Container(
-              padding: EdgeInsets.symmetric(vertical: 1.5, horizontal: 8),
+              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 10),
               decoration: BoxDecoration(
                 border: Border.all(
                   color: Theme.of(context).colorScheme.surfaceContainerHigh,
@@ -475,7 +446,7 @@ class _ScheduleDataTableWidgetState extends State<ScheduleDataTableWidget> {
                         Theme.of(context).colorScheme.onSurface.withAlpha(204),
                   ),
                   children: [
-                    const TextSpan(text: "Zone "),
+                    const TextSpan(text: ""),
                     TextSpan(
                       text: extractZone(item.activeZone),
                       style: TextStyle(
@@ -624,15 +595,63 @@ List<Reading> parseToAverage(
     dateMapping.putIfAbsent(key, () => dt);
   }
 
-  double avg(List<double> values) =>
-      values.isEmpty ? 0 : values.reduce((a, b) => a + b) / values.length;
-
   double avgSensor(List<SensorReading> sensors, SystemLayer layer,
       double Function(dynamic) getValue) {
-    return avg(sensors
-        .where((r) => r.layer == layer)
-        .map((r) => getValue(r) ?? 0)
-        .toList());
+    final validValues = <double>[];
+
+    for (final sensor in sensors.where((r) => r.layer == layer)) {
+      try {
+        final value = getValue(sensor);
+        if (value != null && value is double) {
+          validValues.add(value);
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+
+    return validValues.isEmpty
+        ? 0
+        : validValues.reduce((a, b) => a + b) / validValues.length;
+  }
+
+  String getMostCommonActivityLevel(List<WormActivity> wormList) {
+    if (wormList.isEmpty) return "Low";
+
+    final activityCounts = <String, int>{};
+    for (final worm in wormList) {
+      final level = worm.activityLevel.name;
+      activityCounts[level] = (activityCounts[level] ?? 0) + 1;
+    }
+
+    var maxCount = 0;
+    var mostCommon = "Low";
+    activityCounts.forEach((level, count) {
+      if (count > maxCount) {
+        maxCount = count;
+        mostCommon = level;
+      }
+    });
+
+    return mostCommon;
+  }
+
+  String getMostRecentImage(List<WormActivity> wormList) {
+    if (wormList.isEmpty) return "";
+
+    final sorted = wormList.toList()
+      ..sort((a, b) =>
+          DateTime.parse(b.createdAt).compareTo(DateTime.parse(a.createdAt)));
+
+    final mostRecent = sorted.firstWhere(
+      (w) => w.filePath != null && w.filePath!.isNotEmpty,
+      orElse: () => sorted.first,
+    );
+
+    final rawPath = mostRecent.filePath ?? "";
+    return rawPath.isNotEmpty
+        ? supabaseClient.storage.from('image').getPublicUrl(rawPath)
+        : "";
   }
 
   final results = allDates.map((date) {
@@ -652,24 +671,10 @@ List<Reading> parseToAverage(
     final potassium = avgSensor(sensorList, SystemLayer.compost,
         (r) => r.asCompostReading?.npk.potassium.toDouble());
 
-    final activeZone =
-        wormList.isEmpty ? "A-D" : wormList.first.getActiveZoneLabel();
-    final rawPath = wormList.firstOrNull?.filePath ?? "";
-    final publicUrl = rawPath.isNotEmpty
-        ? supabaseClient.storage.from('image').getPublicUrl(rawPath)
-        : "";
-
-    final healthStatus = evaluateSoilHealth(
-      temperature: temperature,
-      humidity: humidity,
-      soilMoisture: soilMoisture,
-      nitrogen: nitrogen,
-      phosphorus: phosphorus,
-      potassium: potassium,
-    );
+    final activeZone = getMostCommonActivityLevel(wormList);
+    final publicUrl = getMostRecentImage(wormList);
 
     return Reading(
-      status: healthStatus["status"],
       date: date,
       temperature: temperature,
       humidity: humidity,
@@ -677,7 +682,7 @@ List<Reading> parseToAverage(
       nitrogen: nitrogen,
       phosphorus: phosphorus,
       potassium: potassium,
-      activeZone: activeZone,
+      activeZone: activeZone.toUpperCase(),
       imgSrc: publicUrl,
     );
   }).toList();

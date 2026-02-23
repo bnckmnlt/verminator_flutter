@@ -8,8 +8,10 @@ class FluidReading {
   });
 
   factory FluidReading.fromJson(Map<String, dynamic> json) => FluidReading(
-        juiceWeight: Measure.fromJson(json['juice_weight']),
-        reservoirWeight: Measure.fromJson(json['reservoir_weight']),
+        juiceWeight: Measure.fromJson(
+            json['juice_weight'] as Map<String, dynamic>? ?? {}),
+        reservoirWeight: Measure.fromJson(
+            json['reservoir_weight'] as Map<String, dynamic>? ?? {}),
       );
 }
 
@@ -25,9 +27,12 @@ class BeddingReading {
   });
 
   factory BeddingReading.fromJson(Map<String, dynamic> json) => BeddingReading(
-        humidity: Measure.fromJson(json['humidity']),
-        temperature: Measure.fromJson(json['temperature']),
-        soilMoisture: Measure.fromJson(json['soil_moisture']),
+        humidity:
+            Measure.fromJson(json['humidity'] as Map<String, dynamic>? ?? {}),
+        temperature: Measure.fromJson(
+            json['temperature'] as Map<String, dynamic>? ?? {}),
+        soilMoisture: Measure.fromJson(
+            json['soil_moisture'] as Map<String, dynamic>? ?? {}),
       );
 }
 
@@ -41,8 +46,9 @@ class CompostReading {
   });
 
   factory CompostReading.fromJson(Map<String, dynamic> json) => CompostReading(
-        npk: Npk.fromJson(json['npk']),
-        compostWeight: Measure.fromJson(json['compost_weight']),
+        npk: Npk.fromJson(json['npk'] as Map<String, dynamic>? ?? {}),
+        compostWeight: Measure.fromJson(
+            json['compost_weight'] as Map<String, dynamic>? ?? {}),
       );
 }
 
@@ -53,8 +59,8 @@ class Measure {
   Measure({required this.unit, required this.value});
 
   factory Measure.fromJson(Map<String, dynamic> json) => Measure(
-        unit: json['unit'] as String,
-        value: json['value'] as num,
+        unit: json['unit'] as String? ?? '',
+        value: (json['value'] as num?) ?? 0,
       );
 }
 
@@ -81,7 +87,6 @@ class Npk {
 
 class Reading {
   final String date;
-  final String status;
   final double temperature;
   final double humidity;
   final double soilMoisture;
@@ -92,7 +97,6 @@ class Reading {
   final String imgSrc;
 
   Reading({
-    this.status = "Unhealthy",
     required this.date,
     this.temperature = 0,
     this.humidity = 0,

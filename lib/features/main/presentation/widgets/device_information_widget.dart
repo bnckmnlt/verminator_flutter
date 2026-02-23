@@ -83,7 +83,7 @@ class _DeviceInformationWidgetState extends State<DeviceInformationWidget> {
                 children: [
                   Expanded(
                     child: Text(
-                      item.value.length != 0 ? item.value : "Connecting...",
+                      item.value.isNotEmpty ? item.value : "Connecting...",
                       textAlign: TextAlign.start,
                       style: TextStyle(
                         fontSize: 16,

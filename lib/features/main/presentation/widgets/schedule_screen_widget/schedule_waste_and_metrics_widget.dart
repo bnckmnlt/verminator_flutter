@@ -26,7 +26,8 @@ class ScheduleWasteAndMetricsWidget extends StatefulWidget {
 }
 
 class _ScheduleWasteAndMetricsWidgetState
-    extends State<ScheduleWasteAndMetricsWidget> {
+    extends State<ScheduleWasteAndMetricsWidget>
+    with AutomaticKeepAliveClientMixin {
   late FocusNode _focusNode;
 
   late List<FoodWaste> _foodWasteList;
@@ -36,6 +37,9 @@ class _ScheduleWasteAndMetricsWidgetState
   late FoodWaste _selectedRecord;
 
   bool _isImageSelected = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -60,6 +64,8 @@ class _ScheduleWasteAndMetricsWidgetState
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     final classCounts = getCountsPerClass(_foodWasteList);
     final ranges = buildRanges(classCounts);
     final legendItems = buildLegend(context, classCounts);
@@ -152,22 +158,20 @@ class _ScheduleWasteAndMetricsWidgetState
                                         BreadCrumbItem(
                                           margin: EdgeInsets.symmetric(
                                               horizontal: 8),
-                                          content: Flexible(
-                                            child: Text(
-                                              _selectedRecord.filePath
-                                                  .split("/")
-                                                  .last,
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 1,
-                                              style: GoogleFonts.inter(
-                                                color: _isRecordSelectionActive
-                                                    ? Colors.lightBlueAccent
-                                                    : Theme.of(context)
-                                                        .colorScheme
-                                                        .onSurface
-                                                        .withAlpha(164),
-                                                fontSize: 16,
-                                              ),
+                                          content: Text(
+                                            _selectedRecord.filePath
+                                                .split("/")
+                                                .last,
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                            style: GoogleFonts.inter(
+                                              color: _isRecordSelectionActive
+                                                  ? Colors.lightBlueAccent
+                                                  : Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface
+                                                      .withAlpha(164),
+                                              fontSize: 16,
                                             ),
                                           ),
                                         ),
@@ -299,7 +303,8 @@ class _ScheduleWasteAndMetricsWidgetState
         }
       },
       child: Wrap(
-        spacing: 16,
+        spacing: 14,
+        runSpacing: 14,
         children: feedingRecords.entries.map((item) {
           String date = item.key;
           List<FoodWaste> records = item.value;

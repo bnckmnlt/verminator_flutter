@@ -8,8 +8,6 @@ import 'package:flutter_vermicomposting/main.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 
-// TODO: [✅] DONEEEEE
-
 class PumpControlWidget extends StatefulWidget {
   final MqttService mqttService;
 
@@ -23,8 +21,9 @@ class PumpControlWidget extends StatefulWidget {
 }
 
 class _PumpControlWidgetState extends State<PumpControlWidget> {
-  bool pumpControlState = false;
-  bool vermijuiceControlState = false;
+  final ValueNotifier<bool> _pumpControlStateNotifier = ValueNotifier(false);
+  final ValueNotifier<bool> _vermijuiceControlStateNotifier =
+      ValueNotifier(false);
 
   StreamSubscription? _pumpSub;
   StreamSubscription? _vermiSub;
@@ -36,19 +35,15 @@ class _PumpControlWidgetState extends State<PumpControlWidget> {
     _pumpSub =
         widget.mqttService.getRelayPinState(0, 2).listen((dynamic state) {
       final newState = (state.toString() == "1");
-      setState(() {
-        pumpControlState = newState;
-        log.info(newState);
-      });
+      _pumpControlStateNotifier.value = newState;
+      log.info(newState);
     });
 
     _vermiSub =
         widget.mqttService.getRelayPinState(0, 3).listen((dynamic state) {
       final newState = (state.toString() == "1");
-      setState(() {
-        vermijuiceControlState = newState;
-        log.info(newState);
-      });
+      _vermijuiceControlStateNotifier.value = newState;
+      log.info(newState);
     });
   }
 
@@ -56,6 +51,8 @@ class _PumpControlWidgetState extends State<PumpControlWidget> {
   void dispose() {
     _pumpSub?.cancel();
     _vermiSub?.cancel();
+    _pumpControlStateNotifier.dispose();
+    _vermijuiceControlStateNotifier.dispose();
     super.dispose();
   }
 
@@ -66,71 +63,91 @@ class _PumpControlWidgetState extends State<PumpControlWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final pumpControlList = [
-      SensorControl(
-        device: "12V Pump",
-        label: "Bedding Hydration",
-        icon: Icons.water_drop_outlined,
-        state: pumpControlState,
-        topic: "control/pump",
-      ),
-      SensorControl(
-        device: "12V Pump",
-        label: "Vermijuice Dispenser",
-        icon: FluentIcons.drink_bottle_20_regular,
-        state: vermijuiceControlState,
-        topic: "control/vermitea",
-      ),
-    ];
-
     return Row(
-      children: pumpControlList.asMap().entries.map((entry) {
-        final item = entry.value;
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              height: 284,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  width: 1,
-                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
+      children: [
+        Expanded(
+          child: ValueListenableBuilder<bool>(
+            valueListenable: _pumpControlStateNotifier,
+            builder: (context, pumpState, child) {
+              return _buildPumpControlCard(
+                context: context,
+                control: SensorControl(
+                  device: "12V Pump",
+                  label: "Bedding Hydration",
+                  icon: Icons.water_drop_outlined,
+                  state: pumpState,
+                  topic: "control/pump",
                 ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Icon(item.icon),
-                      SizedBox(
-                        height: 24,
-                        child: FittedBox(
-                          fit: BoxFit.fill,
-                          child: Switch(
-                            value: item.state,
-                            onChanged: (bool value) =>
-                                togglePumpState(item.topic, value),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  sensorCardHeader(
-                    context: context,
-                    label: item.label,
-                    device: item.device,
-                  ),
-                ],
-              ),
-            ),
+              );
+            },
           ),
-        );
-      }).toList(),
+        ),
+        Expanded(
+          child: ValueListenableBuilder<bool>(
+            valueListenable: _vermijuiceControlStateNotifier,
+            builder: (context, vermijuiceState, child) {
+              return _buildPumpControlCard(
+                context: context,
+                control: SensorControl(
+                  device: "12V Pump",
+                  label: "Vermijuice Dispenser",
+                  icon: FluentIcons.drink_bottle_20_regular,
+                  state: vermijuiceState,
+                  topic: "control/vermitea",
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPumpControlCard({
+    required BuildContext context,
+    required SensorControl control,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        height: 284,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            width: 1,
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(control.icon),
+                SizedBox(
+                  height: 24,
+                  child: FittedBox(
+                    fit: BoxFit.fill,
+                    child: Switch(
+                      value: control.state,
+                      onChanged: (bool value) =>
+                          togglePumpState(control.topic, value),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            sensorCardHeader(
+              context: context,
+              label: control.label,
+              device: control.device,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

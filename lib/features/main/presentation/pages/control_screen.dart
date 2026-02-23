@@ -30,8 +30,8 @@ class _ControlScreenState extends State<ControlScreen> {
 
     _sensorsList = [
       SensorControl(
-        device: "Dual 150x150mm Fan",
-        label: "Ambient Aeration Control",
+        device: " 12V Water Pump",
+        label: "Reservoir Fill Control",
         icon: CupertinoIcons.wind,
         state: false,
         topic: "control/fan",
@@ -44,7 +44,7 @@ class _ControlScreenState extends State<ControlScreen> {
         topic: "control/aeration",
       ),
       SensorControl(
-        device: " 12V Pump",
+        device: " 12V Water Pump",
         label: "Conveyor Misting Control",
         icon: CupertinoIcons.wind_snow,
         state: false,
@@ -57,8 +57,8 @@ class _ControlScreenState extends State<ControlScreen> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double deviceHeight = MediaQuery.of(context).size.height;
-        final double deviceWidth = MediaQuery.of(context).size.width;
+        final double deviceHeight = MediaQuery.sizeOf(context).height;
+        final double deviceWidth = MediaQuery.sizeOf(context).width;
 
         return Scaffold(
           extendBody: true,

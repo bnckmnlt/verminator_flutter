@@ -6,8 +6,6 @@ import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
-// TODO: [✅] DONEEEEEE
-
 class ConveyorControlWidget extends StatefulWidget {
   final MqttService mqttService;
 
@@ -21,21 +19,23 @@ class ConveyorControlWidget extends StatefulWidget {
 }
 
 class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
-  late bool _conveyorState;
-
-  double _speedValue = 1000;
+  final ValueNotifier<bool> _conveyorStateNotifier = ValueNotifier(false);
+  final ValueNotifier<double> _speedValueNotifier = ValueNotifier(1000);
 
   @override
   void initState() {
     super.initState();
 
-    _conveyorState = false;
-
     widget.mqttService.conveyorFeedbackStream.listen((value) {
-      setState(() {
-        _conveyorState = value == 'active' ? true : false;
-      });
+      _conveyorStateNotifier.value = value == 'active';
     });
+  }
+
+  @override
+  void dispose() {
+    _conveyorStateNotifier.dispose();
+    _speedValueNotifier.dispose();
+    super.dispose();
   }
 
   void publishConveyorCommand(String command) {
@@ -85,19 +85,26 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
                 spacing: 14,
                 children: [
                   _conveyorModesSection(),
-                  _conveyorSpeedControlSection(widget.mqttService),
+                  _conveyorSpeedControlSection(),
                   _conveyorCommandsSection(conveyorCommands: conveyorCommands),
                 ],
               ),
             ),
-            sensorCardHeader(
-              context: context,
-              label: "Conveyor Belt",
-              device: "NEMA17 Stepper",
-              optionalWidget: StatusBadge(
-                  color: _conveyorState ? Colors.greenAccent : Colors.redAccent,
-                  state: _conveyorState ? "Active" : "Inactive"),
-            )
+            ValueListenableBuilder<bool>(
+              valueListenable: _conveyorStateNotifier,
+              builder: (context, conveyorState, child) {
+                return sensorCardHeader(
+                  context: context,
+                  label: "Conveyor Belt",
+                  device: "NEMA17 Stepper",
+                  optionalWidget: StatusBadge(
+                    color:
+                        conveyorState ? Colors.greenAccent : Colors.redAccent,
+                    state: conveyorState ? "Active" : "Inactive",
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -173,36 +180,44 @@ class _ConveyorControlWidgetState extends State<ConveyorControlWidget> {
     );
   }
 
-  Widget _conveyorSpeedControlSection(MqttService mqttClient) {
-    return Column(
-      spacing: 6,
-      children: [
-        const Text(
-          "Speed Control",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.025,
-          ),
-        ),
-        SizedBox(
-          height: 32,
-          child: Slider(
-            activeColor: Theme.of(context).colorScheme.tertiary,
-            inactiveColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-            value: _speedValue,
-            min: 1000,
-            max: 5000,
-            divisions: 10,
-            onChanged: (double newValue) => setState(() {
-              _speedValue = newValue;
-              mqttClient.publish(
-                  "control/conveyor", "Acceleration:$_speedValue");
-            }),
-          ),
-        ),
-      ],
+  Widget _conveyorSpeedControlSection() {
+    return ValueListenableBuilder<double>(
+      valueListenable: _speedValueNotifier,
+      builder: (context, speedValue, child) {
+        return Column(
+          spacing: 6,
+          children: [
+            const Text(
+              "Speed Control",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.025,
+              ),
+            ),
+            SizedBox(
+              height: 32,
+              child: Slider(
+                activeColor: Theme.of(context).colorScheme.tertiary,
+                inactiveColor:
+                    Theme.of(context).colorScheme.surfaceContainerHigh,
+                value: speedValue,
+                min: 1000,
+                max: 5000,
+                divisions: 10,
+                onChanged: (double newValue) {
+                  _speedValueNotifier.value = newValue;
+                  widget.mqttService.publish(
+                    "control/conveyor",
+                    "Acceleration:$newValue",
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

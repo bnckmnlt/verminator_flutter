@@ -5,7 +5,7 @@ import 'package:flutter_vermicomposting/core/network/connection_checker.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/data/datasources/compost_schedule_remote_datasource.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/repositories/compost_schedule_repository.dart';
-import 'package:fpdart/src/either.dart';
+import 'package:fpdart/fpdart.dart';
 
 class CompostScheduleRepositoryImpl implements CompostScheduleRepository {
   final CompostScheduleRemoteDatasource remoteDataSource;

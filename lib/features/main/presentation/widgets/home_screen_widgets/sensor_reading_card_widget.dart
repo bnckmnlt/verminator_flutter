@@ -174,60 +174,39 @@ SensorStatus getSensorStatus({
 }) {
   if (value == null) return SensorStatus.bad;
 
-  double? numValue = double.tryParse(value);
-  if (numValue == null) return SensorStatus.bad;
-
-  switch (type) {
-    case 'temperature':
-      if (numValue >= 20 && numValue <= 28) return SensorStatus.good;
-      if (numValue >= 10 && numValue < 15 || numValue > 30 && numValue <= 35) {
-        return SensorStatus.fair;
-      }
-      return SensorStatus.bad;
-    case 'humidity':
-      if (numValue >= 70 && numValue <= 80) return SensorStatus.good;
-      if ((numValue >= 60 && numValue < 70) ||
-          (numValue > 80 && numValue <= 85)) {
-        return SensorStatus.fair;
-      }
-      return SensorStatus.bad;
-    case 'soilMoisture':
-      if (numValue >= 65 && numValue <= 80) return SensorStatus.good;
-      if ((numValue >= 60 && numValue < 65) ||
-          (numValue > 80 && numValue <= 90)) {
-        return SensorStatus.fair;
-      }
-      return SensorStatus.bad;
-    case 'nitrogen':
-      if (numValue >= 20 && numValue <= 40) return SensorStatus.good;
-      if (numValue >= 15 && numValue < 20 || numValue > 40 && numValue <= 50) {
-        return SensorStatus.fair;
-      }
-      return SensorStatus.bad;
-    case 'phosphorus':
-      if (numValue >= 10 && numValue <= 30) return SensorStatus.good;
-      if ((numValue >= 5 && numValue < 10) ||
-          (numValue > 30 && numValue <= 40)) {
-        return SensorStatus.fair;
-      }
-      return SensorStatus.bad;
-    case 'potassium':
-      if (numValue >= 15 && numValue <= 30) return SensorStatus.good;
-      if ((numValue >= 10 && numValue < 15) ||
-          (numValue > 30 && numValue <= 35)) {
-        return SensorStatus.fair;
-      }
-      return SensorStatus.bad;
-    case 'compost':
-      if (numValue >= 1 && numValue <= 10) return SensorStatus.good;
-      return SensorStatus.fair;
-    case 'vermijuice':
-      if (numValue >= 1 && numValue <= 10) return SensorStatus.good;
-      return SensorStatus.fair;
-    case 'reservoir':
-      if (numValue > 1) return SensorStatus.good;
-      return SensorStatus.bad;
-    default:
-      return SensorStatus.bad;
+  final numValue = double.tryParse(value);
+  if (numValue == null || !numValue.isFinite || numValue < 0) {
+    return SensorStatus.bad;
   }
+
+  final ranges = {
+    'temperature': (good: (20.0, 28.0), fair: [(10.0, 15.0), (30.0, 35.0)]),
+    'humidity': (good: (70.0, 80.0), fair: [(60.0, 70.0), (80.0, 85.0)]),
+    'soil moisture': (good: (65.0, 80.0), fair: [(40.0, 60.0), (80.0, 90.0)]),
+    'nitrogen': (good: (2.0, 3.0), fair: [(1.0, 2.0)]),
+    'phosphorus': (good: (5.0, 10.0), fair: [(1.0, 5.0)]),
+    'potassium': (good: (5.0, 10.0), fair: [(1.0, 5.0)]),
+    'compost': (good: (1.0, 10.0), fair: null),
+    'vermijuice': (good: (1.0, 10.0), fair: null),
+    'reservoir': (good: (1.0, double.infinity), fair: null),
+  };
+
+  if (!ranges.containsKey(type)) return SensorStatus.bad;
+
+  final range = ranges[type]!;
+
+  if (numValue >= range.good.$1 && numValue <= range.good.$2) {
+    return SensorStatus.good;
+  }
+
+  if (range.fair != null) {
+    for (final (min, max) in range.fair!) {
+      if (numValue >= min && numValue < max) {
+        return SensorStatus.fair;
+      }
+    }
+    return SensorStatus.bad;
+  }
+
+  return SensorStatus.fair;
 }

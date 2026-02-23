@@ -47,7 +47,9 @@ Future<void> initDependencies() async {
 void _initCompostSchedule() {
   sl
     ..registerFactory<CompostScheduleRemoteDatasource>(
-      () => CompostScheduleRemoteDatasourceImpl(),
+      () => CompostScheduleRemoteDatasourceImpl(
+        supabaseClient: sl(),
+      ),
     )
     ..registerFactory<CompostScheduleRepository>(
       () => CompostScheduleRepositoryImpl(
@@ -95,7 +97,9 @@ void _initCompostSchedule() {
 void _initFoodWaste() {
   sl
     ..registerFactory<FoodWasteRemoteDatasource>(
-      () => FoodWasteRemoteDatasourceImpl(),
+      () => FoodWasteRemoteDatasourceImpl(
+        supabaseClient: sl(),
+      ),
     )
     ..registerFactory<FoodWasteRepository>(
       () => FoodWasteRepositoryImpl(sl(), sl()),
@@ -141,7 +145,9 @@ void _initSensorReading() {
 void _initLogs() {
   sl
     ..registerFactory<LogRemoteDatasource>(
-      () => LogRemoteDatasourceImpl(),
+      () => LogRemoteDatasourceImpl(
+        supabaseClient: sl(),
+      ),
     )
     ..registerFactory<LogRepository>(
       () => LogRepositoryImpl(
@@ -164,7 +170,9 @@ void _initLogs() {
 void _initWormActivity() {
   sl
     ..registerFactory<WormActivityRemoteDatasource>(
-      () => WormActivityRemoteDatasourceImpl(),
+      () => WormActivityRemoteDatasourceImpl(
+        supabaseClient: sl(),
+      ),
     )
     ..registerFactory<WormActivityRepository>(
       () => WormActivityRepositoryImpl(
@@ -193,7 +201,9 @@ void _initWormActivity() {
 void _initStatusRecord() {
   sl
     ..registerFactory<StatusRemoteDatasource>(
-      () => StatusRemoteDatasourceImpl(),
+      () => StatusRemoteDatasourceImpl(
+        supabaseClient: sl(),
+      ),
     )
     ..registerFactory<StatusRepository>(
       () => StatusRepositoryImpl(sl(), sl()),

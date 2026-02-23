@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter_vermicomposting/core/error/exception.dart';
+import 'package:flutter_vermicomposting/core/secrets/app_secrets.dart';
 import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/features/worm_activity/data/models/worm_activity_model.dart';
 import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract interface class WormActivityRemoteDatasource {
   Future<List<WormActivityModel>> listWormActivity();
@@ -14,11 +16,17 @@ abstract interface class WormActivityRemoteDatasource {
 }
 
 class WormActivityRemoteDatasourceImpl implements WormActivityRemoteDatasource {
+  final SupabaseClient supabaseClient;
+
+  WormActivityRemoteDatasourceImpl({
+    required this.supabaseClient,
+  });
+
   @override
   Future<List<WormActivityModel>> listWormActivity() async {
     try {
       final response = await http.get(
-        Uri.parse("https://verminator.thinkio.me/worm-activity"),
+        Uri.parse("${AppSecrets.domainURL}/worm-activity"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -43,7 +51,7 @@ class WormActivityRemoteDatasourceImpl implements WormActivityRemoteDatasource {
   }) async {
     try {
       final response = await http.get(
-        Uri.parse("https://verminator.thinkio.me/worm-activity/$id"),
+        Uri.parse("${AppSecrets.domainURL}/worm-activity/$id"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

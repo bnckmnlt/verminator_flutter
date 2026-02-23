@@ -113,7 +113,7 @@ class _DailyRecordsDataTableState extends State<DailyRecordsDataTable> {
 
       final DateTime date;
       if (isSingleDayRange) {
-        date = DateTime.parse(timeUnit + ":00:00");
+        date = DateTime.parse("$timeUnit:00:00");
       } else {
         date = DateTime.parse(timeUnit);
       }

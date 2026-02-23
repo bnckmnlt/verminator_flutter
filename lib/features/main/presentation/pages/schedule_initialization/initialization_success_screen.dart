@@ -90,7 +90,7 @@ class _InitializationSuccessScreenState
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      final double deviceHeight = MediaQuery.of(context).size.height;
+      final double deviceHeight = MediaQuery.sizeOf(context).height;
 
       return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -116,9 +116,12 @@ class _InitializationSuccessScreenState
                   );
                 } else if (state is FoodWasteListSuccess) {
                   final invalidData = state.foodWaste
-                      .where((item) =>
-                          item.foodWasteScheduleId == widget.scheduleId &&
-                          item.materialStatus == MaterialStatus.invalid)
+                      .where(
+                    (item) =>
+                        item.foodWasteScheduleId == widget.scheduleId &&
+                        item.materialStatus == MaterialStatus.invalid &&
+                        betweenRange(item.createdAt),
+                  )
                       .map((item) {
                     return FoodWasteClass(
                       pathname: item.filePath,
@@ -129,9 +132,12 @@ class _InitializationSuccessScreenState
                   }).toList();
 
                   final validData = state.foodWaste
-                      .where((item) =>
-                          item.foodWasteScheduleId == widget.scheduleId &&
-                          item.materialStatus == MaterialStatus.valid)
+                      .where(
+                    (item) =>
+                        item.foodWasteScheduleId == widget.scheduleId &&
+                        item.materialStatus == MaterialStatus.valid &&
+                        betweenRange(item.createdAt),
+                  )
                       .map((item) {
                     return FoodWasteClass(
                       pathname: item.filePath,
@@ -182,6 +188,14 @@ class _InitializationSuccessScreenState
         ),
       );
     });
+  }
+
+  bool betweenRange(String createdAt) {
+    DateTime createdDate = DateTime.parse(createdAt);
+    DateTime tenMinsAgo = DateTime.now().subtract(Duration(minutes: 10));
+    DateTime now = DateTime.now();
+
+    return createdDate.isAfter(tenMinsAgo) && createdDate.isBefore(now);
   }
 
   Widget _summaryHeaderSection() {
@@ -497,7 +511,6 @@ IconData getClassnameIconData(FoodWasteClassname classname) {
 
     default:
       iconData = FluentIcons.prohibited_24_regular;
-      ;
       break;
   }
 

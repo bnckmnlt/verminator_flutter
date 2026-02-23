@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter_vermicomposting/core/error/exception.dart';
-import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/data/models/sensor_reading_model.dart';
-import 'package:http/http.dart' as http;
+import 'package:get_it/get_it.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract interface class SensorReadingRemoteDatasource {
   Future<List<SensorReadingModel>> listSensorReading();
@@ -14,22 +12,34 @@ class SensorReadingRemoteDatasourceImpl
   @override
   Future<List<SensorReadingModel>> listSensorReading() async {
     try {
-      final response = await http.get(
-        Uri.parse("https://verminator.thinkio.me/sensors"),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      );
+      SupabaseClient supabaseClient = GetIt.instance<SupabaseClient>();
 
-      if (response.statusCode == 200) {
-        return (jsonDecode(response.body) as List)
-            .map((compostSchedule) =>
-                SensorReadingModel.fromJson(compostSchedule))
-            .toList()
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      } else {
-        throw ServerException(response.body.parseErrorMessage());
+      final allReadings = <SensorReadingModel>[];
+      const int pageSize = 1000;
+      int currentOffset = 0;
+      bool hasMore = true;
+
+      while (hasMore) {
+        final response = await supabaseClient
+            .from("sensor_readings")
+            .select()
+            .order('created_at', ascending: false)
+            .range(currentOffset, currentOffset + pageSize - 1);
+
+        final readings = (response as List)
+            .map((reading) => SensorReadingModel.fromSupabaseJson(reading))
+            .toList();
+
+        allReadings.addAll(readings);
+        hasMore = readings.length == pageSize;
+        currentOffset += pageSize;
+
+        if (hasMore) {
+          await Future.delayed(Duration(milliseconds: 100));
+        }
       }
+
+      return allReadings;
     } catch (e) {
       throw ServerException(e.toString());
     }

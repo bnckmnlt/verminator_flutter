@@ -1,10 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter_vermicomposting/core/error/exception.dart';
-import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/data/models/compost_schedule_model.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
-import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract interface class CompostScheduleRemoteDatasource {
   Future<List<CompostSchedule>> listCompostSchedule();
@@ -35,25 +32,23 @@ abstract interface class CompostScheduleRemoteDatasource {
 
 class CompostScheduleRemoteDatasourceImpl
     implements CompostScheduleRemoteDatasource {
+  final SupabaseClient supabaseClient;
+
+  CompostScheduleRemoteDatasourceImpl({
+    required this.supabaseClient,
+  });
+
   @override
   Future<List<CompostSchedule>> listCompostSchedule() async {
     try {
-      final response = await http.get(
-        Uri.parse("https://verminator.thinkio.me/schedule"),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      );
+      final response = await supabaseClient
+          .from('compost_schedule')
+          .select()
+          .order('created_at', ascending: false);
 
-      if (response.statusCode == 200) {
-        return (jsonDecode(response.body) as List)
-            .map((compostSchedule) =>
-                CompostScheduleModel.fromJson(compostSchedule))
-            .toList()
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      } else {
-        throw ServerException(response.body.parseErrorMessage());
-      }
+      return (response as List)
+          .map((schedule) => CompostScheduleModel.fromSupabaseJson(schedule))
+          .toList();
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -64,18 +59,13 @@ class CompostScheduleRemoteDatasourceImpl
     required int id,
   }) async {
     try {
-      final response = await http.get(
-        Uri.parse("https://verminator.thinkio.me/schedule/$id"),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      );
+      final response = await supabaseClient
+          .from('compost_schedule')
+          .select()
+          .eq('id', id)
+          .single();
 
-      if (response.statusCode == 200) {
-        return CompostScheduleModel.fromJson(jsonDecode(response.body));
-      } else {
-        throw ServerException(response.body.parseErrorMessage());
-      }
+      return CompostScheduleModel.fromSupabaseJson(response);
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -88,24 +78,20 @@ class CompostScheduleRemoteDatasourceImpl
     required String juiceProduced,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse("https://verminator.thinkio.me/schedule"),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'scheduleName': scheduleName,
-          'compostProduced': compostProduced,
-          'juiceProduced': juiceProduced,
-        }),
-      );
+      final response = await supabaseClient
+          .from('compost_schedule')
+          .insert({
+            'schedule_name': scheduleName,
+            'compost_produced': compostProduced,
+            'juice_produced': juiceProduced,
+          })
+          .select()
+          .single();
 
-      if (response.statusCode == 200) {
-        return CompostScheduleModel.fromJson(jsonDecode(response.body));
-      } else {
-        throw ServerException(response.body.parseErrorMessage());
-      }
-    } on Exception catch (e) {
+      return CompostScheduleModel.fromSupabaseJson(response);
+    } on PostgrestException catch (e) {
+      throw ServerException('Database error: ${e.message}');
+    } catch (e) {
       throw ServerException(e.toString());
     }
   }
@@ -120,25 +106,29 @@ class CompostScheduleRemoteDatasourceImpl
     String? dateReleased,
   }) async {
     try {
-      final response = await http.patch(
-        Uri.parse("https://verminator.thinkio.me/schedule/$id"),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, dynamic>{
-          'scheduleName': scheduleName ?? null,
-          'compostProduced': compostProduced ?? null,
-          'juiceProduced': juiceProduced ?? null,
-          'isCompleted': isCompleted ?? false,
-          'dateReleased': dateReleased ?? null
-        }),
-      );
+      final Map<String, dynamic> updates = {};
 
-      if (response.statusCode == 200) {
-        return CompostScheduleModel.fromJson(jsonDecode(response.body));
-      } else {
-        throw ServerException(response.body.parseErrorMessage());
+      if (scheduleName != null) updates['schedule_name'] = scheduleName;
+      if (compostProduced != null)
+        updates['compost_produced'] = compostProduced;
+      if (juiceProduced != null) updates['juice_produced'] = juiceProduced;
+      if (isCompleted != null) updates['is_completed'] = isCompleted;
+      if (dateReleased != null) updates['date_released'] = dateReleased;
+
+      if (updates.isEmpty) {
+        return selectOneCompostSchedules(id: id);
       }
+
+      final response = await supabaseClient
+          .from('compost_schedule')
+          .update(updates)
+          .eq('id', id)
+          .select()
+          .single();
+
+      return CompostScheduleModel.fromSupabaseJson(response);
+    } on PostgrestException catch (e) {
+      throw ServerException('Database error: ${e.message}');
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -149,18 +139,11 @@ class CompostScheduleRemoteDatasourceImpl
     required int id,
   }) async {
     try {
-      final response = await http.delete(
-        Uri.parse("https://verminator.thinkio.me/schedule/$id"),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      );
+      await supabaseClient.from('compost_schedule').delete().eq('id', id);
 
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body)["message"].toString();
-      } else {
-        throw ServerException(response.body.parseErrorMessage());
-      }
+      return 'Compost schedule deleted successfully';
+    } on PostgrestException catch (e) {
+      throw ServerException('Database error: ${e.message}');
     } catch (e) {
       throw ServerException(e.toString());
     }

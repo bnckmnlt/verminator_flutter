@@ -11,10 +11,10 @@ class LogModel extends LogEntity {
 
   Map<String, dynamic> toJson() {
     return {
-      "id": this.id,
-      "eventSeverity": this.logSeverity,
-      "eventMessage": this.message,
-      "createdAt": this.createdAt,
+      "id": id,
+      "eventSeverity": logSeverity,
+      "eventMessage": message,
+      "createdAt": createdAt,
     };
   }
 

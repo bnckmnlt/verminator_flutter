@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_vermicomposting/core/common/cubits/app_schedule/app_schedule_cubit.dart';
 import 'package:flutter_vermicomposting/core/common/cubits/app_settings/app_settings_cubit.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/empty_display_widget.dart';
@@ -16,6 +17,7 @@ import 'package:flutter_vermicomposting/features/main/presentation/pages/home_sc
 import 'package:flutter_vermicomposting/features/main/presentation/pages/logs_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/schedule_list_screen.dart';
 import 'package:flutter_vermicomposting/features/main/presentation/pages/settings_screen.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/test_pages/raw_data_screen.dart';
 import 'package:flutter_vermicomposting/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:flutter_vermicomposting/features/sensor_reading/presentation/bloc/sensor_reading_bloc.dart';
 import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
@@ -31,7 +33,7 @@ final log = Logger('System Logs');
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  Logger.root.level = Level.ALL;
+  Logger.root.level = Level.INFO;
 
   Logger.root.onRecord.listen((record) {
     if (kDebugMode) {
@@ -62,7 +64,9 @@ void main() async {
         BlocProvider(create: (_) => sl<StatusRecordBloc>()),
         BlocProvider(create: (_) => sl<NotificationBloc>()),
       ],
-      child: const MyApp(),
+      child: Phoenix(
+        child: const MyApp(),
+      ),
     ),
   );
 }
@@ -112,12 +116,14 @@ class _MyAppState extends State<MyApp> {
       title: 'Burmi',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      themeMode: ThemeMode.dark,
       darkTheme: AppTheme.dark,
       routes: {
         '/': _buildHomeRoute,
         '/schedule': (context) => const SafeArea(child: ScheduleListScreen()),
         '/controls': (context) => const SafeArea(child: ControlScreen()),
         '/logs': (context) => const SafeArea(child: LogsScreen()),
+        '/dev': (context) => const SafeArea(child: RawDataScreen()),
         '/settings': (context) => SafeArea(child: SettingsScreen()),
         '/calibration': (context) => SafeArea(child: CalibrationWidget()),
       },
