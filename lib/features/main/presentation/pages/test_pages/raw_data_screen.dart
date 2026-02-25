@@ -19,7 +19,7 @@ class _RawDataScreenState extends State<RawDataScreen> {
   void initState() {
     super.initState();
 
-    context.read<SensorReadingBloc>().add(SensorReadingList());
+    // context.read<SensorReadingBloc>().add(SensorReadingList());
   }
 
   @override
@@ -33,6 +33,7 @@ class _RawDataScreenState extends State<RawDataScreen> {
 
           List<String> header = [];
           header.add('ID');
+          header.add('Schedule ID');
           header.add('Temperature');
           header.add('Humidity');
           header.add('Soil Moisture');
@@ -107,6 +108,10 @@ List<List<String>> parseReadingToTableRecord(
 
     list.add([
       (beddingReading?.id ?? compostReading?.id ?? '').toString(),
+      (beddingReading?.sensorScheduleId ??
+              compostReading?.sensorScheduleId ??
+              '')
+          .toString(),
       "${beddingReading?.asBeddingReading?.temperature.value ?? 0}$degreeSymbol"
           "C",
       "${beddingReading?.asBeddingReading?.humidity.value ?? 0}%",
@@ -123,6 +128,7 @@ List<List<String>> parseReadingToTableRecord(
 
 class RawSensorReading {
   final String id;
+  final String scheduleId;
   final String temperature;
   final String humidity;
   final String soilMoisture;
@@ -133,6 +139,7 @@ class RawSensorReading {
 
   RawSensorReading({
     required this.id,
+    required this.scheduleId,
     required this.temperature,
     required this.humidity,
     required this.soilMoisture,
