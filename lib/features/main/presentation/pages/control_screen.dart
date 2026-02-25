@@ -45,7 +45,7 @@ class _ControlScreenState extends State<ControlScreen> {
       ),
       SensorControl(
         device: " 12V Water Pump",
-        label: "Conveyor Misting Control",
+        label: "Vermitea Transfer Control",
         icon: CupertinoIcons.wind_snow,
         state: false,
         topic: "control/misting",
