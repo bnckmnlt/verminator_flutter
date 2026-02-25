@@ -111,6 +111,7 @@ It integrates with **Supabase** for persistent data storage and **HiveMQ MQTT** 
 |--------------------------|----------------------------------------------------------------------------------------------------|
 | **Home Screen**          | Displays real-time sensor data with brief charts and analytics as well as the realtime video feed. |
 | **Schedule List**        | CRUD operations for composting schedule list and progress tracking.                                |
+| **Feeding Screen**       | Instructions and Monitoring of Food/Garden Waste Loaded in the System                              |
 | **Control Screen**       | Allows toggling of pumps, fans, misting, and other actuators.                                      |
 | **Notifications & Logs** | Stores sensor logs, progress and status changes, and sends alerts through Supabase.                |
 | **Settings**             | Raspberry Pi board configuration, sensor interval adjustments, and load cell calibration.          |
