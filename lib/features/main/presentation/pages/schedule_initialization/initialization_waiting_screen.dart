@@ -183,9 +183,11 @@ class _InitializationWaitingScreenState
                   title: "Cancel Feeding",
                   description: "Do you want to cancel this process?",
                   confirmButtonLabel: "Cancel Process",
-                  approvedFunction: () {
+                  approvedFunction: () async {
+                    final hasFoodWaste = await _scheduleHasFoodWaste();
+
                     final settingsPayload = {
-                      "status": currentSchedule.isCompleted ? "active" : "idle",
+                      "status": hasFoodWaste ? "active" : "idle",
                       "id": widget.scheduleId.toString(),
                       "reading_interval":
                           _mqttService.lastSystemSettings!['reading_interval'],
@@ -634,6 +636,20 @@ class _InitializationWaitingScreenState
     await flutterTts.pause();
   }
 
+  Future<bool> _scheduleHasFoodWaste() async {
+    final result = await _supabaseClient
+        .from('food_waste')
+        .select('id')
+        .eq('food_waste_schedule_id', widget.scheduleId)
+        .limit(1);
+
+    return result.isNotEmpty;
+  }
+
+  void reloadWebView(WebViewController? webViewController) {
+    webViewController?.reload();
+  }
+
   void _showCameraFeed() {
     showDialog(
       context: context,
@@ -648,12 +664,36 @@ class _InitializationWaitingScreenState
             borderRadius: BorderRadius.circular(8),
           ),
           clipBehavior: Clip.antiAlias,
-          child: VideoFeedWidget(
-            key: const ValueKey('video_camera'),
-            onWebViewCreated: (controller) {
-              cameraFeedController = controller;
-            },
-            cameraChannel: 'http://192.168.100.137:8080/video_feed',
+          child: Stack(
+            children: [
+              VideoFeedWidget(
+                key: const ValueKey('video_camera'),
+                onWebViewCreated: (controller) {
+                  cameraFeedController = controller;
+                },
+                cameraChannel: 'http://192.168.100.137:8080/video_feed',
+              ),
+              Positioned(
+                left: 20,
+                bottom: 20,
+                child: IconButton(
+                  onPressed: () => reloadWebView(cameraFeedController),
+                  icon: const Icon(
+                    Icons.sync_rounded,
+                    size: 16,
+                    color: Color(0xFFE2E8F0),
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E293B),
+                    padding: const EdgeInsets.all(8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      side: const BorderSide(color: Color(0xFF334155)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
