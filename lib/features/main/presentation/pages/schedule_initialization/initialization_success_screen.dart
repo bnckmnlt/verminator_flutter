@@ -191,11 +191,12 @@ class _InitializationSuccessScreenState
   }
 
   bool betweenRange(String createdAt) {
-    DateTime createdDate = DateTime.parse(createdAt);
-    DateTime tenMinsAgo = DateTime.now().subtract(Duration(minutes: 10));
-    DateTime now = DateTime.now();
+    final createdDate = DateTime.parse(createdAt);
+    final now = DateTime.now();
+    final startOfDay = DateTime(now.year, now.month, now.day);
+    final endOfDay = startOfDay.add(const Duration(days: 1));
 
-    return createdDate.isAfter(tenMinsAgo) && createdDate.isBefore(now);
+    return createdDate.isAfter(startOfDay) && createdDate.isBefore(endOfDay);
   }
 
   Widget _summaryHeaderSection() {
