@@ -799,12 +799,12 @@ class _SystemSettingsState extends State<_SystemSettings> {
               content: DropdownMenu<int>(
                 initialSelection: refreshRate,
                 dropdownMenuEntries: [
-                  DropdownMenuEntry(value: 2, label: '2Hz Refresh Rate'),
-                  DropdownMenuEntry(value: 4, label: '4Hz Refresh Rate'),
+                  DropdownMenuEntry(value: 2, label: 'Low'),
+                  DropdownMenuEntry(value: 4, label: 'Medium'),
                   DropdownMenuEntry(
-                      value: 8, label: '8Hz Refresh Rate (Warning)'),
+                      value: 8, label: 'High (Warning)'),
                   DropdownMenuEntry(
-                      value: 16, label: '16Hz Refresh Rate (Warning)'),
+                      value: 16, label: 'Highest (Warning)'),
                 ],
                 onSelected: (value) => setState(() {
                   refreshRate = value!;
