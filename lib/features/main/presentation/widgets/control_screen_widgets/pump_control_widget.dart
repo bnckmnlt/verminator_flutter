@@ -90,7 +90,7 @@ class _PumpControlWidgetState extends State<PumpControlWidget> {
                 context: context,
                 control: SensorControl(
                   device: "12V Pump",
-                  label: "Vermijuice Dispenser",
+                  label: "Vermitea Dispenser",
                   icon: FluentIcons.drink_bottle_20_regular,
                   state: vermijuiceState,
                   topic: "control/vermitea",
