@@ -140,67 +140,96 @@ class _SensorWithDurationWidgetState extends State<SensorWithDurationWidget> {
               valueListenable: _currentDurationNotifier,
               builder: (context, currentDuration, child) {
                 return Column(
+                  spacing: 16,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      "Select Duration",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.025,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [0, 1, 3, 7, 10, 15].map((item) {
-                          return Padding(
-                            padding:
-                                EdgeInsets.fromLTRB(item == 0 ? 0 : 6, 0, 0, 0),
-                            child: GestureDetector(
-                              onTap: () {
-                                _currentDurationNotifier.value = item;
+                    Column(
+                      spacing: 6,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Select Duration",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.025,
+                          ),
+                        ),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [0, 1, 3, 7, 10, 15].map((item) {
+                              return Padding(
+                                padding: EdgeInsets.fromLTRB(
+                                    item == 0 ? 0 : 6, 0, 0, 0),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    _currentDurationNotifier.value = item;
 
-                                if (_toggleStateNotifier.value == 0) {
-                                  publishTurnOnCommand(item);
-                                } else {
-                                  publishTurnOffCommand(item);
-                                }
-                              },
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: item == 0 ? 6 : 4,
-                                    horizontal: 12),
-                                decoration: BoxDecoration(
-                                  color: item == currentDuration
-                                      ? Theme.of(context)
-                                          .colorScheme
-                                          .surfaceContainerHigh
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(24),
-                                  border: Border.all(
-                                    color: item == currentDuration
-                                        ? Color(0xFF27272a)
-                                        : Theme.of(context)
-                                            .colorScheme
-                                            .surfaceContainerHigh,
+                                    if (_toggleStateNotifier.value == 0) {
+                                      publishTurnOnCommand(item);
+                                    } else {
+                                      publishTurnOffCommand(item);
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                        vertical: item == 0 ? 6 : 4,
+                                        horizontal: 12),
+                                    decoration: BoxDecoration(
+                                      color: item == currentDuration
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .surfaceContainerHigh
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(24),
+                                      border: Border.all(
+                                        color: item == currentDuration
+                                            ? Color(0xFF27272a)
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .surfaceContainerHigh,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      "${item == 0 ? "Default" : item == 15 ? "∞" : item}",
+                                      style: TextStyle(
+                                        fontSize: item == 0 ? 12 : 14,
+                                        fontWeight: item == 0
+                                            ? FontWeight.w500
+                                            : FontWeight.w600,
+                                        letterSpacing: 0.025,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                child: Text(
-                                  "${item == 0 ? "Default" : item == 15 ? "∞" : item}",
-                                  style: TextStyle(
-                                    fontSize: item == 0 ? 12 : 14,
-                                    fontWeight: item == 0
-                                        ? FontWeight.w500
-                                        : FontWeight.w600,
-                                    letterSpacing: 0.025,
-                                  ),
-                                ),
+                              );
+                            }).toList()),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Row(
+                        spacing: 8,
+                        children: [
+                          Container(
+                            width: 2.5,
+                            height: 28,
+                            color: Colors.lightBlueAccent,
+                          ),
+                          Expanded(
+                            child: const Text(
+                              textAlign: TextAlign.start,
+                              "Values are in minutes. Select '∞ (Indefinite)' for no time limit.",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
                               ),
                             ),
-                          );
-                        }).toList()),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 );
               },
