@@ -91,7 +91,7 @@ class _SifterControlWidgetState extends State<SifterControlWidget> {
               builder: (context, sifterState, child) {
                 return sensorCardHeader(
                   context: context,
-                  label: "Bedding Sifter",
+                  label: "Soil Sifter",
                   device: "NEMA17 Stepper",
                   optionalWidget: StatusBadge(
                     color: sifterState ? Colors.greenAccent : Colors.redAccent,
