@@ -1,6 +1,7 @@
 import 'package:flutter_vermicomposting/core/error/exception.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/data/models/compost_schedule_model.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract interface class CompostScheduleRemoteDatasource {
@@ -139,9 +140,8 @@ class CompostScheduleRemoteDatasourceImpl
     required int id,
   }) async {
     try {
-      await supabaseClient.from('compost_schedule').delete().eq('id', id);
+      return await supabaseClient.from('compost_schedule').delete().eq('id', id).whenComplete(() => 'Compost schedule deleted successfully');
 
-      return 'Compost schedule deleted successfully';
     } on PostgrestException catch (e) {
       throw ServerException('Database error: ${e.message}');
     } catch (e) {

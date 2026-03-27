@@ -220,7 +220,7 @@ class _SensorWithDurationWidgetState extends State<SensorWithDurationWidget> {
                           Expanded(
                             child: const Text(
                               textAlign: TextAlign.start,
-                              "Values are in minutes. Select '∞ (Indefinite)' for no time limit.",
+                              "Values are in minutes. Select '∞' for no time limit. Default is 5 minutes",
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey,

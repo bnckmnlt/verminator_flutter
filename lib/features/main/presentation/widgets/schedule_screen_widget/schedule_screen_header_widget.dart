@@ -8,11 +8,14 @@ import 'package:flutter_vermicomposting/core/common/widgets/dialog.dart';
 import 'package:flutter_vermicomposting/core/common/widgets/toast_helper.dart';
 import 'package:flutter_vermicomposting/core/constants/constants.dart';
 import 'package:flutter_vermicomposting/core/secrets/app_secrets.dart';
+import 'package:flutter_vermicomposting/core/theme/styles/button_styles.dart';
+import 'package:flutter_vermicomposting/core/theme/styles/text_styles.dart';
 import 'package:flutter_vermicomposting/core/utils/extract_by_day.dart';
 import 'package:flutter_vermicomposting/core/utils/parse_error_message.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/data/models/compost_schedule_model.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/domain/entities/compost_schedule.dart';
 import 'package:flutter_vermicomposting/features/compost_schedule/presentation/bloc/compost_schedule_bloc.dart';
+import 'package:flutter_vermicomposting/features/main/presentation/pages/output_validation/validation_instruction.dart';
 import 'package:flutter_vermicomposting/features/status/presentation/bloc/status_record_bloc.dart';
 import 'package:flutter_vermicomposting/mqtt_service.dart';
 import 'package:get_it/get_it.dart';
@@ -54,6 +57,7 @@ class _ScheduleScreenHeaderWidgetState
   }
 
   bool _isReadyToComplete = false;
+  bool _readyForValidation = false;
 
   @override
   Widget build(BuildContext context) {
@@ -173,20 +177,6 @@ class _ScheduleScreenHeaderWidgetState
               Row(
                 spacing: 10,
                 children: [
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadiusGeometry.circular(8),
-                        side: BorderSide(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
-                        ),
-                      ),
-                    ),
-                    onPressed: () => _handleChangeScheduleName(_toaster),
-                    icon: Icon(FluentIcons.edit_24_regular),
-                  ),
                   BlocBuilder<StatusRecordBloc, StatusRecordState>(
                     builder: (ctx, state) {
                       if (state is StatusRecordListSuccess) {
@@ -204,6 +194,10 @@ class _ScheduleScreenHeaderWidgetState
                           _isReadyToComplete =
                               firstStatus.status == CompostingStatus.released &&
                                   firstStatus.isCompleted == false;
+
+                          _readyForValidation =
+                              firstStatus.status == CompostingStatus.released &&
+                                  firstStatus.isCompleted == true;
                         }
                       }
 
@@ -253,8 +247,44 @@ class _ScheduleScreenHeaderWidgetState
                                 ],
                               ),
                             )
-                          : const SizedBox.shrink();
+                          : !_readyForValidation
+                              ? SizedBox.shrink()
+                              : ElevatedButton(
+                                  onPressed: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => ValidationInstruction(
+                                        scheduleId: widget.compostSchedule.id,
+                                      ),
+                                    ),
+                                  ),
+                                  style: AppButtonStyles.of(
+                                      context: context,
+                                      variant: AppButtonVariant.primary),
+                                  child: Text(
+                                    "Soil and Vermitea Validation",
+                                    style: AppTextStyles.paragraphSemibold(
+                                            context: context, size: 14)
+                                        .copyWith(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface),
+                                  ),
+                                );
                     },
+                  ),
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadiusGeometry.circular(8),
+                        side: BorderSide(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
+                        ),
+                      ),
+                    ),
+                    onPressed: () => _handleChangeScheduleName(_toaster),
+                    icon: Icon(FluentIcons.edit_24_regular),
                   ),
                 ],
               )
